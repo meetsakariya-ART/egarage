@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eGarage — Create Account</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --ink: #0d0d0d;
+            --accent: #e63946;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --surface: #f9fafb;
+        }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            background: #080810;
+        }
+
+        /* LEFT PANEL */
+        .panel-left {
+            width: 44%;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #garageCanvas {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+            filter: blur(3px) brightness(0.45) saturate(1.1);
+            transform: scale(1.05);
+        }
+        .vignette {
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse at 55% 50%, transparent 20%, rgba(4,4,14,0.82) 100%),
+                        linear-gradient(to right, rgba(4,4,14,0.6) 0%, transparent 60%);
+            pointer-events: none; z-index: 1;
+        }
+        .diag-bar {
+            position: absolute; width: 3px; height: 140%;
+            background: var(--accent);
+            top: -20%; left: 52px;
+            transform: rotate(-12deg);
+            opacity: 0.55; z-index: 2;
+        }
+        .diag-bar-2 { left: 66px; opacity: 0.15; }
+
+        .left-content {
+            position: relative; z-index: 3;
+            padding: 56px 52px;
+            color: #fff;
+            max-width: 480px; width: 100%;
+        }
+        .brand-tag {
+            display: inline-flex; align-items: center; gap: 10px;
+            background: rgba(230,57,70,0.18);
+            border: 1px solid rgba(230,57,70,0.38);
+            border-radius: 100px;
+            padding: 5px 16px 5px 10px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(6px);
+        }
+        .brand-dot {
+            width: 8px; height: 8px;
+            background: var(--accent); border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.5)} }
+        .brand-tag span {
+            font-size: 0.68rem; font-weight: 500;
+            letter-spacing: 1.8px; text-transform: uppercase;
+            color: rgba(255,255,255,0.78);
+        }
+        .left-content h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(36px, 4.5vw, 58px);
+            font-weight: 800; line-height: 1.0;
+            letter-spacing: -2px; margin-bottom: 16px;
+            text-shadow: 0 2px 28px rgba(0,0,0,0.6);
+        }
+        .left-content h1 em { font-style: normal; color: var(--accent); }
+        .left-content p {
+            font-size: 0.9rem; color: rgba(255,255,255,0.48);
+            font-weight: 300; line-height: 1.7;
+            max-width: 280px; margin-bottom: 36px;
+        }
+        .feature-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+        .feature-list li {
+            display: flex; align-items: center; gap: 12px;
+            font-size: 0.82rem; color: rgba(255,255,255,0.6);
+        }
+        .feature-list li .icon {
+            width: 30px; height: 30px; border-radius: 8px;
+            background: rgba(230,57,70,0.18);
+            border: 1px solid rgba(230,57,70,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; flex-shrink: 0;
+        }
+
+        /* RIGHT PANEL */
+        .panel-right {
+            width: 56%;
+            display: flex; align-items: center; justify-content: center;
+            background: #fff; position: relative;
+            padding: 40px 0;
+        }
+        .corner-deco {
+            position: absolute; top: 0; right: 0;
+            width: 200px; height: 200px;
+            background: radial-gradient(circle at top right, #fef2f2, transparent 70%);
+            pointer-events: none;
+        }
+        .form-wrap {
+            width: 88%; max-width: 480px;
+            position: relative; z-index: 1;
+        }
+        .step-label {
+            font-size: 0.68rem; font-weight: 600;
+            letter-spacing: 2.5px; text-transform: uppercase;
+            color: var(--accent); margin-bottom: 10px;
+        }
+        .form-wrap h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.85rem; font-weight: 800;
+            color: var(--ink); letter-spacing: -0.8px;
+            line-height: 1.1; margin-bottom: 5px;
+        }
+        .form-wrap .sub {
+            font-size: 0.85rem; color: var(--muted); margin-bottom: 28px;
+        }
+
+        /* Two-col grid for form fields */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px 16px;
+        }
+        .form-grid .full { grid-column: 1 / -1; }
+
+        .field-group { display: flex; flex-direction: column; }
+        .field-group label {
+            font-size: 0.73rem; font-weight: 600;
+            color: #374151; margin-bottom: 5px;
+            letter-spacing: 0.3px;
+        }
+        .field-group input,
+        .field-group select {
+            padding: 10px 13px;
+            border: 1.5px solid var(--border);
+            border-radius: 9px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.875rem; color: var(--ink);
+            background: var(--surface);
+            transition: border-color .2s, box-shadow .2s, background .2s;
+            outline: none; appearance: none;
+        }
+        .field-group input:focus,
+        .field-group select:focus {
+            border-color: var(--accent);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(230,57,70,0.08);
+        }
+        .field-group input::placeholder { color: #9ca3af; }
+
+        .terms-row {
+            display: flex; align-items: flex-start;
+            gap: 10px; margin: 18px 0 20px;
+            font-size: 0.8rem; color: var(--muted);
+        }
+        .terms-row input[type=checkbox] {
+            margin-top: 2px; accent-color: var(--accent);
+            flex-shrink: 0;
+        }
+        .terms-row a { color: var(--accent); text-decoration: none; font-weight: 500; }
+
+        .btn-register {
+            width: 100%; padding: 13px;
+            background: var(--ink); color: #fff;
+            border: none; border-radius: 10px;
+            font-family: 'Syne', sans-serif;
+            font-size: 0.95rem; font-weight: 700;
+            letter-spacing: 0.5px; cursor: pointer;
+            position: relative; overflow: hidden;
+            transition: transform .15s, box-shadow .2s;
+        }
+        .btn-register::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(90deg,transparent,rgba(230,57,70,0.22),transparent);
+            transform: translateX(-100%);
+            transition: transform .55s ease;
+        }
+        .btn-register:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(13,13,13,0.22); }
+        .btn-register:hover::before { transform: translateX(100%); }
+
+        .login-line {
+            text-align: center; margin-top: 20px;
+            font-size: 0.83rem; color: var(--muted);
+        }
+        .login-line a {
+            color: var(--ink); font-weight: 700;
+            text-decoration: none; font-family: 'Syne', sans-serif;
+        }
+        .login-line a:hover { text-decoration: underline; }
+
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(14px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        .form-wrap > * { animation: fadeUp .45s ease both; }
+        .form-wrap > *:nth-child(1){animation-delay:.05s}
+        .form-wrap > *:nth-child(2){animation-delay:.10s}
+        .form-wrap > *:nth-child(3){animation-delay:.15s}
+        .form-wrap > *:nth-child(4){animation-delay:.20s}
+        .form-wrap > *:nth-child(5){animation-delay:.25s}
+        .form-wrap > *:nth-child(6){animation-delay:.30s}
+
+        @media(max-width:767px){
+            body{ flex-direction:column; overflow:auto; }
+            .panel-left{ display:none; }
+            .panel-right{ width:100%; min-height:100vh; }
+            .form-grid{ grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- LEFT -->
+<div class="panel-left">
+    <canvas id="garageCanvas"></canvas>
+    <div class="vignette"></div>
+    <div class="diag-bar"></div>
+    <div class="diag-bar diag-bar-2"></div>
+    <div class="left-content">
+        <div class="brand-tag">
+            <div class="brand-dot"></div>
+            <span>Join eGarage</span>
+        </div>
+        <h1>Start Your<br><em>Journey</em><br>Today.</h1>
+        <p>Create your free account and get instant access to premium garage services across your city.</p>
+        <ul class="feature-list">
+            <li><div class="icon">🔧</div> Book certified mechanics instantly</li>
+            <li><div class="icon">📍</div> Real-time job tracking</li>
+            <li><div class="icon">🛡️</div> Insured & verified technicians</li>
+            <li><div class="icon">💳</div> Transparent, upfront pricing</li>
+        </ul>
+    </div>
+</div>
+
+<!-- RIGHT -->
+<div class="panel-right">
+    <div class="corner-deco"></div>
+    <div class="form-wrap">
+        <div class="step-label">eGarage · New Account</div>
+        <h2>Create Account</h2>
+        <p class="sub">Fill in your details to get started — takes less than a minute.</p>
+
+        <form method="POST" action="{% url 'signup' %}">
+            {% csrf_token %}
+            <div class="form-grid">
+                <div class="field-group full">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" placeholder="Arjun Kumar">
+                </div>
+                <div class="field-group full">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="you@example.com">
+                </div>
+                <div class="field-group full">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" placeholder="+91 98765 43210">
+                </div>
+                <div class="field-group">
+                    <label for="password1">Password</label>
+                    <input type="password" id="password1" name="password1" placeholder="••••••••">
+                </div>
+                <div class="field-group">
+                    <label for="password2">Confirm Password</label>
+                    <input type="password" id="password2" name="password2" placeholder="••••••••">
+                </div>
+                <div class="field-group full">
+                    <label for="role">I am a</label>
+                    <select id="role" name="role">
+                        <option value="">— Select role —</option>
+                        <option value="customer">Vehicle Owner</option>
+                        <option value="provider">Mechanic / Technician</option>
+                        <option value="admin">Garage Manager</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="terms-row">
+                <input type="checkbox" id="terms">
+                <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+            </div>
+
+            <button type="submit" class="btn-register">Create My Account →</button>
+        </form>
+
+       <p class="signup-line">
+    Already have an account? <a href="{% url 'login' %}">logIn</a>
+</p>
+    </div>
+</div>
+
+<script>
+/* Garage canvas animation */
+const canvas = document.getElementById('garageCanvas');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight; }
+resize(); window.addEventListener('resize',resize);
+const W=()=>canvas.width, H=()=>canvas.height;
+const CARS=[
+    {rx:.18,ry:.58,col:'#c0392b',col2:'#7b241c',lifted:true,lh:0},
+    {rx:.52,ry:.56,col:'#1a56db',col2:'#1e3a8a',lifted:false,lh:0},
+    {rx:.84,ry:.58,col:'#27ae60',col2:'#1e8449',lifted:true,lh:0},
+];
+const MECHS=[
+    {rx:.14,ry:.74,col:'#e63946',task:'wrench',ph:0,sp:.8},
+    {rx:.38,ry:.71,col:'#3b82f6',task:'inspect',ph:1.3,sp:1.0},
+    {rx:.55,ry:.76,col:'#10b981',task:'walk',ph:.6,sp:1.2},
+    {rx:.72,ry:.72,col:'#f59e0b',task:'wrench',ph:2.0,sp:.9},
+    {rx:.90,ry:.74,col:'#a78bfa',task:'inspect',ph:.9,sp:1.0},
+];
+let T=0;
+function frame(){
+    const w=W(),h=H();
+    ctx.clearRect(0,0,w,h);
+    const wg=ctx.createLinearGradient(0,0,0,h*.46);
+    wg.addColorStop(0,'#0b0b10'); wg.addColorStop(1,'#171720');
+    ctx.fillStyle=wg; ctx.fillRect(0,0,w,h*.46);
+    for(let i=0;i<5;i++){
+        const lx=(i+.5)*w/5, fl=.9+.1*Math.sin(T*2.8+i*1.9);
+        const cg=ctx.createRadialGradient(lx,0,0,lx,0,h*.6);
+        cg.addColorStop(0,`rgba(210,225,255,${.07*fl})`); cg.addColorStop(1,'transparent');
+        ctx.fillStyle=cg; ctx.fillRect(0,0,w,h);
+        ctx.fillStyle=`rgba(255,255,230,${fl*.98})`; ctx.fillRect(lx-20,6,40,8);
+    }
+    const fg=ctx.createLinearGradient(0,h*.45,0,h);
+    fg.addColorStop(0,'#1e1e28'); fg.addColorStop(1,'#111118');
+    ctx.fillStyle=fg; ctx.fillRect(0,h*.45,w,h*.55);
+    const tw=w/11,th=h*.075;
+    for(let r=0;r<9;r++) for(let c=0;c<13;c++){
+        ctx.fillStyle=(r+c)%2===0?'rgba(255,255,255,.016)':'rgba(0,0,0,.10)';
+        ctx.fillRect(c*tw-tw/2,h*.45+r*th,tw,th);
+    }
+    CARS.forEach((car,i)=>{
+        const cx=car.rx*w, groundY=h*.82;
+        if(car.lifted){
+            car.lh=.22+.055*Math.sin(T*.38+i*1.1);
+            const topY=groundY-car.lh*h;
+            for(const off of[-.065,.065]){
+                const colX=cx+off*w;
+                ctx.fillStyle='#252530'; ctx.fillRect(colX-4,topY,8,groundY-topY);
+            }
+            ctx.fillStyle='#2c2c3a'; ctx.fillRect(cx-w*.085,topY-5,w*.17,10);
+        }
+    });
+    CARS.forEach((car)=>{
+        const cx=car.rx*w;
+        let cy=h*.74;
+        if(car.lifted) cy=h*.82-car.lh*h-h*.13;
+        drawCar(cx,cy,w*.14,h*.095,car.col,car.col2);
+    });
+    MECHS.forEach(m=>{
+        drawMechanic(m.rx*w, m.ry*h+Math.sin(T*m.sp+m.ph)*2.5, h*.13, m.col, m.task, T*m.sp+m.ph);
+    });
+    T+=.016; requestAnimationFrame(frame);
+}
+function drawCar(cx,cy,hw,hh,body,shadow){
+    ctx.fillStyle='rgba(0,0,0,.4)';
+    ctx.beginPath(); ctx.ellipse(cx,cy+hh*.58,hw*.78,hh*.14,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=body; ctx.beginPath(); ctx.roundRect(cx-hw,cy-hh*.08,hw*2,hh*.55,6); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.09)'; ctx.beginPath(); ctx.roundRect(cx-hw*.88,cy-hh*.04,hw*1.76,hh*.14,4); ctx.fill();
+    ctx.fillStyle=shadow; ctx.beginPath(); ctx.roundRect(cx-hw*.58,cy-hh*.65,hw*1.16,hh*.58,[8,8,0,0]); ctx.fill();
+    const wg=ctx.createLinearGradient(cx-hw*.48,cy-hh*.62,cx+hw*.48,cy-hh*.1);
+    wg.addColorStop(0,'rgba(180,220,255,.6)'); wg.addColorStop(1,'rgba(90,150,220,.25)');
+    ctx.fillStyle=wg; ctx.beginPath(); ctx.roundRect(cx-hw*.48,cy-hh*.60,hw*.96,hh*.44,5); ctx.fill();
+    for(const wx of[cx-hw*.64,cx+hw*.64]){
+        ctx.fillStyle='#111'; ctx.beginPath(); ctx.ellipse(wx,cy+hh*.44,hh*.24,hh*.24,0,0,Math.PI*2); ctx.fill();
+        ctx.strokeStyle='#2a2a2a'; ctx.lineWidth=3; ctx.stroke();
+        ctx.fillStyle='#2e2e2e'; ctx.beginPath(); ctx.ellipse(wx,cy+hh*.44,hh*.12,hh*.12,0,0,Math.PI*2); ctx.fill();
+    }
+    ctx.fillStyle='rgba(255,240,170,.85)'; ctx.beginPath(); ctx.ellipse(cx+hw*.90,cy+hh*.08,hw*.09,hh*.07,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(255,50,50,.75)'; ctx.beginPath(); ctx.ellipse(cx-hw*.90,cy+hh*.08,hw*.08,hh*.065,0,0,Math.PI*2); ctx.fill();
+}
+function drawMechanic(mx,my,mh,col,task,ph){
+    ctx.fillStyle='rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(mx,my+mh*.06,mh*.19,mh*.04,0,0,Math.PI*2); ctx.fill();
+    const ls=task==='walk'?Math.sin(ph*2.2)*.2:0;
+    for(const sw of[ls,-ls]){
+        ctx.strokeStyle='#1c2231'; ctx.lineWidth=mh*.115; ctx.lineCap='round';
+        ctx.beginPath(); ctx.moveTo(mx,my-mh*.07); ctx.lineTo(mx+sw*mh*.16,my+mh*.06); ctx.stroke();
+    }
+    ctx.fillStyle=col; ctx.beginPath(); ctx.roundRect(mx-mh*.145,my-mh*.50,mh*.29,mh*.43,mh*.05); ctx.fill();
+    const rA=task==='wrench'?-.75+Math.sin(ph*3)*.32:Math.sin(ph)*.22;
+    const lA=task==='wrench'?.45:-Math.sin(ph)*.22;
+    for(const[ang,side] of[[rA,1],[lA,-1]]){
+        ctx.strokeStyle=col; ctx.lineWidth=mh*.105; ctx.lineCap='round';
+        ctx.beginPath(); ctx.moveTo(mx+side*mh*.135,my-mh*.38);
+        ctx.lineTo(mx+side*mh*.135+Math.cos(ang)*mh*.23, my-mh*.38+Math.sin(Math.abs(ang))*mh*.23); ctx.stroke();
+    }
+    if(task==='wrench'){
+        ctx.strokeStyle='#9ca3af'; ctx.lineWidth=mh*.055; ctx.lineCap='round';
+        ctx.beginPath(); ctx.moveTo(mx+mh*.29,my-mh*.22); ctx.lineTo(mx+mh*.40,my-mh*.40); ctx.stroke();
+    }
+    if(task==='inspect'){
+        ctx.fillStyle='#f3f4f6'; ctx.fillRect(mx-mh*.34,my-mh*.47,mh*.20,mh*.24);
+        for(let r=0;r<3;r++){ ctx.fillStyle='#9ca3af'; ctx.fillRect(mx-mh*.30,my-mh*.43+r*mh*.07,mh*.12,mh*.025); }
+    }
+    ctx.fillStyle='#f0c896'; ctx.beginPath(); ctx.ellipse(mx,my-mh*.58,mh*.13,mh*.145,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=col; ctx.beginPath(); ctx.ellipse(mx,my-mh*.645,mh*.148,mh*.10,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.22)'; ctx.beginPath(); ctx.ellipse(mx-mh*.025,my-mh*.665,mh*.065,mh*.035,-.3,0,Math.PI*2); ctx.fill();
+}
+frame();
+</script>
+</body>
+</html>
