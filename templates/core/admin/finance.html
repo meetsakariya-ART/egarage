@@ -1,0 +1,209 @@
+{% extends 'core/base.html' %}
+{% block title %}Network Finance — Admin — eGarage{% endblock %}
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--red:#e8192c;--green:#00a651;--blue:#1a56db;--yellow:#f59e0b;--purple:#7c3aed;
+  --fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;
+  --border:#e0e0e0;--muted:#777;--bg:#f0f2f5;}
+html,body{background:var(--bg);color:#111;font-family:var(--fb);}
+nav{position:sticky;top:0;z-index:200;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.navi{display:flex;align-items:center;padding:0 24px;height:60px;max-width:1280px;margin:0 auto;gap:14px;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-ico{width:32px;height:32px;border-radius:9px;background:var(--red);display:flex;align-items:center;justify-content:center;}
+.logo-ico svg{width:15px;height:15px;}
+.logo-name{font-family:var(--fd);font-size:1.1rem;font-weight:900;color:var(--red);}
+.logo-name span{color:#111;}
+.nav-r{margin-left:auto;display:flex;gap:8px;}
+.nb{padding:7px 15px;border-radius:8px;font-family:var(--fd);font-size:.72rem;font-weight:700;text-decoration:none;border:1.5px solid var(--border);color:#333;background:#fff;transition:all .15s;}
+.nb:hover{border-color:var(--red);color:var(--red);}
+.nb.red{background:var(--red);color:#fff;border-color:var(--red);}
+
+.page{max-width:1280px;margin:24px auto;padding:0 24px;}
+.page-hdr{margin-bottom:24px;}
+.page-title{font-family:var(--fd);font-size:1.3rem;font-weight:900;color:#111;}
+.page-sub{font-size:.74rem;color:var(--muted);margin-top:3px;}
+
+/* NETWORK STATS */
+.net-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+.ns{background:#111;border-radius:14px;padding:20px;color:#fff;}
+.ns-lbl{font-size:.58rem;letter-spacing:.9px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:10px;}
+.ns-val{font-family:var(--fd);font-size:1.8rem;font-weight:900;color:#fff;}
+.ns-sub{font-size:.64rem;color:rgba(255,255,255,.3);margin-top:4px;}
+.ns.g .ns-val{color:#4ade80;}
+.ns.b .ns-val{color:#60a5fa;}
+.ns.y .ns-val{color:#fbbf24;}
+
+/* GARAGE CARDS GRID */
+.garage-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;}
+
+/* GARAGE CARD */
+.gcard{background:#fff;border:1.5px solid var(--border);border-radius:16px;overflow:hidden;transition:all .2s;}
+.gcard:hover{box-shadow:0 4px 20px rgba(0,0,0,.07);border-color:#ccc;}
+.gcard.top1{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,166,81,.1);}
+.gcard.top2{border-color:var(--blue);}
+.gc-head{padding:16px 18px 12px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #f5f5f5;}
+.gc-rank{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.78rem;font-weight:900;flex-shrink:0;}
+.rank-1{background:#ffd700;color:#111;}
+.rank-2{background:#c0c0c0;color:#111;}
+.rank-3{background:#cd7f32;color:#fff;}
+.rank-other{background:#f0f2f5;color:var(--muted);}
+.gc-name{font-family:var(--fd);font-size:.88rem;font-weight:800;color:#111;}
+.gc-city{font-size:.66rem;color:var(--muted);margin-top:2px;}
+.gc-mgr{font-size:.64rem;color:var(--muted);margin-top:1px;}
+.gc-badge{margin-left:auto;padding:3px 9px;border-radius:20px;font-size:.58rem;font-weight:800;font-family:var(--fd);}
+.gc-active{background:rgba(0,166,81,.1);color:var(--green);}
+.gc-inactive{background:#f5f5f5;color:#bbb;}
+
+.gc-stats{display:grid;grid-template-columns:repeat(3,1fr);padding:14px 18px;gap:0;border-bottom:1px solid #f5f5f5;}
+.gcs{text-align:center;padding:0 8px;border-right:1px solid #f5f5f5;}
+.gcs:last-child{border-right:none;}
+.gcs-val{font-family:var(--fd);font-size:1rem;font-weight:900;color:#111;}
+.gcs-lbl{font-size:.58rem;color:var(--muted);margin-top:2px;}
+
+/* REVENUE BAR */
+.rev-bar{padding:12px 18px;border-bottom:1px solid #f5f5f5;}
+.rb-top{display:flex;justify-content:space-between;font-size:.66rem;margin-bottom:5px;}
+.rb-lbl{color:var(--muted);}
+.rb-val{font-family:var(--fd);font-weight:800;color:var(--green);}
+.rb-track{height:7px;background:#f0f2f5;border-radius:20px;overflow:hidden;}
+.rb-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--green),#00c853);transition:width .8s ease;}
+
+.gc-footer{padding:11px 18px;display:flex;justify-content:space-between;align-items:center;}
+.gf-item{text-align:center;}
+.gf-val{font-family:var(--fd);font-size:.8rem;font-weight:900;color:#111;}
+.gf-lbl{font-size:.56rem;color:var(--muted);margin-top:1px;}
+.rating-star{color:var(--yellow);}
+
+@media(max-width:700px){.net-stats{grid-template-columns:1fr 1fr;}.garage-grid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<nav>
+  <div class="navi">
+    <a href="{% url 'home' %}" class="logo">
+      <div class="logo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+      <span class="logo-name">e<span>Garage</span></span>
+    </a>
+    <div class="nav-r">
+      <a href="{% url 'dashboard' %}" class="nb">Dashboard</a>
+      <a href="{% url 'admin_panel' %}" class="nb red">Admin Panel</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-hdr">
+    <div class="page-title">🌐 Network Finance Overview</div>
+    <div class="page-sub">{{ today|date:"l, d M Y" }} · All garages · Revenue comparison · Busiest locations</div>
+  </div>
+
+  <!-- NETWORK TOTALS -->
+  <div class="net-stats">
+    <div class="ns g">
+      <div class="ns-lbl">Network Today</div>
+      <div class="ns-val">₹{{ net_today|floatformat:0 }}</div>
+      <div class="ns-sub">{{ active_jobs }} active jobs right now</div>
+    </div>
+    <div class="ns b">
+      <div class="ns-lbl">This Month</div>
+      <div class="ns-val">₹{{ net_month|floatformat:0 }}</div>
+      <div class="ns-sub">Released from escrow</div>
+    </div>
+    <div class="ns y">
+      <div class="ns-lbl">Total Wallets</div>
+      <div class="ns-val">₹{{ net_wallets|floatformat:0 }}</div>
+      <div class="ns-sub">{{ total_garages }} garages</div>
+    </div>
+    <div class="ns">
+      <div class="ns-lbl">All-Time Revenue</div>
+      <div class="ns-val">₹{{ net_total|floatformat:0 }}</div>
+      <div class="ns-sub">{{ total_bookings }} total bookings</div>
+    </div>
+  </div>
+
+  <!-- GARAGE CARDS — sorted by revenue -->
+  {% if garage_data %}
+  {% with max_rev=garage_data.0.total_rev %}
+  <div class="garage-grid">
+    {% for g in garage_data %}
+    <div class="gcard {% if forloop.counter == 1 %}top1{% elif forloop.counter == 2 %}top2{% endif %}">
+
+      <div class="gc-head">
+        <div class="gc-rank {% if forloop.counter == 1 %}rank-1{% elif forloop.counter == 2 %}rank-2{% elif forloop.counter == 3 %}rank-3{% else %}rank-other{% endif %}">
+          {% if forloop.counter <= 3 %}{{ forloop.counter }}{% else %}#{{ forloop.counter }}{% endif %}
+        </div>
+        <div>
+          <div class="gc-name">{{ g.garage.name }}</div>
+          <div class="gc-city">{{ g.garage.city }}{% if g.garage.area %} · {{ g.garage.area }}{% endif %}</div>
+          <div class="gc-mgr">Mgr: {{ g.garage.manager.name|default:"—" }}</div>
+        </div>
+        <span class="gc-badge {% if g.active_jobs > 0 %}gc-active{% else %}gc-inactive{% endif %}">
+          {% if g.active_jobs > 0 %}{{ g.active_jobs }} Active{% else %}Idle{% endif %}
+        </span>
+      </div>
+
+      <div class="gc-stats">
+        <div class="gcs">
+          <div class="gcs-val">{{ g.today_bookings }}</div>
+          <div class="gcs-lbl">Today bookings</div>
+        </div>
+        <div class="gcs">
+          <div class="gcs-val">{{ g.total_bookings }}</div>
+          <div class="gcs-lbl">All bookings</div>
+        </div>
+        <div class="gcs">
+          <div class="gcs-val">{{ g.mechanic_count }}</div>
+          <div class="gcs-lbl">Mechanics</div>
+        </div>
+      </div>
+
+      <div class="rev-bar">
+        <div class="rb-top">
+          <span class="rb-lbl">Total Revenue</span>
+          <span class="rb-val">₹{{ g.total_rev|floatformat:0 }}</span>
+        </div>
+        {% if max_rev > 0 %}
+        {% widthratio g.total_rev max_rev 100 as bar_pct %}
+        <div class="rb-track"><div class="rb-fill" style="width:{{ bar_pct }}%;"></div></div>
+        {% endif %}
+      </div>
+
+      <div class="gc-footer">
+        <div class="gf-item">
+          <div class="gf-val" style="color:var(--green);">₹{{ g.today_rev|floatformat:0 }}</div>
+          <div class="gf-lbl">Today</div>
+        </div>
+        <div class="gf-item">
+          <div class="gf-val" style="color:var(--blue);">₹{{ g.month_rev|floatformat:0 }}</div>
+          <div class="gf-lbl">This month</div>
+        </div>
+        <div class="gf-item">
+          <div class="gf-val" style="color:var(--yellow);">₹{{ g.wallet|floatformat:0 }}</div>
+          <div class="gf-lbl">Wallet</div>
+        </div>
+        <div class="gf-item">
+          {% if g.avg_rating %}
+          <div class="gf-val"><span class="rating-star">★</span>{{ g.avg_rating|floatformat:1 }}</div>
+          {% else %}
+          <div class="gf-val" style="color:#ccc;">—</div>
+          {% endif %}
+          <div class="gf-lbl">Avg rating</div>
+        </div>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+  {% endwith %}
+  {% else %}
+  <div style="text-align:center;padding:48px;background:#fff;border-radius:16px;border:1.5px solid var(--border);">
+    <div style="font-size:2rem;margin-bottom:12px;">🏢</div>
+    <div style="font-family:var(--fd);font-size:1rem;font-weight:800;margin-bottom:8px;">No approved garages yet</div>
+    <div style="font-size:.76rem;color:var(--muted);">Approve garages from the Admin Panel to see revenue data here.</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

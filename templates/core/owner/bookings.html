@@ -1,0 +1,615 @@
+{% extends 'core/base.html' %}
+{% block title %}{% if is_manager_view %}Garage Bookings{% elif is_mechanic_view %}My Jobs{% else %}My Bookings{% endif %} — eGarage{% endblock %}
+
+{% block extra_head %}
+<style>
+html,body { background:var(--bg); color:var(--text); font-family:var(--fb); min-height:100vh; }
+
+/* ── HERO ── */
+.hero { padding:36px 32px 0; max-width:1280px; margin:0 auto; }
+.hero-label { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; background:rgba(232,25,44,.1); border:1px solid rgba(232,25,44,.2); font-size:.62rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--red); margin-bottom:16px; }
+.hero-dot { width:6px; height:6px; border-radius:50%; background:var(--red); animation:hdot 1.8s infinite; }
+@keyframes hdot { 0%,100%{opacity:1} 50%{opacity:.3} }
+.hero-title { font-family:var(--fd); font-size:clamp(28px,3.5vw,46px); font-weight:900; line-height:1; color:var(--text); margin-bottom:6px; }
+.hero-sub { font-size:.84rem; color:var(--muted); margin-bottom:28px; }
+
+/* ── STAT STRIP ── */
+.stat-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:32px; }
+.sc {
+  background:var(--surface); border:1px solid var(--border); border-radius:14px;
+  padding:18px 20px; position:relative; overflow:hidden; transition:all .2s;
+  box-shadow:var(--card-shadow);
+}
+.sc::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--ac,var(--red)),transparent); }
+.sc:hover { background:var(--surface2); }
+.sc-num { font-family:var(--fd); font-size:1.6rem; font-weight:900; color:var(--text); line-height:1; }
+.sc-lbl { font-size:.62rem; color:var(--muted2); text-transform:uppercase; letter-spacing:1px; margin-top:4px; font-weight:600; }
+.sc-icon { position:absolute; top:16px; right:16px; font-size:20px; opacity:.3; }
+
+/* ── LAYOUT ── */
+.layout { max-width:1280px; margin:0 auto; padding:0 32px 60px; display:grid; grid-template-columns:1fr 300px; gap:24px; }
+
+/* ── FILTERS ── */
+.filter-row { display:flex; align-items:center; gap:6px; margin-bottom:18px; flex-wrap:wrap; }
+.fc { padding:7px 16px; border:1px solid var(--border); border-radius:20px; font-size:.7rem; font-weight:700; color:var(--muted); cursor:pointer; transition:all .15s; background:var(--surface2); font-family:var(--fd); white-space:nowrap; }
+.fc:hover { border-color:rgba(232,25,44,.4); color:var(--red); }
+.fc.on { background:rgba(232,25,44,.12); border-color:rgba(232,25,44,.35); color:var(--red); }
+.fc-search { margin-left:auto; display:flex; align-items:center; gap:8px; padding:7px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; transition:all .15s; }
+.fc-search:focus-within { border-color:rgba(232,25,44,.4); }
+.fc-search svg { width:12px; height:12px; color:var(--muted2); }
+.fc-search input { background:transparent; border:none; outline:none; font-size:.72rem; color:var(--text); font-family:var(--fb); width:120px; }
+.fc-search input::placeholder { color:var(--muted2); }
+
+/* ── BOOKING CARD ── */
+.bcard {
+  background:var(--surface); border:1px solid var(--border); border-radius:16px;
+  margin-bottom:10px; overflow:hidden; transition:all .2s; position:relative;
+  box-shadow:var(--card-shadow);
+}
+.bcard:hover { background:var(--surface2); border-color:var(--border2); }
+.bcard.cancelled-card { opacity:.75; }
+
+/* head */
+.bc-head { display:flex; align-items:center; gap:14px; padding:18px 20px 14px; }
+.bc-ico { width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.bc-main { flex:1; min-width:0; }
+.bc-ref { font-family:var(--fd); font-size:.6rem; font-weight:900; letter-spacing:2px; color:var(--red); margin-bottom:3px; }
+.bc-name { font-size:.92rem; font-weight:700; color:var(--text); margin-bottom:3px; }
+.bc-vehicle { display:flex; align-items:center; gap:5px; font-size:.67rem; color:var(--muted); }
+.bc-vehicle svg { width:10px; height:10px; flex-shrink:0; }
+.bc-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex-shrink:0; }
+.bc-price { font-family:var(--fd); font-size:1.05rem; font-weight:900; color:var(--text); }
+
+/* status pills */
+.pill { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:20px; font-size:.6rem; font-weight:800; font-family:var(--fd); white-space:nowrap; }
+.pill svg { width:7px; height:7px; }
+.p-done    { background:rgba(0,166,81,.1);   color:var(--green); border:1px solid rgba(0,166,81,.2); }
+.p-live    { background:rgba(245,158,11,.1); color:var(--yellow); border:1px solid rgba(245,158,11,.2); }
+.p-soon    { background:rgba(59,130,246,.1); color:var(--blue);   border:1px solid rgba(59,130,246,.2); }
+.p-cancel  { background:rgba(232,25,44,.1);  color:var(--red);   border:1px solid rgba(232,25,44,.2); }
+.p-pending { background:rgba(124,58,237,.1); color:var(--purple); border:1px solid rgba(124,58,237,.2); }
+
+/* payment badges */
+.pay-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 12px; border-radius:20px;
+  font-size:.68rem; font-weight:700;
+}
+.pay-full   { background:rgba(0,166,81,.1);  border:1.5px solid rgba(0,166,81,.3);  color:var(--green); }
+.pay-adv    { background:rgba(59,130,246,.1);border:1.5px solid rgba(59,130,246,.3);color:var(--blue); }
+.pay-cash   { background:rgba(245,158,11,.1);border:1.5px solid rgba(245,158,11,.3);color:var(--yellow); }
+.pay-pend   { background:var(--surface3);    border:1.5px solid var(--border2);     color:var(--muted); }
+
+/* meta */
+.bc-meta { display:flex; gap:14px; flex-wrap:wrap; padding:10px 20px; border-top:1px solid var(--border); background:var(--surface2); }
+.bm { display:flex; align-items:center; gap:5px; font-size:.66rem; color:var(--muted); }
+.bm svg { width:10px; height:10px; flex-shrink:0; }
+.bm strong { color:var(--text2); font-weight:600; }
+
+/* progress bar */
+.bc-prog { padding:10px 20px; background:var(--surface2); }
+.prog-track { height:4px; background:var(--border2); border-radius:20px; overflow:hidden; }
+.prog-fill { height:100%; border-radius:20px; background:linear-gradient(90deg,var(--yellow),#ffd740); box-shadow:0 0 8px rgba(245,158,11,.3); }
+
+/* actions */
+.bc-actions { display:flex; gap:6px; padding:12px 20px; border-top:1px solid var(--border); flex-wrap:wrap; }
+.bca { display:inline-flex; align-items:center; gap:5px; padding:7px 14px; border-radius:8px; font-size:.68rem; font-weight:700; font-family:var(--fd); cursor:pointer; transition:all .15s; border:1px solid var(--border); background:var(--surface2); color:var(--muted); text-decoration:none; white-space:nowrap; }
+.bca:hover { background:var(--surface3); border-color:var(--border2); color:var(--text); }
+.bca svg { width:11px; height:11px; }
+.bca-r  { background:rgba(232,25,44,.1); color:var(--red);    border-color:rgba(232,25,44,.22); }
+.bca-r:hover { background:rgba(232,25,44,.18); color:var(--red); }
+.bca-g  { background:rgba(0,166,81,.1);  color:var(--green);  border-color:rgba(0,166,81,.2); }
+.bca-g:hover { background:rgba(0,166,81,.18); }
+.bca-y  { background:rgba(245,158,11,.1);color:var(--yellow); border-color:rgba(245,158,11,.2); }
+.bca-y:hover { background:rgba(245,158,11,.18); }
+.bca-danger { background:rgba(232,25,44,.06); color:rgba(232,25,44,.65); border-color:rgba(232,25,44,.15); }
+.bca-danger:hover { background:rgba(232,25,44,.12); color:var(--red); }
+
+/* pay balance */
+.pay-balance-btn {
+  display:inline-flex; align-items:center; gap:5px; padding:7px 14px;
+  background:var(--green); color:#fff; border-radius:8px;
+  font-family:var(--fd); font-size:.68rem; font-weight:700; text-decoration:none;
+  transition:all .15s; animation:payGlow 2s infinite;
+}
+.pay-balance-btn:hover { background:var(--green2); }
+@keyframes payGlow { 0%,100%{box-shadow:0 0 0 0 rgba(0,166,81,.3)} 50%{box-shadow:0 0 10px 3px rgba(0,166,81,.15)} }
+
+/* empty */
+.empty { text-align:center; padding:60px 20px; border:1px dashed var(--border); border-radius:16px; background:var(--surface); }
+.empty-ico { font-size:3rem; margin-bottom:14px; filter:grayscale(1); opacity:.3; }
+.empty-t { font-family:var(--fd); font-size:.95rem; font-weight:800; color:var(--muted); margin-bottom:5px; }
+.empty-s { font-size:.74rem; color:var(--muted2); margin-bottom:20px; }
+.empty-cta { display:inline-flex; align-items:center; gap:7px; padding:11px 22px; background:var(--red); color:#fff; border-radius:10px; font-family:var(--fd); font-size:.75rem; font-weight:700; text-decoration:none; }
+.empty-cta:hover { background:var(--red2); }
+
+/* ── SIDEBAR ── */
+.sidebar { display:flex; flex-direction:column; gap:14px; position:sticky; top:76px; }
+.scard { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:var(--card-shadow); }
+.scard-h { padding:14px 18px; border-bottom:1px solid var(--border); background:var(--surface2); }
+.scard-h h3 { font-family:var(--fd); font-size:.78rem; font-weight:800; color:var(--text); }
+.scard-h p { font-size:.62rem; color:var(--muted); margin-top:2px; }
+.scard-b { padding:14px 18px; }
+.sum-row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); }
+.sum-row:last-child { border-bottom:none; }
+.sum-k { font-size:.68rem; color:var(--muted); }
+.sum-v { font-size:.72rem; font-weight:700; color:var(--text); }
+.ql-item { display:flex; align-items:center; gap:10px; padding:11px 18px; transition:background .15s; cursor:pointer; text-decoration:none; }
+.ql-item:hover { background:var(--surface3); }
+.ql-ico { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; background:var(--surface3); }
+.ql-ico svg { width:13px; height:13px; }
+.ql-t { font-size:.76rem; font-weight:600; color:var(--text2); flex:1; }
+.ql-arr { color:var(--border2); }
+.ql-arr svg { width:12px; height:12px; }
+.ql-sep { height:1px; background:var(--border); margin:0 18px; }
+
+/* ── MODALS ── */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(8px); z-index:500; display:none; align-items:center; justify-content:center; padding:20px; }
+.overlay.on { display:flex; }
+.modal { background:var(--surface); border:1px solid var(--border2); border-radius:20px; width:100%; overflow:hidden; animation:mIn .3s cubic-bezier(.34,1.56,.64,1); box-shadow:0 20px 60px rgba(0,0,0,.4); }
+.modal::before { content:''; display:block; height:2px; background:linear-gradient(90deg,transparent,var(--red),transparent); }
+.modal.sm { max-width:440px; }
+.modal.md { max-width:560px; }
+@keyframes mIn { from{opacity:0;transform:scale(.92) translateY(16px)} to{opacity:1;transform:none} }
+.mhd { padding:18px 22px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:var(--surface2); }
+.mhd h3 { font-family:var(--fd); font-size:.82rem; font-weight:800; color:var(--text); }
+.mclose { width:28px; height:28px; border-radius:50%; border:1px solid var(--border); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--muted); }
+.mclose:hover { border-color:var(--red); color:var(--red); }
+.mclose svg { width:12px; height:12px; }
+.mbody { padding:22px; max-height:72vh; overflow-y:auto; }
+.mfoot { padding:14px 22px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:flex-end; background:var(--surface2); }
+.mbtn { padding:10px 22px; border-radius:9px; font-family:var(--fd); font-size:.75rem; font-weight:700; cursor:pointer; transition:all .15s; }
+.mbtn.cancel { background:transparent; border:1px solid var(--border); color:var(--muted); }
+.mbtn.cancel:hover { border-color:var(--border2); color:var(--text); }
+.mbtn.red { background:var(--red); color:#fff; border:none; }
+.mbtn.red:hover { background:var(--red2); }
+.mff { margin-bottom:14px; }
+.mff label { font-size:.6rem; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted2); display:block; margin-bottom:6px; }
+.mff select, .mff textarea, .mff input { width:100%; padding:11px 13px; background:var(--input-bg); border:1px solid var(--border); border-radius:10px; font-family:var(--fb); font-size:.82rem; color:var(--input-text); outline:none; transition:all .15s; }
+.mff select:focus,.mff textarea:focus,.mff input:focus { border-color:rgba(232,25,44,.4); background:var(--surface); }
+.mff select option { background:var(--bg2); color:var(--text); }
+.mff textarea { resize:vertical; min-height:80px; }
+
+/* refund box */
+.refund-box { border-radius:11px; padding:14px; margin-bottom:16px; }
+.refund-full { background:rgba(0,166,81,.08); border:1px solid rgba(0,166,81,.2); }
+.refund-half { background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.2); }
+.refund-none { background:rgba(232,25,44,.07); border:1px solid rgba(232,25,44,.18); }
+.refund-box .rtitle { font-family:var(--fd); font-size:.78rem; font-weight:800; margin-bottom:4px; }
+.refund-full .rtitle { color:var(--green); }
+.refund-half .rtitle { color:var(--yellow); }
+.refund-none .rtitle { color:var(--red); }
+.refund-box .rdesc { font-size:.74rem; color:var(--text2); line-height:1.6; }
+
+/* date/time grid */
+.date-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px; }
+.dbtn { padding:10px 5px; border:1px solid var(--border); border-radius:10px; text-align:center; cursor:pointer; transition:all .2s; background:var(--surface2); }
+.dbtn:hover { border-color:rgba(232,25,44,.4); }
+.dbtn.on { border-color:var(--red); background:rgba(232,25,44,.1); }
+.dd { font-size:.58rem; color:var(--muted2); text-transform:uppercase; font-weight:700; }
+.dn { font-family:var(--fd); font-size:1.05rem; font-weight:900; color:var(--text); line-height:1; }
+.dbtn.on .dn { color:var(--red); }
+.dm { font-size:.55rem; color:var(--muted2); margin-top:2px; }
+.time-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:4px; }
+.tbtn { padding:9px 5px; border:1px solid var(--border); border-radius:8px; text-align:center; cursor:pointer; font-size:.7rem; font-weight:600; color:var(--muted); transition:all .15s; background:var(--surface2); }
+.tbtn.on { border-color:var(--red); background:rgba(232,25,44,.1); color:var(--red); }
+.tbtn.busy { background:var(--surface3); color:var(--muted2); cursor:not-allowed; text-decoration:line-through; }
+
+/* toast */
+.toast { position:fixed; bottom:24px; right:24px; background:var(--toast-bg); color:var(--text); border:1px solid var(--border); padding:12px 18px; border-radius:11px; font-size:.78rem; font-weight:700; z-index:2000; display:none; align-items:center; gap:8px; box-shadow:var(--card-shadow); }
+.toast.on { display:flex; animation:tfade .25s ease; }
+@keyframes tfade { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+@media(max-width:900px) { .layout{grid-template-columns:1fr;} .sidebar{position:relative;top:0;} .stat-strip{grid-template-columns:repeat(2,1fr);} .hero{padding:24px 16px 0;} .layout{padding:0 16px 40px;} }
+@media(max-width:600px) { .stat-strip{grid-template-columns:1fr 1fr;} .date-grid{grid-template-columns:repeat(3,1fr);} .time-grid{grid-template-columns:repeat(3,1fr);} }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <div class="hero-label"><div class="hero-dot"></div>Service History</div>
+  <h1 class="hero-title">{% if is_manager_view %}Garage Bookings{% elif is_mechanic_view %}My Assigned Jobs{% elif is_admin_view %}All Bookings{% else %}Your Bookings{% endif %}</h1>
+  <p class="hero-sub">{% if is_manager_view %}All bookings for {{ garage.name|default:"your garage" }}{% elif is_mechanic_view %}Jobs assigned to you{% elif is_admin_view %}All bookings across all garages{% else %}Track, manage and invoice all your eGarage appointments.{% endif %}</p>
+  <div class="stat-strip">
+    <div class="sc" style="--ac:var(--red);"><div class="sc-icon">📋</div><div class="sc-num">{{ bookings|length }}</div><div class="sc-lbl">Total</div></div>
+    <div class="sc" style="--ac:var(--blue);"><div class="sc-icon">📅</div><div class="sc-num" style="color:var(--blue);">{{ upcoming_count|default:0 }}</div><div class="sc-lbl">Upcoming</div></div>
+    <div class="sc" style="--ac:var(--green);"><div class="sc-icon">✅</div><div class="sc-num" style="color:var(--green);">{{ completed_count|default:0 }}</div><div class="sc-lbl">Completed</div></div>
+    <div class="sc" style="--ac:var(--yellow);"><div class="sc-icon">💸</div><div class="sc-num" style="color:var(--yellow);">{% if total_spent %}₹{{ total_spent|floatformat:0 }}{% else %}₹0{% endif %}</div><div class="sc-lbl">Total Spent</div></div>
+  </div>
+</div>
+
+<div class="layout">
+<div>
+  <!-- FILTERS -->
+  <div class="filter-row">
+    <div class="fc on" onclick="filterBy(this,'all')">ALL</div>
+    <div class="fc" onclick="filterBy(this,'upcoming')">UPCOMING</div>
+    <div class="fc" onclick="filterBy(this,'live')">LIVE</div>
+    <div class="fc" onclick="filterBy(this,'done')">COMPLETED</div>
+    <div class="fc" onclick="filterBy(this,'cancel')">CANCELLED</div>
+    <div class="fc-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search ref or service…" id="searchInp" oninput="searchBk()">
+    </div>
+  </div>
+
+  {% if bookings %}{% for b in bookings %}
+  <div class="bcard {% if b.status == 'cancelled' %}cancelled-card{% endif %}" id="bc{{ b.pk }}"
+       data-status="{% if b.status == 'delivered' %}done{% elif b.status == 'cancelled' %}cancel{% elif b.status in 'in_progress,at_garage,quality_check' %}live{% else %}upcoming{% endif %}"
+       data-ref="{{ b.reference }}" data-svc="{{ b.service.name|default:'Service' }}">
+
+    <div class="bc-head">
+      <div class="bc-ico" style="background:rgba({% if b.status == 'delivered' %}0,166,81{% elif b.status == 'cancelled' %}232,25,44{% elif b.status in 'in_progress,at_garage,quality_check' %}245,158,11{% else %}59,130,246{% endif %},.1);">
+        {% if b.service.icon_emoji %}{{ b.service.icon_emoji }}{% else %}🔧{% endif %}
+      </div>
+      <div class="bc-main">
+        <div class="bc-ref">{{ b.reference }}</div>
+        <div class="bc-name">{{ b.service.name|default:"Car Service" }}</div>
+        <div class="bc-vehicle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+          {% if is_manager_view or is_admin_view %}👤 {{ b.customer_name }}{% if b.vehicle %} · {{ b.vehicle.brand }} {{ b.vehicle.model_name }}{% endif %}
+          {% elif b.vehicle %}{{ b.vehicle.brand }} {{ b.vehicle.model_name }} · {{ b.vehicle.registration_number }}
+          {% else %}{{ b.customer_name }}{% endif %}
+        </div>
+        {% if is_manager_view and b.mechanic %}<div style="font-size:.62rem;color:var(--muted);margin-top:2px;">🔧 {{ b.mechanic.name }}</div>{% endif %}
+      </div>
+      <div class="bc-right">
+        {% if b.status == 'delivered' %}
+          <span class="pill p-done">✓ Completed</span>
+        {% elif b.status == 'cancelled' %}
+          <span class="pill p-cancel">✕ Cancelled</span>
+        {% elif b.status in 'in_progress,at_garage,quality_check' %}
+          <span class="pill p-live">● In Progress</span>
+        {% elif b.status == 'confirmed' %}
+          {% if b.job and b.job.status == 'accepted' %}<span class="pill p-soon">✓ Mechanic Assigned</span>
+          {% else %}<span class="pill p-pending">⏳ Pending</span>{% endif %}
+        {% else %}
+          <span class="pill p-pending">{{ b.get_status_display }}</span>
+        {% endif %}
+        <div class="bc-price">₹{{ b.final_price|floatformat:0 }}</div>
+      </div>
+    </div>
+
+    {% if b.status in 'in_progress,at_garage' %}
+    <div class="bc-prog"><div class="prog-track"><div class="prog-fill" style="width:60%;"></div></div></div>
+    {% endif %}
+
+    <div class="bc-meta">
+      <div class="bm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg><strong>{{ b.scheduled_date|date:"d M Y" }}</strong></div>
+      <div class="bm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{ b.scheduled_slot|time:"h:i A" }}</div>
+      {% if b.garage %}<div class="bm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>{{ b.garage.name }}</div>{% endif %}
+      {% if b.mechanic %}<div class="bm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><strong>{{ b.mechanic.name }}</strong></div>{% endif %}
+      {% if b.pickup_required %}<div class="bm" style="color:var(--green);">✓ Free Pickup</div>{% endif %}
+
+      {# ── PAYMENT BADGE ── real data only #}
+      {% if b.final_paid %}
+        <span class="pay-badge pay-full">✓ Fully Paid ₹{{ b.final_bill|floatformat:0 }}</span>
+      {% elif b.advance_paid %}
+        <span class="pay-badge pay-adv">₹{{ b.advance_amount|floatformat:0 }} Advance Paid</span>
+        <span style="font-size:.62rem;color:var(--muted);">Balance: <strong style="color:var(--text);">₹{{ b.balance_due|floatformat:0 }}</strong></span>
+      {% elif b.payment_method == 'cash' %}
+        <span class="pay-badge pay-cash">💵 Pay Cash at Garage</span>
+      {% elif b.payment_method == 'full' %}
+        <span class="pay-badge pay-pend">⏳ Full Payment Pending</span>
+      {% else %}
+        <span class="pay-badge pay-pend">⏳ Payment Pending</span>
+      {% endif %}
+    </div>
+
+    <div class="bc-actions">
+      <a href="{% url 'booking_detail' b.reference %}" class="bca">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View Details
+      </a>
+
+      {% if b.status in 'in_progress,at_garage,quality_check' %}
+      <a href="{% url 'track' %}?ref={{ b.reference }}" class="bca bca-y">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Live Track
+      </a>
+      {% endif %}
+
+      {# PAY BALANCE — only for owners, only when job done and balance owed #}
+      {% if not is_manager_view and not is_mechanic_view and not is_admin_view %}
+        {% if not b.final_paid and b.balance_due > 0 and b.payment_method != 'cash' %}
+          {% if b.status in 'quality_check,delivered' or b.job and b.job.status in 'completed,verified' %}
+          <a href="{% url 'pay_balance' b.reference %}" class="pay-balance-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            Pay Balance ₹{{ b.balance_due|floatformat:0 }}
+          </a>
+          {% endif %}
+        {% endif %}
+      {% endif %}
+
+      {% if b.vehicle and b.status == 'confirmed' and not is_manager_view and not is_mechanic_view %}
+      <a href="{% url 'vehicle_condition' b.vehicle.pk %}" class="bca">📷 Condition</a>
+      {% endif %}
+
+      {% if b.status == 'confirmed' and not is_manager_view and not is_mechanic_view and not is_admin_view %}
+      <button class="bca bca-r" onclick="openReschedule('{{ b.reference }}','{{ b.service.name|default:"Service"|escapejs }}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Reschedule
+      </button>
+      <button class="bca bca-danger" onclick="openCancel('bc{{ b.pk }}','{{ b.reference }}','{{ b.service.name|default:"Service"|escapejs }}','{{ b.scheduled_date|date:"Y-m-d" }}','{{ b.scheduled_slot|time:"H:i" }}')">Cancel</button>
+      {% endif %}
+
+      {% if b.status in 'delivered,confirmed' or b.status == 'completed' %}
+      <a href="{% url 'download_invoice' b.reference %}" class="bca">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Invoice
+      </a>
+      {% endif %}
+
+      {% if b.status == 'delivered' and not is_mechanic_view %}
+        {% if not b.review %}
+        <a href="{% url 'rate_service' b.reference %}" class="bca bca-y">⭐ Rate Service</a>
+        {% else %}
+        <span class="bca" style="cursor:default;color:var(--green);border-color:rgba(0,166,81,.2);">⭐ {{ b.review.rating }}/5 Rated</span>
+        {% endif %}
+      {% endif %}
+
+      {# Book Again — ONLY for owners, never for mechanic or manager #}
+      {% if not is_mechanic_view and not is_manager_view and not is_admin_view %}
+      <a href="{% url 'booking' %}" class="bca bca-g">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>Book Again
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="empty">
+    <div class="empty-ico">🔧</div>
+    <div class="empty-t">No bookings yet</div>
+    <div class="empty-s">Book your first service and it will appear here</div>
+    {% if not is_mechanic_view and not is_manager_view and not is_admin_view %}
+    <a href="{% url 'booking' %}" class="empty-cta">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Book First Service
+    </a>
+    {% endif %}
+  </div>
+  {% endfor %}{% endif %}
+</div><!-- /left -->
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="scard">
+    <div class="scard-h"><h3>📊 Activity</h3><p>Your eGarage history</p></div>
+    <div class="scard-b">
+      <div class="sum-row"><span class="sum-k">Total bookings</span><span class="sum-v">{{ bookings|length }}</span></div>
+      <div class="sum-row"><span class="sum-k">Completed</span><span class="sum-v" style="color:var(--green);">{{ completed_count|default:0 }}</span></div>
+      <div class="sum-row"><span class="sum-k">Upcoming</span><span class="sum-v" style="color:var(--blue);">{{ upcoming_count|default:0 }}</span></div>
+      <div class="sum-row"><span class="sum-k">Total spent</span><span class="sum-v" style="color:var(--yellow);">₹{{ total_spent|floatformat:0|default:"0" }}</span></div>
+    </div>
+  </div>
+
+  {% if not is_mechanic_view and not is_manager_view and not is_admin_view %}
+  <div style="background:linear-gradient(135deg,rgba(232,25,44,.12),rgba(124,58,237,.08));border:1px solid rgba(232,25,44,.2);border-radius:14px;padding:18px;">
+    <div style="font-family:var(--fd);font-size:.78rem;font-weight:900;color:var(--text);margin-bottom:6px;">Need a service?</div>
+    <div style="font-size:.72rem;color:var(--muted);margin-bottom:14px;">Book again with the same vehicle and garage.</div>
+    <a href="{% url 'booking' %}" style="display:block;text-align:center;padding:10px;background:var(--red);color:#fff;border-radius:9px;font-family:var(--fd);font-size:.74rem;font-weight:700;text-decoration:none;">+ Book a Service</a>
+  </div>
+  {% endif %}
+
+  <div class="scard">
+    {% if not is_mechanic_view and not is_manager_view %}
+    <a class="ql-item" href="{% url 'booking' %}"><div class="ql-ico" style="background:rgba(232,25,44,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div><span class="ql-t">New Booking</span><div class="ql-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></a>
+    <div class="ql-sep"></div>
+    <a class="ql-item" href="{% url 'track' %}"><div class="ql-ico" style="background:rgba(245,158,11,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><span class="ql-t">Live Tracking</span><div class="ql-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></a>
+    <div class="ql-sep"></div>
+    <a class="ql-item" href="{% url 'vehicles' %}"><div class="ql-ico" style="background:rgba(59,130,246,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div><span class="ql-t">My Vehicles</span><div class="ql-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></a>
+    <div class="ql-sep"></div>
+    {% endif %}
+    <a class="ql-item" href="{% url 'garage_finder' %}"><div class="ql-ico" style="background:rgba(0,166,81,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="ql-t">Find Garage</span><div class="ql-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></a>
+  </div>
+</div>
+</div><!-- /layout -->
+
+<!-- ── CANCEL MODAL — with real refund calculation ── -->
+<div class="overlay" id="cancelModal">
+  <div class="modal sm">
+    <div class="mhd"><h3>CANCEL BOOKING</h3><button class="mclose" onclick="closeModal('cancelModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="mbody">
+      <div id="refundBox" class="refund-box refund-full">
+        <div class="rtitle" id="refundTitle">Calculating refund…</div>
+        <div class="rdesc" id="refundDesc">Please wait.</div>
+      </div>
+      <div class="mff">
+        <label>Reason for cancellation</label>
+        <select id="cancelReason">
+          <option value="">Select reason…</option>
+          <option>Plans changed</option>
+          <option>Found better price elsewhere</option>
+          <option>Vehicle issue resolved</option>
+          <option>Wrong booking details</option>
+          <option>Personal / emergency</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="mbtn cancel" onclick="closeModal('cancelModal')">Keep Booking</button>
+      <button class="mbtn red" id="confirmCancelBtn" onclick="confirmCancel()">Yes, Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── RESCHEDULE MODAL ── -->
+<div class="overlay" id="rescheduleModal">
+  <div class="modal md">
+    <div class="mhd"><h3>RESCHEDULE</h3><button class="mclose" onclick="closeModal('rescheduleModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="mbody">
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:16px;">Rescheduling: <strong id="reschName" style="color:var(--red);"></strong></div>
+      <div style="font-size:.6rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Pick a Date</div>
+      <div class="date-grid" id="dateGrid"></div>
+      <div style="font-size:.6rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;margin-top:4px;">Pick a Time</div>
+      <div class="time-grid" id="timeGrid"></div>
+    </div>
+    <div class="mfoot">
+      <button class="mbtn cancel" onclick="closeModal('rescheduleModal')">Cancel</button>
+      <button class="mbtn red" onclick="confirmReschedule()">Confirm Reschedule</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+var CSRF='{{ csrf_token }}';
+var MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var SLOTS=['8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','3:00 PM','4:00 PM','5:00 PM'];
+var cancelCardId='',cancelRef='',reschRef='';
+
+/* FILTER */
+function filterBy(el,f){
+  document.querySelectorAll('.fc').forEach(function(c){c.classList.remove('on');});
+  el.classList.add('on');
+  document.querySelectorAll('.bcard').forEach(function(b){b.style.display=(f==='all'||b.dataset.status===f)?'':'none';});
+}
+
+/* SEARCH */
+function searchBk(){
+  var q=(document.getElementById('searchInp').value||'').toLowerCase();
+  document.querySelectorAll('.bcard').forEach(function(b){
+    b.style.display=(!q||(b.dataset.ref||'').toLowerCase().includes(q)||(b.dataset.svc||'').toLowerCase().includes(q))?'':'none';
+  });
+}
+
+/* MODALS */
+function openModal(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('on');document.body.style.overflow='';}
+document.querySelectorAll('.overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)closeModal(o.id);});});
+
+/* CANCEL — calls real API with refund calculation */
+function openCancel(cardId,ref,name,dateStr,timeStr){
+  cancelCardId=cardId; cancelRef=ref;
+  /* Calculate hours until appointment */
+  var slotDt=new Date(dateStr+'T'+timeStr+':00');
+  var hoursUntil=(slotDt-new Date())/3600000;
+  var box=document.getElementById('refundBox');
+  var title=document.getElementById('refundTitle');
+  var desc=document.getElementById('refundDesc');
+  box.className='refund-box';
+  if(hoursUntil>=6){
+    box.classList.add('refund-full');
+    title.textContent='✅ Full Refund';
+    desc.textContent='Cancelling '+name+'. Since you\'re cancelling 6+ hours before your slot, you\'ll get a 100% refund credited in 24 hours.';
+  } else if(hoursUntil>0){
+    box.classList.add('refund-half');
+    title.textContent='⚠️ 50% Refund';
+    desc.textContent='Cancelling '+name+'. Since you\'re cancelling less than 6 hours before your slot, only 50% of your advance will be refunded in 24 hours.';
+  } else {
+    box.classList.add('refund-none');
+    title.textContent='❌ No Refund';
+    desc.textContent='This booking slot has already passed or service has started. No refund is applicable.';
+  }
+  document.getElementById('cancelReason').value='';
+  openModal('cancelModal');
+}
+
+function confirmCancel(){
+  var reason=document.getElementById('cancelReason').value;
+  if(!reason){toast('Please select a cancellation reason');return;}
+  var btn=document.getElementById('confirmCancelBtn');
+  btn.disabled=true; btn.textContent='Cancelling…';
+
+  fetch('/api/booking/'+cancelRef+'/cancel/',{
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body:JSON.stringify({reason:reason})
+  }).then(function(r){return r.json();}).then(function(d){
+    btn.disabled=false; btn.textContent='Yes, Cancel';
+    if(d.ok){
+      /* Update card in-place permanently */
+      var card=document.getElementById(cancelCardId);
+      if(card){
+        card.dataset.status='cancel';
+        card.classList.add('cancelled-card');
+        var pill=card.querySelector('.pill');
+        if(pill){pill.className='pill p-cancel';pill.textContent='✕ Cancelled';}
+        var acts=card.querySelector('.bc-actions');
+        if(acts){
+          acts.innerHTML='<span class="bca" style="cursor:default;color:var(--muted);">'+d.refund_msg+'</span>'
+            +'<a href="{% url "booking" %}" class="bca bca-g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>Book Again</a>';
+        }
+      }
+      closeModal('cancelModal');
+      toast('✅ Booking cancelled. '+d.refund_msg);
+    } else {
+      toast('❌ '+(d.error||'Cannot cancel at this stage'));
+    }
+  }).catch(function(){btn.disabled=false;btn.textContent='Yes, Cancel';toast('Network error. Please try again.');});
+}
+
+/* RESCHEDULE */
+function openReschedule(ref,name){
+  reschRef=ref;
+  document.getElementById('reschName').textContent=name+' ('+ref+')';
+  buildDates();buildTimes();
+  openModal('rescheduleModal');
+}
+function buildDates(){
+  var h='';
+  for(var i=1;i<=8;i++){var d=new Date();d.setDate(d.getDate()+i);h+='<div class="dbtn" onclick="selDate(this)"><div class="dd">'+DAYS[d.getDay()]+'</div><div class="dn">'+d.getDate()+'</div><div class="dm">'+MONTHS[d.getMonth()]+'</div></div>';}
+  document.getElementById('dateGrid').innerHTML=h;
+}
+function buildTimes(){
+  document.getElementById('timeGrid').innerHTML=SLOTS.map(function(t){return'<div class="tbtn" onclick="selTime(this)">'+t+'</div>';}).join('');
+}
+function selDate(el){document.querySelectorAll('#dateGrid .dbtn').forEach(function(b){b.classList.remove('on');});el.classList.add('on');}
+function selTime(el){if(el.classList.contains('busy'))return;document.querySelectorAll('#timeGrid .tbtn').forEach(function(b){b.classList.remove('on');});el.classList.add('on');}
+function confirmReschedule(){
+  var d=document.querySelector('#dateGrid .dbtn.on');
+  var t=document.querySelector('#timeGrid .tbtn.on');
+  if(!d||!t){toast('Please select a date and time first');return;}
+  /* Real reschedule API call */
+  fetch('/api/booking/'+reschRef+'/reschedule/',{
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body:JSON.stringify({date:d.querySelector('.dn').textContent,time:t.textContent})
+  }).then(function(r){return r.json();}).then(function(data){
+    closeModal('rescheduleModal');
+    if(data.ok){toast('✅ Booking rescheduled successfully!');}
+    else{toast('❌ '+(data.error||'Could not reschedule'));}
+  }).catch(function(){closeModal('rescheduleModal');toast('✅ Request submitted. Confirmation via notification.');});
+}
+
+/* TOAST */
+function toast(msg){
+  var el=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  el.classList.add('on');
+  setTimeout(function(){el.classList.remove('on');},4500);
+}
+{% if messages %}{% for message in messages %}setTimeout(function(){toast('{{ message|escapejs }}');},400);{% endfor %}{% endif %}
+
+/* LIVE PARTS POLLING for in-progress bookings */
+(function(){
+  var actives=document.querySelectorAll('.bcard[data-status="live"]');
+  if(!actives.length)return;
+  actives.forEach(function(card){
+    var ref=card.getAttribute('data-ref');
+    if(!ref)return;
+    function poll(){
+      fetch('/api/booking/'+ref+'/invoice/')
+        .then(function(r){return r.json();})
+        .then(function(d){
+          if(!d.ok)return;
+          /* Update balance display in meta */
+          var meta=card.querySelector('.bc-meta');
+          if(meta&&d.balance_due>0){
+            var existing=card.querySelector('.live-bal');
+            if(!existing){
+              var span=document.createElement('span');
+              span.className='bm live-bal';
+              span.style.color='var(--yellow)';
+              meta.appendChild(span);
+              existing=span;
+            }
+            existing.textContent='⚡ Live Balance: ₹'+parseFloat(d.balance_due).toFixed(0);
+          }
+        }).catch(function(){});
+    }
+    poll();
+    setInterval(poll,15000);
+  });
+})();
+</script>
+{% endblock %}

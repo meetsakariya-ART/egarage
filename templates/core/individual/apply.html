@@ -1,0 +1,240 @@
+{% extends 'core/base.html' %}
+{% block title %}Apply as Individual Mechanic — eGarage{% endblock %}
+{% block extra_head %}
+<style>
+html,body { background:var(--bg); color:var(--text); font-family:var(--fb); min-height:100vh; }
+
+.wrap { max-width:680px; margin:0 auto; padding:36px 24px 60px; }
+
+.hero { text-align:center; margin-bottom:32px; }
+.hero-ico {
+  width:64px; height:64px; border-radius:18px;
+  background:rgba(124,77,255,.15); border:1px solid rgba(124,77,255,.25);
+  display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:28px;
+}
+.hero h1 { font-family:var(--fd); font-size:1.6rem; font-weight:900; color:var(--text); margin-bottom:7px; }
+.hero p  { font-size:.82rem; color:var(--muted); line-height:1.6; }
+
+.benefits { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:28px; }
+.benefit {
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:14px; text-align:center; box-shadow:var(--card-shadow);
+}
+.b-ico  { font-size:22px; margin-bottom:6px; }
+.b-text { font-size:.66rem; color:var(--muted); line-height:1.4; }
+
+/* STATUS CARDS */
+.status-card { border-radius:14px; padding:18px; margin-bottom:24px; display:flex; align-items:flex-start; gap:12px; }
+.sc-pending  { background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.2); }
+.sc-approved { background:rgba(0,166,81,.08);   border:1px solid rgba(0,166,81,.2); }
+.sc-rejected { background:rgba(232,25,44,.08);  border:1px solid rgba(232,25,44,.2); }
+
+/* FORM CARD */
+.card {
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+  padding:24px; margin-bottom:16px; box-shadow:var(--card-shadow);
+}
+.card-title { font-family:var(--fd); font-size:.8rem; font-weight:800; color:var(--text); margin-bottom:18px; letter-spacing:.3px; }
+
+.ff { margin-bottom:14px; }
+.ff label {
+  display:block; font-size:.6rem; font-weight:800; letter-spacing:1.2px;
+  text-transform:uppercase; color:var(--muted); margin-bottom:7px;
+}
+.ff input,.ff select,.ff textarea {
+  width:100%; padding:11px 13px; background:var(--input-bg); border:1px solid var(--border);
+  border-radius:10px; font-family:var(--fb); font-size:.84rem; color:var(--input-text);
+  outline:none; transition:border-color .15s;
+}
+.ff input:focus,.ff select:focus,.ff textarea:focus { border-color:rgba(124,77,255,.5); background:var(--surface); box-shadow:0 0 0 3px rgba(124,77,255,.1); }
+.ff select option { background:var(--bg2); color:var(--text); }
+.ff textarea { resize:vertical; min-height:80px; }
+
+.skills-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.skill-item {
+  display:flex; align-items:center; gap:8px; padding:10px 12px;
+  border:1px solid var(--border); border-radius:9px; cursor:pointer; transition:all .15s;
+  background:var(--surface2);
+}
+.skill-item:hover { border-color:rgba(124,77,255,.4); background:rgba(124,77,255,.04); }
+.skill-item input  { width:auto; flex-shrink:0; accent-color:var(--purple); }
+.skill-item label  { font-size:.74rem; color:var(--text2); cursor:pointer; }
+
+.row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+.hv-row {
+  display:flex; align-items:center; gap:8px; padding:10px 12px;
+  background:rgba(0,166,81,.06); border:1px solid rgba(0,166,81,.15); border-radius:9px;
+}
+.hv-row input { width:auto; accent-color:var(--green); }
+.hv-row label  { font-size:.78rem; color:var(--text2); cursor:pointer; }
+
+.submit-btn {
+  width:100%; padding:13px;
+  background:linear-gradient(135deg,var(--purple),#651fff);
+  color:#fff; border:none; border-radius:11px;
+  font-family:var(--fd); font-size:.85rem; font-weight:800; letter-spacing:.3px;
+  cursor:pointer; transition:all .2s; box-shadow:0 4px 20px rgba(124,77,255,.3);
+}
+.submit-btn:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(124,77,255,.4); }
+
+.back-link {
+  display:block; text-align:center; padding:12px;
+  background:var(--surface); border:1px solid var(--border); border-radius:10px;
+  color:var(--text); font-family:var(--fd); font-size:.8rem; font-weight:700;
+  transition:all .15s;
+}
+.back-link:hover { border-color:var(--red); color:var(--red); }
+
+@media(max-width:580px) { .benefits{grid-template-columns:1fr 1fr;} .row2{grid-template-columns:1fr;} .skills-grid{grid-template-columns:1fr;} }
+
+/* ═══════════════════════════════════════
+   APPLY INDIVIDUAL — LIGHT MODE OVERRIDES
+═══════════════════════════════════════ */
+html[data-theme="light"] body {
+  background: #f8fafc !important; color: #0f172a !important;
+}
+html[data-theme="light"] body::before {
+  background: radial-gradient(ellipse at 50% 20%, rgba(124,77,255,.04), transparent 50%) !important;
+}
+html[data-theme="light"] .topbar {
+  background: rgba(255,255,255,.92) !important;
+  border-color: #e2e8f0 !important;
+}
+html[data-theme="light"] .tb-logo { color: #e8192c !important; }
+html[data-theme="light"] .back-link {
+  color: #64748b !important;
+  border-color: #e2e8f0 !important;
+  background: #ffffff !important;
+}
+html[data-theme="light"] .back-link:hover { background: #f8fafc !important; color: #0f172a !important; }
+html[data-theme="light"] .hero-ico {
+  background: rgba(124,77,255,.08) !important;
+  border-color: rgba(124,77,255,.15) !important;
+}
+html[data-theme="light"] .hero h1 { color: #0f172a !important; }
+html[data-theme="light"] .hero p { color: #64748b !important; }
+html[data-theme="light"] .benefit {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+html[data-theme="light"] .b-text { color: #64748b !important; }
+html[data-theme="light"] .card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06) !important;
+}
+html[data-theme="light"] .card-title { color: #0f172a !important; }
+html[data-theme="light"] .ff label { color: #64748b !important; }
+html[data-theme="light"] .ff input,
+html[data-theme="light"] .ff select,
+html[data-theme="light"] .ff textarea {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+html[data-theme="light"] .ff input::placeholder,
+html[data-theme="light"] .ff textarea::placeholder { color: #94a3b8 !important; }
+html[data-theme="light"] .ff input:focus,
+html[data-theme="light"] .ff select:focus,
+html[data-theme="light"] .ff textarea:focus {
+  border-color: rgba(124,77,255,.4) !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(124,77,255,.08) !important;
+}
+html[data-theme="light"] .ff select option { background: #ffffff !important; color: #0f172a !important; }
+html[data-theme="light"] .skill-item {
+  border-color: #e2e8f0 !important;
+  background: #ffffff !important;
+}
+html[data-theme="light"] .skill-item label { color: #475569 !important; }
+html[data-theme="light"] .skill-item:hover { border-color: rgba(124,77,255,.3) !important; }
+html[data-theme="light"] .status-card.sc-pending {
+  background: rgba(245,158,11,.06) !important;
+  border-color: rgba(245,158,11,.2) !important;
+}
+html[data-theme="light"] .status-card.sc-approved {
+  background: rgba(0,200,83,.06) !important;
+  border-color: rgba(0,200,83,.2) !important;
+}
+html[data-theme="light"] .status-card.sc-rejected {
+  background: rgba(232,25,44,.06) !important;
+  border-color: rgba(232,25,44,.2) !important;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <div class="hero">
+    <div class="hero-ico">🔧</div>
+    <h1>Work as Individual Mechanic</h1>
+    <p>Apply to work independently on eGarage. Accept jobs in your city, go to customer homes for premium service, and earn on your own terms.</p>
+  </div>
+
+  <div class="benefits">
+    <div class="benefit"><div class="b-ico">💰</div><div class="b-text">Set your own rates and earn per job</div></div>
+    <div class="benefit"><div class="b-ico">🏠</div><div class="b-text">Do home visits for premium bookings</div></div>
+    <div class="benefit"><div class="b-ico">📅</div><div class="b-text">Choose your own schedule</div></div>
+  </div>
+
+  {% if existing %}
+    {% if existing.status == 'pending' %}
+    <div class="status-card sc-pending">
+      <span style="font-size:24px;">⏳</span>
+      <div><div style="font-family:var(--fd);font-size:.82rem;font-weight:800;color:var(--yellow);margin-bottom:4px;">Application Under Review</div><div style="font-size:.74rem;color:var(--muted);">Your application is being reviewed by the Admin. You'll be notified once a decision is made.</div></div>
+    </div>
+    <a href="{% url 'dashboard' %}" class="back-link">← Go to Dashboard</a>
+    {% elif existing.status == 'approved' %}
+    <div class="status-card sc-approved">
+      <span style="font-size:24px;">✅</span>
+      <div><div style="font-family:var(--fd);font-size:.82rem;font-weight:800;color:var(--green);margin-bottom:4px;">Application Approved!</div><div style="font-size:.74rem;color:var(--muted);">You are now an active individual mechanic. Jobs in your city will appear in your dashboard.</div></div>
+    </div>
+    <a href="{% url 'dashboard' %}" style="display:block;text-align:center;padding:12px;background:rgba(0,166,81,.12);border:1px solid rgba(0,166,81,.25);border-radius:10px;color:var(--green);font-family:var(--fd);font-size:.8rem;font-weight:700;">Go to Dashboard →</a>
+    {% elif existing.status == 'rejected' %}
+    <div class="status-card sc-rejected">
+      <span style="font-size:24px;">❌</span>
+      <div><div style="font-family:var(--fd);font-size:.82rem;font-weight:800;color:var(--red);margin-bottom:4px;">Application Rejected</div><div style="font-size:.74rem;color:var(--muted);">{% if existing.rejection_reason %}Reason: {{ existing.rejection_reason }}{% else %}Your application was not approved.{% endif %} You may reapply.</div></div>
+    </div>
+    {% endif %}
+  {% else %}
+  <form method="POST" action="{% url 'apply_individual' %}">{% csrf_token %}
+    <div class="card">
+      <div class="card-title">🏙️ Service Area</div>
+      <div class="ff"><label>Cities You Serve (comma-separated)</label><input type="text" name="cities" placeholder="e.g. Rajkot, Jamnagar, Morbi" value="{{ request.user.city }}" required></div>
+      <div class="row2">
+        <div class="ff"><label>Service Radius (km)</label><input type="number" name="radius" value="20" min="5" max="100"></div>
+        <div class="ff"><label>Experience (years)</label><input type="number" name="experience" value="0" min="0" max="50"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔧 Skills &amp; Specializations</div>
+      <div class="skills-grid">
+        <div class="skill-item"><input type="checkbox" name="skills" value="engine" id="sk1"><label for="sk1">Engine &amp; Transmission</label></div>
+        <div class="skill-item"><input type="checkbox" name="skills" value="electric" id="sk2"><label for="sk2">Electrical Systems</label></div>
+        <div class="skill-item"><input type="checkbox" name="skills" value="ac" id="sk3"><label for="sk3">AC &amp; HVAC</label></div>
+        <div class="skill-item"><input type="checkbox" name="skills" value="body" id="sk4"><label for="sk4">Body &amp; Paint</label></div>
+        <div class="skill-item"><input type="checkbox" name="skills" value="tyres" id="sk5"><label for="sk5">Tyres &amp; Wheels</label></div>
+        <div class="skill-item"><input type="checkbox" name="skills" value="brakes" id="sk6"><label for="sk6">Brakes &amp; Suspension</label></div>
+        <div class="skill-item"><input type="checkbox" name="skills" value="diagnostic" id="sk7"><label for="sk7">Diagnostics &amp; OBD</label></div>
+        <div class="skill-item"><input type="checkbox" name="skills" value="detailing" id="sk8"><label for="sk8">Detailing &amp; Cleaning</label></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">💰 Rates &amp; Home Visit</div>
+      <div class="row2">
+        <div class="ff"><label>Hourly Rate (₹)</label><input type="number" name="rate" value="500" min="0"></div>
+        <div class="ff"><label>Home Visit Charge (₹)</label><input type="number" name="visit_charge" value="200" min="0"></div>
+      </div>
+      <div class="hv-row"><input type="checkbox" name="home_visit" id="homeVisit" checked><label for="homeVisit">I can do <strong>home visits</strong> for premium bookings</label></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📝 Why do you want to work independently?</div>
+      <div class="ff"><label>Your reason (shown to Admin)</label><textarea name="reason" rows="4" placeholder="Tell us about your experience, why you want to work as an independent mechanic…" required></textarea></div>
+    </div>
+    <button type="submit" class="submit-btn">🔧 Submit Application</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

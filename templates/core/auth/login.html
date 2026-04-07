@@ -1,0 +1,456 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eGarage — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;}
+body{display:flex;background:#04030a;}
+
+/* ══ LEFT — Art/Canvas ══ */
+.p-left{
+  width:52%;position:relative;overflow:hidden;flex-shrink:0;
+}
+#gc{position:absolute;inset:0;width:100%;height:100%;}
+.vig{position:absolute;inset:0;background:radial-gradient(ellipse at 55% 50%,transparent 20%,rgba(4,3,10,.82) 100%),linear-gradient(to right,rgba(4,3,10,.55),transparent 60%);pointer-events:none;z-index:2;}
+.cwash{position:absolute;inset:0;background:linear-gradient(140deg,rgba(232,25,44,.06),rgba(20,20,70,.09) 60%,rgba(0,140,255,.04));z-index:2;}
+.dbar{position:absolute;width:3px;height:140%;background:#e8192c;top:-20%;left:52px;transform:rotate(-12deg);opacity:.55;z-index:3;}
+.dbar2{left:68px;opacity:.14;}
+
+.lc{
+  position:relative;z-index:4;
+  padding:60px 64px;
+  color:#fff;
+  height:100%;
+  display:flex;flex-direction:column;justify-content:center;
+  max-width:540px;
+}
+
+/* badge */
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(232,25,44,.14);
+  border:1px solid rgba(232,25,44,.35);
+  border-radius:30px;padding:5px 16px 5px 10px;
+  margin-bottom:36px;backdrop-filter:blur(6px);
+}
+.bdot{width:7px;height:7px;border-radius:50%;background:#e8192c;animation:bpulse 2s ease infinite;}
+@keyframes bpulse{0%,100%{box-shadow:0 0 0 0 rgba(232,25,44,.4);}50%{box-shadow:0 0 0 6px rgba(232,25,44,0);}}
+.badge span{font-family:'Barlow Condensed',sans-serif;font-size:.65rem;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.75);}
+
+/* big headline */
+.lc-h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(4rem,7vw,7.5rem);
+  line-height:.88;letter-spacing:2px;
+  color:#f5f0e8;
+  margin-bottom:20px;
+  text-shadow:0 4px 40px rgba(0,0,0,.7);
+}
+.lc-h1 .red{
+  background:linear-gradient(90deg,#e8192c,#ff6535);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.lc-p{
+  font-size:.92rem;font-weight:300;
+  color:rgba(245,240,232,.45);
+  line-height:1.75;max-width:280px;
+  margin-bottom:44px;
+}
+
+/* crew strip */
+.crew{display:flex;align-items:center;margin-bottom:36px;}
+.cav{
+  width:38px;height:38px;border-radius:50%;
+  border:2.5px solid rgba(255,255,255,.12);
+  margin-left:-10px;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.65rem;
+  display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;
+}
+.cav:first-child{margin-left:0;}
+.crew-info{margin-left:14px;font-size:.77rem;color:rgba(255,255,255,.45);line-height:1.5;}
+.crew-info strong{display:block;color:#f5f0e8;font-weight:600;}
+
+/* stats */
+.stats{display:flex;gap:28px;}
+.stat{border-left:2px solid rgba(255,255,255,.1);padding-left:14px;}
+.sn{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px;color:#f5f0e8;}
+.sl{font-family:'Barlow Condensed',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:rgba(245,240,232,.3);margin-top:2px;}
+
+/* ══ RIGHT — Form ══ */
+.p-right{
+  flex:1;
+  display:flex;align-items:center;justify-content:center;
+  background:#ffffff;
+  position:relative;
+  overflow:hidden;
+}
+.p-right::before{
+  content:'';position:absolute;top:0;right:0;
+  width:340px;height:340px;
+  background:radial-gradient(circle at top right,rgba(232,25,44,.08),transparent 65%);
+  pointer-events:none;
+}
+.p-right::after{
+  content:'';position:absolute;bottom:0;left:0;
+  width:220px;height:220px;
+  background:radial-gradient(circle at bottom left,rgba(232,25,44,.05),transparent 65%);
+  pointer-events:none;
+}
+
+.fw{
+  width:85%;max-width:420px;
+  position:relative;z-index:1;
+}
+
+/* ── BIG TYPOGRAPHY (same energy as signup art panel) ── */
+.fw-step{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.62rem;font-weight:600;letter-spacing:3.5px;text-transform:uppercase;
+  color:#e8192c;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.fw-step::before{content:'';width:22px;height:1.5px;background:#e8192c;}
+
+.fw-h{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(4.5rem,8vw,7rem);
+  letter-spacing:2px;line-height:.84;
+  color:#0d0d0d;
+  margin-bottom:16px;
+}
+.fw-h .acc{
+  background:linear-gradient(90deg,#e8192c,#ff4520);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;display:block;
+}
+
+.fw-sub{
+  font-size:.88rem;font-weight:300;
+  color:#9ca3af;
+  margin-bottom:32px;line-height:1.65;
+  border-left:2px solid #f3f4f6;
+  padding-left:14px;
+}
+
+/* error/success */
+.fw-err{
+  display:flex;align-items:center;gap:8px;
+  padding:11px 14px;
+  background:#fee2e2;border:1px solid #fca5a5;
+  border-radius:9px;margin-bottom:18px;
+  font-size:.8rem;color:#dc2626;
+}
+.fw-ok{
+  display:flex;align-items:center;gap:8px;
+  padding:11px 14px;
+  background:#f0fdf4;border:1px solid #bbf7d0;
+  border-radius:9px;margin-bottom:18px;
+  font-size:.8rem;color:#166534;
+}
+/* fade-up animation on form items */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fw>*{animation:fadeUp .48s ease both;}
+.fw>*:nth-child(1){animation-delay:.05s}.fw>*:nth-child(2){animation-delay:.1s}
+.fw>*:nth-child(3){animation-delay:.15s}.fw>*:nth-child(4){animation-delay:.2s}
+.fw>*:nth-child(5){animation-delay:.25s}.fw>*:nth-child(6){animation-delay:.3s}
+.fw>*:nth-child(7){animation-delay:.35s}.fw>*:nth-child(8){animation-delay:.4s}
+
+/* fields */
+.fg{margin-bottom:16px;}
+.fg label{
+  display:block;font-family:'Barlow Condensed',sans-serif;
+  font-size:.68rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+  color:#374151;margin-bottom:6px;
+}
+.fg input{
+  width:100%;padding:12px 15px;
+  border:1.5px solid #e5e7eb;border-radius:10px;
+  font-family:'DM Sans',sans-serif;font-size:.9rem;color:#0d0d0d;
+  background:#f9fafb;outline:none;
+  transition:all .2s;
+}
+.fg input:focus{
+  border-color:#e8192c;background:#fff;
+  box-shadow:0 0 0 4px rgba(232,25,44,.08);
+}
+.fg input::placeholder{color:#9ca3af;}
+
+/* field row */
+.frow{
+  display:flex;align-items:center;justify-content:space-between;
+  margin:16px 0 22px;
+}
+.remember{display:flex;align-items:center;gap:7px;font-size:.82rem;color:#6b7280;cursor:pointer;}
+.remember input{width:14px;height:14px;accent-color:#e8192c;cursor:pointer;}
+.forgot{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.72rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+  color:#e8192c;text-decoration:none;transition:opacity .2s;
+}
+.forgot:hover{opacity:.65;}
+
+/* submit */
+.signin-btn{
+  width:100%;padding:14px 20px;
+  border:none;border-radius:10px;cursor:pointer;
+  background:#0d0d0d;color:#fff;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.9rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+  transition:all .22s cubic-bezier(.34,1.56,.64,1);
+  position:relative;overflow:hidden;
+  box-shadow:0 6px 24px rgba(13,13,13,.22);
+}
+.signin-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(232,25,44,.2),transparent);
+  transform:translateX(-100%);transition:transform .55s ease;
+}
+.signin-btn:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(13,13,13,.3);}
+.signin-btn:hover::before{transform:translateX(100%);}
+
+/* signup link */
+.fw-signup{
+  text-align:center;margin-top:22px;
+  font-size:.83rem;color:#6b7280;
+}
+.fw-signup a{
+  color:#0d0d0d;font-family:'Barlow Condensed',sans-serif;
+  font-size:.82rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  text-decoration:none;transition:color .2s;
+}
+.fw-signup a:hover{color:#e8192c;}
+
+/* animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fw>*{animation:fadeUp .5s ease both;}
+.fw>*:nth-child(1){animation-delay:.05s}
+.fw>*:nth-child(2){animation-delay:.1s}
+.fw>*:nth-child(3){animation-delay:.15s}
+.fw>*:nth-child(4){animation-delay:.2s}
+.fw>*:nth-child(5){animation-delay:.25s}
+.fw>*:nth-child(6){animation-delay:.3s}
+.fw>*:nth-child(7){animation-delay:.35s}
+.fw>*:nth-child(8){animation-delay:.4s}
+
+@media(max-width:800px){
+  body{overflow:auto;}
+  .p-left{display:none;}
+  .p-right{width:100%;min-height:100vh;}
+  .fw{width:88%;padding:40px 0;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LEFT — Art panel ══ -->
+<div class="p-left">
+  <canvas id="gc"></canvas>
+  <div class="vig"></div>
+  <div class="cwash"></div>
+  <div class="dbar"></div>
+  <div class="dbar dbar2"></div>
+
+  <div class="lc">
+    <div class="badge"><div class="bdot"></div><span>Now Open · 24 / 7</span></div>
+
+    <h1 class="lc-h1">
+      Your Car.<br>
+      <span class="red">Our</span><br>
+      Obsession.
+    </h1>
+    <p class="lc-p">
+      Premium vehicle care managed entirely from your phone. Book, track, and review — all in one place.
+    </p>
+
+    <div class="crew">
+      <div class="cav" style="background:linear-gradient(135deg,#e8192c,#c0111f)">AK</div>
+      <div class="cav" style="background:linear-gradient(135deg,#1d4ed8,#1e3a8a)">RS</div>
+      <div class="cav" style="background:linear-gradient(135deg,#059669,#064e3b)">MV</div>
+      <div class="cav" style="background:linear-gradient(135deg,#d97706,#78350f)">JP</div>
+      <div class="cav" style="background:rgba(255,255,255,.08);font-size:.6rem">+12</div>
+      <div class="crew-info">
+        <strong>16 mechanics on duty</strong>
+        Avg. response · 4 min
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="sn">5K+</div><div class="sl">Owners</div></div>
+      <div class="stat"><div class="sn">98%</div><div class="sl">Happy</div></div>
+      <div class="stat"><div class="sn">120+</div><div class="sl">Services</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RIGHT — Form ══ -->
+<div class="p-right">
+  <div class="fw">
+
+    <div class="fw-step">eGarage · Portal</div>
+
+    <h2 class="fw-h">
+      Welcome<br>
+      <span class="acc">Back.</span>
+    </h2>
+    <p class="fw-sub">Sign in to access your garage dashboard.</p>
+
+    {% if error %}
+    <div class="fw-err">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      {{ error }}
+    </div>
+    {% endif %}
+
+    {% for message in messages %}
+    <div class="{% if 'success' in message.tags %}fw-ok{% else %}fw-err{% endif %}">{{ message }}</div>
+    {% endfor %}
+
+    <form method="POST" action="{% url 'login' %}" autocomplete="off">
+      {% csrf_token %}
+
+      <div class="fg">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email"
+          placeholder="you@gmail.com"
+          value="{{ request.POST.email }}"
+          required autofocus>
+      </div>
+
+      <div class="fg">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password"
+          placeholder="••••••••" required>
+      </div>
+
+      <div class="frow">
+        <label class="remember">
+          <input type="checkbox" name="remember"> Keep me signed in
+        </label>
+        <a href="{% url 'forgot_password' %}" class="forgot">Forgot?</a>
+      </div>
+
+      <button type="submit" class="signin-btn">Sign In →</button>
+    </form>
+
+    <p class="fw-signup">
+      Don't have an account? <a href="{% url 'signup' %}">Create Account</a>
+    </p>
+  </div>
+</div>
+
+<script>
+var cv=document.getElementById('gc');
+var cx=cv.getContext('2d');
+function rsz(){cv.width=cv.offsetWidth;cv.height=cv.offsetHeight;}
+rsz();window.addEventListener('resize',rsz);
+
+var T=0;
+var MECHS=[
+  {rx:.14,ry:.74,col:'#e8192c',task:'wrench',ph:0,sp:.8},
+  {rx:.34,ry:.71,col:'#1d4ed8',task:'inspect',ph:1.3,sp:1},
+  {rx:.52,ry:.76,col:'#059669',task:'walk',ph:.6,sp:1.25},
+  {rx:.70,ry:.72,col:'#d97706',task:'wrench',ph:2,sp:.9},
+  {rx:.88,ry:.74,col:'#7c3aed',task:'inspect',ph:.9,sp:1.05},
+];
+var CARS=[
+  {rx:.15,ry:.60,col:'#b91c1c',col2:'#7f1d1d',lifted:true,lh:0},
+  {rx:.50,ry:.58,col:'#1d4ed8',col2:'#1e3a8a',lifted:false,lh:0},
+  {rx:.83,ry:.60,col:'#059669',col2:'#064e3b',lifted:true,lh:0},
+];
+
+function drawCar(cx2,cy,hw,hh,body,sh){
+  cx.fillStyle='rgba(0,0,0,.38)';cx.beginPath();cx.ellipse(cx2,cy+hh*.58,hw*.78,hh*.14,0,0,Math.PI*2);cx.fill();
+  cx.fillStyle=body;cx.beginPath();cx.roundRect(cx2-hw,cy-hh*.08,hw*2,hh*.55,6);cx.fill();
+  cx.fillStyle='rgba(255,255,255,.08)';cx.beginPath();cx.roundRect(cx2-hw*.88,cy-hh*.04,hw*1.76,hh*.14,4);cx.fill();
+  cx.fillStyle=sh;cx.beginPath();cx.roundRect(cx2-hw*.58,cy-hh*.65,hw*1.16,hh*.58,[8,8,0,0]);cx.fill();
+  var wg=cx.createLinearGradient(cx2-hw*.48,cy-hh*.62,cx2+hw*.48,cy-hh*.1);
+  wg.addColorStop(0,'rgba(180,220,255,.58)');wg.addColorStop(1,'rgba(90,150,220,.22)');
+  cx.fillStyle=wg;cx.beginPath();cx.roundRect(cx2-hw*.48,cy-hh*.60,hw*.96,hh*.44,5);cx.fill();
+  [cx2-hw*.64,cx2+hw*.64].forEach(function(wx){
+    cx.fillStyle='#111';cx.beginPath();cx.ellipse(wx,cy+hh*.44,hh*.24,hh*.24,0,0,Math.PI*2);cx.fill();
+    cx.strokeStyle='#222';cx.lineWidth=3;cx.stroke();
+    cx.fillStyle='#2e2e2e';cx.beginPath();cx.ellipse(wx,cy+hh*.44,hh*.12,hh*.12,0,0,Math.PI*2);cx.fill();
+  });
+  cx.fillStyle='rgba(255,240,170,.85)';cx.beginPath();cx.ellipse(cx2+hw*.9,cy+hh*.08,hw*.09,hh*.07,0,0,Math.PI*2);cx.fill();
+  cx.fillStyle='rgba(255,50,50,.75)';cx.beginPath();cx.ellipse(cx2-hw*.9,cy+hh*.08,hw*.08,hh*.065,0,0,Math.PI*2);cx.fill();
+}
+
+function drawMechanic(mx,my,mh,col,task,ph){
+  cx.fillStyle='rgba(0,0,0,.25)';cx.beginPath();cx.ellipse(mx,my+mh*.06,mh*.19,mh*.04,0,0,Math.PI*2);cx.fill();
+  var ls=task==='walk'?Math.sin(ph*2.2)*.2:0;
+  [ls,-ls].forEach(function(sw){
+    cx.strokeStyle='#1c2231';cx.lineWidth=mh*.115;cx.lineCap='round';
+    cx.beginPath();cx.moveTo(mx,my-mh*.07);cx.lineTo(mx+sw*mh*.16,my+mh*.06);cx.stroke();
+  });
+  cx.fillStyle=col;cx.beginPath();cx.roundRect(mx-mh*.145,my-mh*.50,mh*.29,mh*.43,mh*.05);cx.fill();
+  var rA=task==='wrench'?-.75+Math.sin(ph*3)*.32:Math.sin(ph)*.22;
+  var lA=task==='wrench'?.45:-Math.sin(ph)*.22;
+  [[rA,1],[lA,-1]].forEach(function(p){
+    cx.strokeStyle=col;cx.lineWidth=mh*.105;cx.lineCap='round';
+    cx.beginPath();cx.moveTo(mx+p[1]*mh*.135,my-mh*.38);
+    cx.lineTo(mx+p[1]*mh*.135+Math.cos(p[0])*mh*.23,my-mh*.38+Math.sin(Math.abs(p[0]))*mh*.23);
+    cx.stroke();
+  });
+  if(task==='wrench'){cx.strokeStyle='#9ca3af';cx.lineWidth=mh*.055;cx.lineCap='round';cx.beginPath();cx.moveTo(mx+mh*.29,my-mh*.22);cx.lineTo(mx+mh*.40,my-mh*.40);cx.stroke();}
+  if(task==='inspect'){cx.fillStyle='#f3f4f6';cx.fillRect(mx-mh*.34,my-mh*.47,mh*.20,mh*.24);for(var r=0;r<3;r++){cx.fillStyle='#9ca3af';cx.fillRect(mx-mh*.30,my-mh*.43+r*mh*.07,mh*.12,mh*.025);}}
+  cx.fillStyle='#f0c896';cx.beginPath();cx.ellipse(mx,my-mh*.58,mh*.13,mh*.145,0,0,Math.PI*2);cx.fill();
+  cx.fillStyle=col;cx.beginPath();cx.ellipse(mx,my-mh*.645,mh*.148,mh*.10,0,0,Math.PI*2);cx.fill();
+  cx.fillStyle='rgba(255,255,255,.2)';cx.beginPath();cx.ellipse(mx-mh*.025,my-mh*.665,mh*.065,mh*.035,-.3,0,Math.PI*2);cx.fill();
+}
+
+(function frame(){
+  requestAnimationFrame(frame);
+  var w=cv.width,h=cv.height;
+  cx.clearRect(0,0,w,h);
+
+  /* ceiling */
+  var wg=cx.createLinearGradient(0,0,0,h*.46);wg.addColorStop(0,'#0b0b12');wg.addColorStop(1,'#161620');cx.fillStyle=wg;cx.fillRect(0,0,w,h*.46);
+
+  /* ceiling lights */
+  for(var i=0;i<5;i++){
+    var lx=(i+.5)*w/5;
+    var fl=.9+.1*Math.sin(T*2.8+i*1.9);
+    var cg=cx.createRadialGradient(lx,0,0,lx,0,h*.6);
+    cg.addColorStop(0,'rgba(210,225,255,'+(0.07*fl)+')');cg.addColorStop(1,'transparent');
+    cx.fillStyle=cg;cx.fillRect(0,0,w,h);
+    cx.fillStyle='rgba(255,255,230,'+(fl*.95)+')';cx.fillRect(lx-20,6,40,8);
+  }
+
+  /* floor */
+  var fg=cx.createLinearGradient(0,h*.45,0,h);fg.addColorStop(0,'#1c1c26');fg.addColorStop(1,'#0f0f16');cx.fillStyle=fg;cx.fillRect(0,h*.45,w,h*.55);
+  var tw=w/11,th=h*.075;
+  for(var row=0;row<9;row++) for(var col=0;col<13;col++){cx.fillStyle=(row+col)%2===0?'rgba(255,255,255,.014)':'rgba(0,0,0,.1)';cx.fillRect(col*tw-tw/2,h*.45+row*th,tw,th);}
+
+  /* lift posts + cars */
+  CARS.forEach(function(car,i){
+    var ccx=car.rx*w,groundY=h*.82;
+    if(car.lifted){
+      car.lh=.22+.055*Math.sin(T*.38+i*1.1);
+      var topY=groundY-car.lh*h;
+      [-.065,.065].forEach(function(off){
+        var colX=ccx+off*w;cx.fillStyle='#20202e';cx.fillRect(colX-4,topY,8,groundY-topY);
+      });
+      cx.fillStyle='#282836';cx.fillRect(ccx-w*.085,topY-5,w*.17,10);
+    }
+  });
+  CARS.forEach(function(car){
+    var ccx=car.rx*w;var cy=h*.74;
+    if(car.lifted) cy=h*.82-car.lh*h-h*.13;
+    drawCar(ccx,cy,w*.14,h*.095,car.col,car.col2);
+  });
+
+  /* mechanics */
+  MECHS.forEach(function(m){
+    drawMechanic(m.rx*w,m.ry*h+Math.sin(T*m.sp+m.ph)*2.5,h*.13,m.col,m.task,T*m.sp+m.ph);
+  });
+
+  T+=.016;
+})();
+</script>
+</body>
+</html>

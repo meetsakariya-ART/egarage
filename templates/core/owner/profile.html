@@ -1,0 +1,381 @@
+{% extends 'core/base.html' %}
+{% block title %}Profile — {{ user.name }} — eGarage{% endblock %}
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#e8192c;--red2:#c0111f;--green:#00a651;--blue:#1a56db;
+  --yellow:#f59e0b;--purple:#7c3aed;
+  --fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;
+  --border:#e0e0e0;--muted:#777;--bg:#f0f2f5;
+}
+html,body{background:var(--bg);color:#111;font-family:var(--fb);}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.navi{display:flex;align-items:center;padding:0 24px;height:60px;max-width:1280px;margin:0 auto;gap:14px;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-ico{width:32px;height:32px;border-radius:9px;background:var(--red);display:flex;align-items:center;justify-content:center;}
+.logo-ico svg{width:15px;height:15px;}
+.logo-name{font-family:var(--fd);font-size:1.15rem;font-weight:900;color:var(--red);}
+.logo-name span{color:#111;}
+.bc{display:flex;align-items:center;gap:5px;font-size:.74rem;color:var(--muted);}
+.bc a{color:var(--muted);text-decoration:none;}
+.bc a:hover{color:var(--red);}
+.nav-r{margin-left:auto;display:flex;gap:8px;}
+.nb{padding:7px 15px;border-radius:8px;font-family:var(--fd);font-size:.75rem;font-weight:700;text-decoration:none;transition:all .15s;}
+.nb.ghost{border:1.5px solid var(--border);color:#333;background:#fff;}
+.nb.ghost:hover{border-color:var(--red);color:var(--red);}
+.nb.solid{background:var(--red);color:#fff;border:none;}
+.nb.solid:hover{background:var(--red2);}
+
+/* PAGE */
+.page{max-width:1000px;margin:28px auto;padding:0 24px;display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:start;}
+
+/* PROFILE CARD */
+.pcard{background:#fff;border:1.5px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:14px;}
+.pc-hero{background:linear-gradient(135deg,#0f0f0f,#1a1a2e);padding:24px 20px;text-align:center;position:relative;}
+.pc-av{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--red),#c0111f);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:1.5rem;font-weight:900;color:#fff;margin:0 auto 12px;overflow:hidden;border:3px solid rgba(255,255,255,.1);}
+.pc-av img{width:100%;height:100%;object-fit:cover;}
+.pc-name{font-family:var(--fd);font-size:1rem;font-weight:900;color:#fff;}
+.pc-role{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.6rem;font-weight:700;margin-top:6px;font-family:var(--fd);}
+.role-owner{background:rgba(0,166,81,.15);color:#4ade80;}
+.role-mechanic{background:rgba(41,121,255,.15);color:#60a5fa;}
+.role-manager{background:rgba(191,90,242,.15);color:#c084fc;}
+.role-individual{background:rgba(245,158,11,.15);color:#fbbf24;}
+.role-admin{background:rgba(232,25,44,.15);color:#fca5a5;}
+.pc-body{padding:16px;}
+.pc-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f8f8f8;font-size:.76rem;}
+.pc-row:last-child{border-bottom:none;}
+.pc-k{color:var(--muted);}
+.pc-v{font-weight:700;color:#111;text-align:right;}
+.pc-v.green{color:var(--green);}
+.pc-v.yellow{color:var(--yellow);}
+.pc-v.red{color:var(--red);}
+.pc-v.blue{color:var(--blue);}
+
+/* PHOTO UPLOAD */
+.photo-upload{margin-top:10px;}
+.photo-upload input{display:none;}
+.photo-label{display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border:1.5px dashed var(--border);border-radius:8px;font-size:.7rem;color:var(--muted);cursor:pointer;transition:all .15s;}
+.photo-label:hover{border-color:var(--red);color:var(--red);}
+
+/* SIDEBAR CARD */
+.sc{background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px;}
+.sc-h{padding:13px 16px;border-bottom:1px solid var(--border);}
+.sc-h h3{font-family:var(--fd);font-size:.82rem;font-weight:800;color:#111;}
+.sc-b{padding:14px 16px;}
+.ql{display:flex;align-items:center;gap:10px;padding:10px 16px;transition:background .15s;text-decoration:none;}
+.ql:hover{background:#fafafa;}
+.ql-ico{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ql-ico svg{width:13px;height:13px;}
+.ql span{flex:1;font-size:.76rem;font-weight:600;color:#111;}
+.ql-sep{height:1px;background:var(--border);margin:0 16px;}
+
+/* MAIN CONTENT */
+.card{background:#fff;border:1.5px solid var(--border);border-radius:14px;margin-bottom:16px;overflow:hidden;}
+.cardh{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.cardh h3{font-family:var(--fd);font-size:.86rem;font-weight:800;color:#111;}
+.cardb{padding:20px;}
+
+/* EDIT FORM */
+.ff{margin-bottom:13px;}
+.ff label{display:block;font-size:.72rem;font-weight:600;color:#374151;margin-bottom:5px;}
+.ff input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:var(--fb);font-size:.84rem;color:#111;background:#f9fafb;outline:none;transition:border-color .18s;}
+.ff input:focus{border-color:var(--red);background:#fff;}
+.ff input::placeholder{color:#9ca3af;}
+.ff-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-save{padding:10px 22px;background:var(--red);color:#fff;border:none;border-radius:9px;font-family:var(--fd);font-size:.76rem;font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-save:hover{background:var(--red2);}
+
+/* GARAGE INFO for managers */
+.garage-card{background:linear-gradient(135deg,rgba(191,90,242,.06),rgba(191,90,242,.02));border:1.5px solid rgba(191,90,242,.2);border-radius:13px;padding:16px 18px;margin-bottom:12px;}
+.gc-name{font-family:var(--fd);font-size:.92rem;font-weight:800;color:#111;margin-bottom:8px;}
+.gc-row{display:flex;justify-content:space-between;font-size:.74rem;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);}
+.gc-row:last-child{border-bottom:none;}
+.gc-k{color:var(--muted);}
+.gc-v{font-weight:700;color:#111;}
+.gc-badge{display:inline-flex;padding:2px 9px;border-radius:20px;font-size:.62rem;font-weight:800;font-family:var(--fd);}
+.gcb-approved{background:rgba(0,166,81,.1);color:var(--green);}
+.gcb-pending{background:rgba(245,158,11,.1);color:var(--yellow);}
+.gcb-rejected{background:rgba(232,25,44,.1);color:var(--red);}
+.setup-link{display:inline-flex;margin-top:10px;padding:8px 16px;background:var(--red);color:#fff;border-radius:8px;font-family:var(--fd);font-size:.72rem;font-weight:700;text-decoration:none;}
+
+/* BOOKING ROWS */
+.brow{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #f8f8f8;}
+.brow:last-child{border-bottom:none;}
+.brow-ref{font-family:var(--fd);font-size:.63rem;font-weight:800;color:var(--blue);}
+.brow-svc{font-size:.78rem;font-weight:700;color:#111;}
+.brow-meta{font-size:.64rem;color:var(--muted);margin-top:1px;}
+.brow-amt{font-family:var(--fd);font-size:.8rem;font-weight:800;color:#111;margin-left:auto;}
+.brow-status{padding:3px 8px;border-radius:20px;font-size:.58rem;font-weight:800;font-family:var(--fd);}
+.bs-done{background:rgba(0,166,81,.1);color:var(--green);}
+.bs-prog{background:rgba(245,158,11,.1);color:var(--yellow);}
+.bs-pend{background:rgba(26,86,219,.1);color:var(--blue);}
+.bs-canc{background:rgba(232,25,44,.1);color:var(--red);}
+
+/* EMPTY */
+.empty-row{text-align:center;padding:24px;font-size:.74rem;color:#bbb;}
+
+/* STATUS BADGE in pending approval banner */
+.approval-bar{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.78rem;color:#92400e;line-height:1.6;display:flex;align-items:center;gap:10px;}
+.approval-bar svg{width:16px;height:16px;flex-shrink:0;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:#111;color:#fff;padding:12px 20px;border-radius:10px;font-size:.78rem;font-weight:600;z-index:2000;display:none;align-items:center;gap:8px;}
+.toast.on{display:flex;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.toast svg{width:14px;height:14px;color:var(--green);}
+
+/* Change password section */
+.pw-section{border-top:1px solid var(--border);padding-top:16px;margin-top:6px;}
+.pw-title{font-family:var(--fd);font-size:.74rem;font-weight:800;color:#111;margin-bottom:12px;}
+
+@media(max-width:800px){.page{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<nav>
+  <div class="navi">
+    <a href="{% url 'home' %}" class="logo">
+      <div class="logo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+      <span class="logo-name">e<span>Garage</span></span>
+    </a>
+    <div class="bc">
+      <a href="{% url 'home' %}">Home</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><polyline points="9 18 15 12 9 6"/></svg>
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><polyline points="9 18 15 12 9 6"/></svg>
+      <span style="color:#111;font-weight:600;">Profile</span>
+    </div>
+    <div class="nav-r">
+      <a href="{% url 'dashboard' %}" class="nb ghost">Dashboard</a>
+      <a href="{% url 'logout' %}" class="nb solid">Logout</a>
+    </div>
+  </div>
+</nav>
+
+{% if messages %}
+<div style="max-width:1000px;margin:12px auto;padding:0 24px;">
+  {% for m in messages %}
+  <div style="background:{% if 'Error' in m.tags or '❌' in m.message %}rgba(232,25,44,.1);border:1px solid rgba(232,25,44,.2);color:#dc2626;{% else %}rgba(0,166,81,.1);border:1px solid rgba(0,166,81,.2);color:var(--green);{% endif %}border-radius:10px;padding:10px 14px;font-size:.78rem;font-weight:600;margin-bottom:8px;">{{ m }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="page">
+
+<!-- LEFT — PROFILE CARD -->
+<div>
+  <div class="pcard">
+    <div class="pc-hero">
+      <div class="pc-av">
+        {% if user.profile_photo %}<img src="{{ user.profile_photo.url }}" alt="{{ user.name }}">
+        {% else %}{{ user.name|first|upper }}{% endif %}
+      </div>
+      <div class="pc-name">{{ user.name }}</div>
+      <div class="pc-role role-{{ user.role }}">
+        {% if user.role == 'owner' %}🚗 Vehicle Owner
+        {% elif user.role == 'mechanic' %}🔧 Mechanic
+        {% elif user.role == 'manager' %}🏢 Garage Manager
+        {% elif user.role == 'individual' %}🛠️ Individual Mechanic
+        {% elif user.role == 'admin' %}⚙️ Admin
+        {% else %}{{ user.role|capfirst }}{% endif %}
+      </div>
+      <!-- Photo upload -->
+      <form method="POST" enctype="multipart/form-data" class="photo-upload">
+        {% csrf_token %}
+        <input type="file" name="profile_photo" id="photoInput" accept="image/*" onchange="this.form.submit()">
+        <label for="photoInput" class="photo-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Change Photo
+        </label>
+      </form>
+    </div>
+    <div class="pc-body">
+      <div class="pc-row"><span class="pc-k">Email</span><span class="pc-v" style="font-size:.68rem;">{{ user.email }}</span></div>
+      <div class="pc-row"><span class="pc-k">Phone</span><span class="pc-v">{{ user.phone|default:"—" }}</span></div>
+      <div class="pc-row"><span class="pc-k">City</span><span class="pc-v">{{ user.city|default:"—" }}</span></div>
+      <div class="pc-row"><span class="pc-k">Member since</span><span class="pc-v">{{ user.date_joined|date:"M Y" }}</span></div>
+      {% if user.role == 'manager' %}
+      <div class="pc-row">
+        <span class="pc-k">Account status</span>
+        <span class="pc-v {% if user.manager_approved %}green{% else %}yellow{% endif %}">
+          {% if user.manager_approved %}✓ Approved{% else %}⏳ Pending{% endif %}
+        </span>
+      </div>
+      {% elif user.role == 'mechanic' %}
+      <div class="pc-row">
+        <span class="pc-k">Availability</span>
+        <span class="pc-v {% if user.is_available %}green{% else %}red{% endif %}">
+          {% if user.is_available %}On Duty{% else %}Off Duty{% endif %}
+        </span>
+      </div>
+      {% elif user.role == 'owner' %}
+      <div class="pc-row"><span class="pc-k">Bookings</span><span class="pc-v blue">{{ total_bookings }}</span></div>
+      <div class="pc-row"><span class="pc-k">Vehicles</span><span class="pc-v blue">{{ total_vehicles }}</span></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- QUICK LINKS — role-based -->
+  <div class="sc">
+    {% if user.role == 'owner' %}
+    <a class="ql" href="{% url 'bookings' %}"><div class="ql-ico" style="background:rgba(232,25,44,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#e8192c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg></div><span>My Bookings</span><svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'vehicles' %}"><div class="ql-ico" style="background:rgba(0,166,81,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#00a651" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div><span>My Vehicles</span><svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'booking' %}"><div class="ql-ico" style="background:rgba(26,86,219,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div><span>Book Service</span><svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+    {% elif user.role == 'manager' %}
+    <a class="ql" href="{% url 'dashboard' %}"><div class="ql-ico" style="background:rgba(191,90,242,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#bf5af2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><span>Dashboard</span><svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'team' %}"><div class="ql-ico" style="background:rgba(0,166,81,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#00a651" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><span>My Team</span><svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'garage_settings' %}"><div class="ql-ico" style="background:rgba(26,86,219,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div><span>Garage Settings</span><svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'reports' %}"><div class="ql-ico" style="background:rgba(245,158,11,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><span>Reports</span><svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+    {% elif user.role in 'mechanic,individual' %}
+    <a class="ql" href="{% url 'mechanic_jobs' %}"><div class="ql-ico" style="background:rgba(26,86,219,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div><span>My Jobs</span><svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'earnings' %}"><div class="ql-ico" style="background:rgba(0,166,81,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#00a651" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><span>Earnings</span><svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'schedule' %}"><div class="ql-ico" style="background:rgba(245,158,11,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><span>Schedule</span><svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+    {% endif %}
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'notifications' %}"><div class="ql-ico" style="background:rgba(232,25,44,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#e8192c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div><span>Notifications</span><svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+  </div>
+</div>
+
+<!-- RIGHT — MAIN CONTENT -->
+<div>
+
+  <!-- MANAGER: pending approval notice -->
+  {% if user.role == 'manager' and not user.manager_approved %}
+  <div class="approval-bar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Your manager account is <strong>waiting for admin approval</strong>. You'll be notified by email once approved (usually within 24 hours).
+  </div>
+  {% endif %}
+
+  <!-- EDIT PROFILE -->
+  <div class="card">
+    <div class="cardh"><h3>Edit Profile</h3></div>
+    <div class="cardb">
+      <form method="POST">
+        {% csrf_token %}
+        <div class="ff-row2">
+          <div class="ff"><label>Full Name</label><input type="text" name="name" value="{{ user.name }}" placeholder="Your name" required></div>
+          <div class="ff"><label>Phone</label><input type="tel" name="phone" value="{{ user.phone|default:'' }}" placeholder="+91 98765 43210"></div>
+        </div>
+        <div class="ff"><label>City</label><input type="text" name="city" value="{{ user.city|default:'' }}" placeholder="Rajkot"></div>
+        <div class="ff"><label>Email</label><input type="email" value="{{ user.email }}" disabled style="opacity:.6;cursor:not-allowed;"></div>
+        <button type="submit" class="btn-save">Save Changes</button>
+      </form>
+
+      <!-- Change Password -->
+      <div class="pw-section">
+        <div class="pw-title">Change Password</div>
+        <form method="POST" action="{% url 'change_password' %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="change_password">
+          <div class="ff-row2">
+            <div class="ff"><label>Current Password</label><input type="password" name="current_password" placeholder="Current password" required></div>
+            <div class="ff"><label>New Password</label><input type="password" name="new_password" placeholder="Min 8 chars" required></div>
+          </div>
+          <div class="ff"><label>Confirm New Password</label><input type="password" name="confirm_password" placeholder="Repeat new password" required></div>
+          <button type="submit" class="btn-save" style="background:#374151;">Change Password</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROLE-BASED SECTION -->
+
+  {% if user.role == 'manager' %}
+  <!-- MANAGER: show garage info -->
+  <div class="card">
+    <div class="cardh">
+      <h3>My Garage</h3>
+      <a href="{% url 'garage_settings' %}" style="font-family:var(--fd);font-size:.7rem;font-weight:700;color:var(--red);text-decoration:none;">MANAGE →</a>
+    </div>
+    <div class="cardb">
+      {% if garage %}
+      <div class="garage-card">
+        <div class="gc-name">{{ garage.name }}</div>
+        <div class="gc-row"><span class="gc-k">Address</span><span class="gc-v">{{ garage.address|default:"—" }}, {{ garage.city|default:"—" }}</span></div>
+        <div class="gc-row"><span class="gc-k">Phone</span><span class="gc-v">{{ garage.phone|default:"—" }}</span></div>
+        <div class="gc-row"><span class="gc-k">Services</span><span class="gc-v">{{ garage.services_offered|default:"—" }}</span></div>
+        <div class="gc-row">
+          <span class="gc-k">Status</span>
+          <span class="gc-v">
+            <span class="gc-badge {% if garage.approval_status == 'approved' %}gcb-approved{% elif garage.approval_status == 'rejected' %}gcb-rejected{% else %}gcb-pending{% endif %}">
+              {% if garage.approval_status == 'approved' %}✓ Live{% elif garage.approval_status == 'rejected' %}✕ Rejected{% else %}⏳ Pending{% endif %}
+            </span>
+          </span>
+        </div>
+      </div>
+      {% else %}
+      <p style="font-size:.78rem;color:#aaa;margin-bottom:12px;">No garage added yet. Set up your garage to start accepting bookings.</p>
+      <a href="{% url 'garage_settings' %}" class="setup-link">Set Up Garage →</a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% elif user.role in 'mechanic' or user.is_individual %}
+  <!-- MECHANIC: show job stats -->
+  <div class="card">
+    <div class="cardh"><h3>Work Summary</h3></div>
+    <div class="cardb">
+      {% if mechanic_profile %}
+      <div class="garage-card">
+        <div class="gc-name">{{ mechanic_profile.garage.name|default:"Independent" }}</div>
+        <div class="gc-row"><span class="gc-k">Designation</span><span class="gc-v">{{ mechanic_profile.designation|default:"Mechanic" }}</span></div>
+        <div class="gc-row"><span class="gc-k">Pay type</span><span class="gc-v">{{ mechanic_profile.get_salary_type_display|default:"Commission" }}</span></div>
+        {% if mechanic_profile.salary_type == 'monthly' %}<div class="gc-row"><span class="gc-k">Monthly salary</span><span class="gc-v">₹{{ mechanic_profile.salary_amount|floatformat:0 }}</span></div>{% endif %}
+        <div class="gc-row"><span class="gc-k">Joined</span><span class="gc-v">{{ mechanic_profile.joining_date|date:"d M Y"|default:"—" }}</span></div>
+      </div>
+      {% endif %}
+      <div style="display:flex;gap:12px;margin-top:10px;">
+        <a href="{% url 'mechanic_jobs' %}" style="flex:1;padding:9px;text-align:center;background:rgba(26,86,219,.08);border:1.5px solid rgba(26,86,219,.15);border-radius:9px;font-family:var(--fd);font-size:.72rem;font-weight:700;color:var(--blue);text-decoration:none;">My Jobs</a>
+        <a href="{% url 'earnings' %}" style="flex:1;padding:9px;text-align:center;background:rgba(0,166,81,.08);border:1.5px solid rgba(0,166,81,.15);border-radius:9px;font-family:var(--fd);font-size:.72rem;font-weight:700;color:var(--green);text-decoration:none;">Earnings</a>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- OWNER: recent bookings -->
+  <div class="card">
+    <div class="cardh">
+      <h3>Recent Bookings</h3>
+      <a href="{% url 'bookings' %}" style="font-family:var(--fd);font-size:.7rem;font-weight:700;color:var(--red);text-decoration:none;">ALL →</a>
+    </div>
+    <div class="cardb">
+      {% if recent_bookings %}
+        {% for b in recent_bookings %}
+        <div class="brow">
+          <div>
+            <div class="brow-ref">{{ b.reference }}</div>
+            <div class="brow-svc">{{ b.service.name|default:"Service" }}</div>
+            <div class="brow-meta">{{ b.scheduled_date|date:"d M Y" }} · {{ b.garage.name|default:"—" }}</div>
+          </div>
+          <div class="brow-amt">{% if b.final_price %}₹{{ b.final_price|floatformat:0 }}{% else %}—{% endif %}</div>
+          <span class="brow-status {% if b.status == 'completed' %}bs-done{% elif b.status == 'in_progress' %}bs-prog{% elif b.status == 'cancelled' %}bs-canc{% else %}bs-pend{% endif %}">
+            {{ b.get_status_display }}
+          </span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-row">No bookings yet. <a href="{% url 'booking' %}" style="color:var(--red);font-weight:700;">Book a service →</a></div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+</div>
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span id="toastMsg">Saved!</span></div>
+{% if messages %}<script>{% for m in messages %}setTimeout(()=>{var t=document.getElementById('toast');document.getElementById('toastMsg').textContent='{{ m|escapejs }}';t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3000);},300);{% endfor %}</script>{% endif %}
+{% endblock %}

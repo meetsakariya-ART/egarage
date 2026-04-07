@@ -1,0 +1,686 @@
+{% extends 'core/base.html' %}
+{% block title %}Team — {{ garage.name|default:"My Garage" }} — eGarage{% endblock %}
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --acc:#bf5af2;--red:#e8192c;--green:#00a651;--blue:#1a56db;
+  --yellow:#f59e0b;--orange:#ea580c;
+  --bg:#06060c;--glass:rgba(255,255,255,.06);--glass2:rgba(255,255,255,.10);
+  --border:rgba(255,255,255,.09);--muted:rgba(255,255,255,.45);--dim:rgba(255,255,255,.22);
+  --fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;
+}
+html,body{font-family:var(--fb);background:var(--bg);color:#fff;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 10%,rgba(191,90,242,.07),transparent 55%);pointer-events:none;}
+
+/* NAV */
+.topnav{display:flex;align-items:center;gap:12px;padding:0 24px;height:58px;background:rgba(6,6,12,.9);backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+.tn-logo{font-family:var(--fd);font-size:.88rem;font-weight:900;letter-spacing:2px;color:var(--acc);text-decoration:none;}
+.tn-logo em{color:rgba(255,255,255,.3);font-style:normal;}
+.tn-links{display:flex;gap:4px;margin-left:auto;}
+.tnl{padding:6px 13px;border-radius:8px;font-size:.7rem;font-weight:600;color:var(--muted);text-decoration:none;border:1px solid transparent;transition:all .15s;}
+.tnl:hover{background:var(--glass2);color:#fff;}
+.tnl.on{background:rgba(191,90,242,.14);border-color:rgba(191,90,242,.22);color:var(--acc);}
+
+.wrap{max-width:1100px;margin:0 auto;padding:28px 24px;}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:24px;overflow-x:auto;}
+.tab{flex:1;min-width:110px;padding:9px 16px;border-radius:9px;font-family:var(--fd);font-size:.72rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all .18s;text-align:center;border:none;background:none;white-space:nowrap;position:relative;}
+.tab:hover{color:#fff;}
+.tab.on{background:rgba(191,90,242,.18);border:1px solid rgba(191,90,242,.25);color:var(--acc);}
+.tab-badge{position:absolute;top:4px;right:8px;background:var(--red);color:#fff;font-size:.52rem;font-weight:800;padding:1px 5px;border-radius:20px;font-family:var(--fd);}
+
+/* PAGE HEADER */
+.pg-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
+.pg-title{font-family:var(--fd);font-size:1.1rem;font-weight:900;color:#fff;}
+.pg-sub{font-size:.72rem;color:var(--muted);margin-top:3px;}
+.btn-acc{padding:9px 18px;background:var(--acc);color:#fff;border:none;border-radius:10px;font-family:var(--fd);font-size:.72rem;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(191,90,242,.3);transition:all .18s;display:inline-flex;align-items:center;gap:7px;}
+.btn-acc svg{width:13px;height:13px;}
+.btn-acc:hover{filter:brightness(1.1);}
+
+/* PANELS */
+.panel{display:none;}
+.panel.on{display:block;}
+
+/* HOW IT WORKS BANNER */
+.how-banner{background:rgba(10,132,255,.08);border:1px solid rgba(10,132,255,.18);border-radius:14px;padding:14px 18px;margin-bottom:20px;font-size:.74rem;color:rgba(255,255,255,.55);line-height:1.7;}
+.how-banner strong{color:#fff;}
+
+/* MESSAGES */
+.msg-box{border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:.78rem;line-height:1.6;}
+.msg-s{background:rgba(0,166,81,.1);border:1px solid rgba(0,166,81,.25);color:rgba(255,255,255,.8);}
+.msg-e{background:rgba(232,25,44,.1);border:1px solid rgba(232,25,44,.25);color:rgba(255,255,255,.8);}
+
+/* MECHANIC CARDS */
+.mech-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+.mcard{background:var(--glass);border:1px solid var(--border);border-radius:15px;padding:20px;transition:all .2s;position:relative;}
+.mcard:hover{background:var(--glass2);border-color:rgba(191,90,242,.22);}
+.mc-top{display:flex;align-items:center;gap:13px;margin-bottom:12px;}
+.mc-av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--blue));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:1rem;font-weight:900;color:#fff;flex-shrink:0;overflow:hidden;border:2px solid rgba(255,255,255,.1);}
+.mc-av img{width:100%;height:100%;object-fit:cover;}
+.mc-name{font-family:var(--fd);font-size:.88rem;font-weight:800;color:#fff;}
+.mc-desg{font-size:.66rem;color:var(--dim);margin-top:2px;}
+.mc-badge{padding:3px 9px;border-radius:20px;font-size:.58rem;font-weight:800;font-family:var(--fd);position:absolute;top:14px;right:14px;}
+.mb-on{background:rgba(0,166,81,.14);color:#4ade80;border:1px solid rgba(0,166,81,.25);}
+.mb-off{background:rgba(255,255,255,.06);color:var(--dim);border:1px solid rgba(255,255,255,.1);}
+
+.mc-info{font-size:.7rem;color:var(--dim);line-height:1.7;margin-bottom:12px;}
+.mc-info strong{color:rgba(255,255,255,.7);}
+
+.mc-foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:11px;}
+.mc-pay{font-size:.66rem;color:var(--dim);}
+.mc-pay strong{color:#4ade80;font-family:var(--fd);}
+.mc-actions{display:flex;gap:6px;}
+.ma{padding:6px 11px;border-radius:7px;font-family:var(--fd);font-size:.61rem;font-weight:700;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:4px;}
+.ma svg{width:10px;height:10px;}
+.ma-ghost{background:var(--glass);border:1px solid var(--border);color:var(--muted);}
+.ma-ghost:hover{background:var(--glass2);color:#fff;}
+.ma-blue{background:rgba(26,86,219,.14);border:1px solid rgba(26,86,219,.25);color:#60a5fa;}
+.ma-blue:hover{background:rgba(26,86,219,.25);}
+.ma-red{background:rgba(232,25,44,.12);border:1px solid rgba(232,25,44,.2);color:#ff6b6b;}
+.ma-red:hover{background:rgba(232,25,44,.22);}
+
+/* LEAVE REQUEST CARDS */
+.leave-grid{display:flex;flex-direction:column;gap:10px;}
+.lcard{background:var(--glass);border:1px solid var(--border);border-radius:13px;padding:16px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.lcard-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),var(--orange));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.92rem;font-weight:900;color:#fff;flex-shrink:0;}
+.lcard-body{flex:1;min-width:180px;}
+.lcard-name{font-family:var(--fd);font-size:.82rem;font-weight:800;color:#fff;}
+.lcard-type{font-size:.65rem;color:var(--muted);margin-top:2px;}
+.lcard-dates{font-size:.72rem;color:#fbbf24;font-weight:700;margin-top:4px;}
+.lcard-reason{font-size:.68rem;color:rgba(255,255,255,.5);margin-top:4px;font-style:italic;}
+.lcard-days{font-family:var(--fd);font-size:.7rem;font-weight:800;color:var(--acc);background:rgba(191,90,242,.12);border:1px solid rgba(191,90,242,.2);padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.lcard-btns{display:flex;gap:7px;flex-shrink:0;}
+.lb{padding:7px 14px;border-radius:8px;font-family:var(--fd);font-size:.65rem;font-weight:800;cursor:pointer;border:none;transition:all .15s;}
+.lb-ok{background:rgba(0,166,81,.15);border:1px solid rgba(0,166,81,.3);color:#4ade80;}
+.lb-ok:hover{background:rgba(0,166,81,.3);}
+.lb-no{background:rgba(232,25,44,.12);border:1px solid rgba(232,25,44,.25);color:#ff6b6b;}
+.lb-no:hover{background:rgba(232,25,44,.25);}
+
+/* LEAVE HISTORY TABLE */
+.ltable{width:100%;border-collapse:collapse;font-size:.74rem;}
+.ltable th{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);font-size:.6rem;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--dim);}
+.ltable td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+.ltable tr:last-child td{border-bottom:none;}
+.ltable tr:hover td{background:rgba(255,255,255,.02);}
+.ls-pill{padding:3px 9px;border-radius:20px;font-family:var(--fd);font-size:.58rem;font-weight:800;}
+.ls-approved{background:rgba(0,166,81,.12);color:#4ade80;}
+.ls-rejected{background:rgba(232,25,44,.1);color:#fca5a5;}
+.ls-pending{background:rgba(245,158,11,.1);color:#fbbf24;}
+
+/* SHIFT SCHEDULE */
+.shift-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.shift-mechanic{font-family:var(--fd);font-size:.82rem;font-weight:800;color:#fff;}
+.shift-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:16px;}
+.sday{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center;transition:all .2s;}
+.sday.working{background:rgba(191,90,242,.1);border-color:rgba(191,90,242,.25);}
+.sday.off{background:rgba(255,255,255,.02);opacity:.5;}
+.sday-name{font-family:var(--fd);font-size:.65rem;font-weight:800;color:var(--muted);margin-bottom:6px;}
+.sday.working .sday-name{color:var(--acc);}
+.sday-time{font-size:.6rem;color:rgba(255,255,255,.5);line-height:1.6;}
+.sday.off .sday-time{color:var(--dim);}
+.sday-off-label{font-family:var(--fd);font-size:.58rem;font-weight:800;color:rgba(255,255,255,.2);margin-top:4px;}
+
+.shift-section{background:var(--glass);border:1px solid var(--border);border-radius:13px;padding:16px 18px;margin-bottom:14px;}
+
+/* SHIFT EDITOR MODAL */
+.sed-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+.sed-day{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center;}
+.sed-day-name{font-family:var(--fd);font-size:.66rem;font-weight:800;color:var(--muted);margin-bottom:6px;}
+.sed-off-tog{display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:6px;cursor:pointer;font-size:.6rem;color:var(--muted);font-weight:600;}
+.sed-off-tog input{width:12px;height:12px;cursor:pointer;}
+.sed-time{width:100%;padding:5px 4px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:6px;color:#fff;font-size:.62rem;outline:none;text-align:center;}
+.sed-time:focus{border-color:var(--acc);}
+
+/* EMPTY STATE */
+.empty-box{text-align:center;padding:48px 24px;border:1px dashed var(--border);border-radius:16px;background:var(--glass);}
+.empty-box svg{width:48px;height:48px;color:var(--dim);display:block;margin:0 auto 14px;}
+.empty-box h3{font-family:var(--fd);font-size:.92rem;font-weight:800;color:var(--muted);margin-bottom:6px;}
+.empty-box p{font-size:.74rem;color:var(--dim);line-height:1.6;}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+.overlay.on{display:flex;}
+.modal{background:#0d0d1a;border:1px solid rgba(255,255,255,.12);border-radius:18px;width:100%;overflow:hidden;animation:su .22s ease;}
+@keyframes su{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.mhdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.mhdr h3{font-family:var(--fd);font-size:.92rem;font-weight:800;color:#fff;}
+.mclose{width:27px;height:27px;border-radius:50%;border:1px solid var(--border);background:var(--glass);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.mclose:hover{background:var(--glass2);}
+.mclose svg{width:11px;height:11px;color:var(--muted);}
+.mbody{padding:20px;max-height:75vh;overflow-y:auto;}
+.mfoot{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
+.mbtn{padding:10px 20px;border-radius:9px;font-family:var(--fd);font-size:.74rem;font-weight:700;cursor:pointer;transition:all .15s;border:none;}
+.mbtn-cancel{background:var(--glass);border:1px solid var(--border);color:var(--muted);}
+.mbtn-acc{background:var(--acc);color:#fff;box-shadow:0 3px 12px rgba(191,90,242,.3);}
+.mbtn-acc:hover{filter:brightness(1.1);}
+.mbtn-red{background:var(--red);color:#fff;}
+
+/* FORM FIELDS */
+.ff{display:flex;flex-direction:column;gap:5px;margin-bottom:13px;}
+.ff label{font-size:.62rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--dim);}
+.ff input,.ff select,.ff textarea{padding:10px 13px;border:1px solid var(--border);border-radius:9px;font-family:var(--fb);font-size:.84rem;color:#fff;background:rgba(255,255,255,.06);outline:none;transition:border-color .15s;width:100%;}
+.ff input:focus,.ff select:focus,.ff textarea:focus{border-color:var(--acc);}
+.ff input::placeholder,.ff textarea::placeholder{color:rgba(255,255,255,.22);}
+.ff select option{background:#111;color:#fff;}
+.ff textarea{resize:vertical;min-height:70px;}
+.ff-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;background:#fff;color:#111;padding:10px 16px;border-radius:10px;font-size:.74rem;font-weight:700;z-index:2000;display:none;align-items:center;gap:7px;box-shadow:0 8px 30px rgba(0,0,0,.3);}
+.toast.on{display:flex;animation:tf .2s;}
+@keyframes tf{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.csrf-token{display:none;}
+@media(max-width:680px){.sed-grid{grid-template-columns:repeat(4,1fr);}.shift-grid{grid-template-columns:repeat(4,1fr);}.mech-grid{grid-template-columns:1fr;}.ff-row2{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="topnav">
+  <a href="{% url 'home' %}" class="tn-logo">e<em>GARAGE</em></a>
+  <div class="tn-links">
+    <a href="{% url 'dashboard' %}" class="tnl">Dashboard</a>
+    <a href="{% url 'team' %}" class="tnl on">Team</a>
+    <a href="{% url 'reports' %}" class="tnl">Reports</a>
+    <a href="{% url 'garage_settings' %}" class="tnl">Settings</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+{% if messages %}
+  {% for m in messages %}
+  <div class="msg-box {% if '✅' in m.message %}msg-s{% else %}msg-e{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="pg-hdr">
+  <div>
+    <div class="pg-title">{{ garage.name|default:"My Garage" }} — Team</div>
+    <div class="pg-sub">{{ mechanics|length }} mechanic{{ mechanics|length|pluralize }} · {{ pending_leaves|length }} leave request{{ pending_leaves|length|pluralize }} pending</div>
+  </div>
+  {% if garage %}
+  <button class="btn-acc" onclick="openModal('addModal')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add Mechanic
+  </button>
+  {% endif %}
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab on" onclick="switchTab(this,'mechanics')">
+    👥 Mechanics
+    {% if mechanics|length %}<span class="tab-badge">{{ mechanics|length }}</span>{% endif %}
+  </button>
+  <button class="tab" onclick="switchTab(this,'leaves')">
+    📅 Leave Requests
+    {% if pending_leaves %}<span class="tab-badge">{{ pending_leaves|length }}</span>{% endif %}
+  </button>
+  <button class="tab" onclick="switchTab(this,'schedule')">
+    🕐 Shift Schedule
+  </button>
+  <button class="tab" onclick="switchTab(this,'history')">
+    📋 Leave History
+  </button>
+</div>
+
+<!-- ════ TAB: MECHANICS ════ -->
+<div class="panel on" id="panel-mechanics">
+
+  {% if not garage %}
+  <div class="empty-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+    <h3>Set up your garage first</h3>
+    <p><a href="{% url 'garage_settings' %}" style="color:var(--acc);">Garage Settings →</a></p>
+  </div>
+
+  {% elif not mechanics %}
+  <div class="how-banner">
+    💡 <strong>You create mechanic accounts.</strong> Fill the form, set their password, give them the credentials. They login directly — no signup, no OTP.
+  </div>
+  <div class="empty-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    <h3>No mechanics yet</h3>
+    <p>Click <strong style="color:#fff;">Add Mechanic</strong> to create your first team member.</p>
+  </div>
+
+  {% else %}
+  <div class="mech-grid">
+    {% for mp in mechanics %}
+    <div class="mcard">
+      <span class="mc-badge {% if mp.mechanic.is_available %}mb-on{% else %}mb-off{% endif %}">
+        {% if mp.mechanic.is_available %}● On Duty{% else %}○ Off Duty{% endif %}
+      </span>
+      <div class="mc-top">
+        <div class="mc-av">
+          {% if mp.mechanic.profile_photo %}<img src="{{ mp.mechanic.profile_photo.url }}" alt="">
+          {% else %}{{ mp.mechanic.name|first|upper }}{% endif %}
+        </div>
+        <div>
+          <div class="mc-name">{{ mp.mechanic.name }}</div>
+          <div class="mc-desg">{{ mp.designation|default:"Mechanic" }}</div>
+        </div>
+      </div>
+      <div class="mc-info">
+        📧 <strong>{{ mp.mechanic.email }}</strong><br>
+        📞 {{ mp.mechanic.phone|default:"—" }}<br>
+        📅 Joined: {{ mp.joining_date|date:"d M Y"|default:"—" }}<br>
+        🔑 Login: email + password set by you
+      </div>
+      <div class="mc-foot">
+        <div class="mc-pay">
+          {% if mp.salary_type == 'monthly' %}<strong>₹{{ mp.salary_amount|floatformat:0 }}/mo</strong>
+          {% elif mp.commission_pct %}<strong>{{ mp.commission_pct }}% commission</strong>
+          {% else %}<strong>Not set</strong>{% endif %}
+        </div>
+        <div class="mc-actions">
+          <button class="ma ma-blue" onclick="openShiftEditor({{ mp.mechanic.pk }}, '{{ mp.mechanic.name|escapejs }}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Schedule
+          </button>
+          <button class="ma ma-ghost" onclick="openEditModal({{ mp.pk }},'{{ mp.mechanic.name|escapejs }}','{{ mp.designation|default:"Mechanic"|escapejs }}','{{ mp.salary_type|default:"monthly" }}','{{ mp.salary_amount|default:"" }}','{{ mp.commission_pct|default:"0" }}')">
+            Edit
+          </button>
+          <form method="POST" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="remove_mechanic">
+            <input type="hidden" name="mechanic_id" value="{{ mp.mechanic.pk }}">
+            <button type="submit" class="ma ma-red" onclick="return confirm('Remove {{ mp.mechanic.name|escapejs }} from your garage?')">Remove</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- ════ TAB: LEAVE REQUESTS ════ -->
+<div class="panel" id="panel-leaves">
+
+  {% if not pending_leaves %}
+  <div class="empty-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <h3>No pending leave requests</h3>
+    <p>All caught up! Leave requests from your mechanics will appear here.</p>
+  </div>
+  {% else %}
+  <div class="leave-grid">
+    {% for leave in pending_leaves %}
+    <div class="lcard" id="leave-{{ leave.pk }}">
+      <div class="lcard-av">{{ leave.mechanic.name|first|upper }}</div>
+      <div class="lcard-body">
+        <div class="lcard-name">{{ leave.mechanic.name }}</div>
+        <div class="lcard-type">{{ leave.get_leave_type_display }}</div>
+        <div class="lcard-dates">
+          📅 {{ leave.from_date|date:"d M Y" }}
+          {% if leave.from_date != leave.to_date %} → {{ leave.to_date|date:"d M Y" }}{% endif %}
+        </div>
+        {% if leave.reason %}
+        <div class="lcard-reason">"{{ leave.reason }}"</div>
+        {% endif %}
+      </div>
+      <div class="lcard-days">{{ leave.days }} day{{ leave.days|pluralize }}</div>
+      <div class="lcard-btns">
+        <button class="lb lb-ok" onclick="approveLeave({{ leave.pk }}, '{{ leave.mechanic.name|escapejs }}')">✓ Approve</button>
+        <button class="lb lb-no" onclick="openRejectLeave({{ leave.pk }}, '{{ leave.mechanic.name|escapejs }}')">✕ Reject</button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- ════ TAB: SHIFT SCHEDULE ════ -->
+<div class="panel" id="panel-schedule">
+
+  {% if not mechanics %}
+  <div class="empty-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <h3>No mechanics to schedule</h3>
+    <p>Add mechanics first from the Mechanics tab.</p>
+  </div>
+  {% else %}
+    {% for mp in mechanics %}
+    <div class="shift-section">
+      <div class="shift-header">
+        <div>
+          <div class="shift-mechanic">{{ mp.mechanic.name }}</div>
+          <div style="font-size:.66rem;color:var(--muted);margin-top:2px;">{{ mp.designation|default:"Mechanic" }} · {{ mp.mechanic.email }}</div>
+        </div>
+        <button class="ma ma-blue" onclick="openShiftEditor({{ mp.mechanic.pk }}, '{{ mp.mechanic.name|escapejs }}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="10" height="10"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit Schedule
+        </button>
+      </div>
+      <div class="shift-grid">
+        {% for day_num, day_name in days_list %}
+        {% with day_shifts=shifts_map %}
+        <div class="sday" id="sday-{{ mp.mechanic.pk }}-{{ day_num }}">
+          <div class="sday-name">{{ day_name }}</div>
+          <!-- JS fills this from SHIFT_DATA -->
+          <div class="sday-time" id="sdaytime-{{ mp.mechanic.pk }}-{{ day_num }}">—</div>
+        </div>
+        {% endwith %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  {% endif %}
+</div>
+
+<!-- ════ TAB: LEAVE HISTORY ════ -->
+<div class="panel" id="panel-history">
+  {% if not recent_leaves %}
+  <div class="empty-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+    <h3>No leave history yet</h3>
+    <p>Past leave requests (approved or rejected) will show here.</p>
+  </div>
+  {% else %}
+  <div style="overflow-x:auto;">
+    <table class="ltable">
+      <thead>
+        <tr>
+          <th>Mechanic</th>
+          <th>Type</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Days</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th>Reviewed by</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for leave in recent_leaves %}
+        <tr>
+          <td style="font-weight:700;">{{ leave.mechanic.name }}</td>
+          <td style="font-size:.66rem;color:var(--muted);">{{ leave.get_leave_type_display }}</td>
+          <td style="font-size:.7rem;">{{ leave.from_date|date:"d M Y" }}</td>
+          <td style="font-size:.7rem;">{{ leave.to_date|date:"d M Y" }}</td>
+          <td style="font-family:var(--fd);font-weight:800;color:var(--acc);text-align:center;">{{ leave.days }}</td>
+          <td style="font-size:.66rem;color:rgba(255,255,255,.5);max-width:160px;">
+            {% if leave.reason %}{{ leave.reason|truncatechars:60 }}{% else %}—{% endif %}
+            {% if leave.status == 'rejected' and leave.rejection_reason %}
+              <br><span style="color:#fca5a5;">Reason: {{ leave.rejection_reason|truncatechars:50 }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="ls-pill {% if leave.status == 'approved' %}ls-approved{% elif leave.status == 'rejected' %}ls-rejected{% else %}ls-pending{% endif %}">
+              {{ leave.status|capfirst }}
+            </span>
+          </td>
+          <td style="font-size:.66rem;color:var(--muted);">{{ leave.reviewed_by.name|default:"—" }}</td>
+          <td style="font-size:.62rem;color:var(--dim);">{{ leave.created_at|date:"d M Y" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+
+</div><!-- /wrap -->
+
+<!-- ════ ADD MECHANIC MODAL ════ -->
+<div class="overlay" id="addModal">
+  <div class="modal" style="max-width:460px;">
+    <div class="mhdr"><h3>Add Mechanic to {{ garage.name|default:"Garage" }}</h3><div class="mclose" onclick="closeModal('addModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add_mechanic">
+      <div class="mbody">
+        <div class="ff-row2">
+          <div class="ff"><label>Full Name *</label><input type="text" name="name" placeholder="Mechanic's name" required autofocus></div>
+          <div class="ff"><label>Phone</label><input type="tel" name="phone" placeholder="+91 98765 43210"></div>
+        </div>
+        <div class="ff"><label>Email *</label><input type="email" name="email" placeholder="mechanic@email.com" required></div>
+        <div class="ff"><label>Password * <span style="font-size:.56rem;font-weight:400;letter-spacing:0;text-transform:none;">(you set it — share with them)</span></label><input type="text" name="password" placeholder="e.g. Mechanic@123" required minlength="6" style="color:#ffd60a;font-family:monospace;font-weight:700;"></div>
+        <div class="ff-row2">
+          <div class="ff"><label>Designation</label><select name="designation"><option>Mechanic</option><option>Senior Mechanic</option><option>Lead Mechanic</option><option>AC Specialist</option><option>Electrician</option><option>Painter</option><option>Helper</option></select></div>
+          <div class="ff"><label>Pay Type</label><select name="salary_type" id="payTypeSelect" onchange="toggleSalaryField()"><option value="monthly">Monthly Salary</option><option value="commission">Commission %</option></select></div>
+        </div>
+        <div class="ff"><label id="salaryLabel">Monthly Salary (₹)</label><input type="number" name="salary" id="salaryInput" placeholder="18000" min="0"></div>
+        <div style="background:rgba(255,214,10,.06);border:1px solid rgba(255,214,10,.12);border-radius:8px;padding:10px 13px;font-size:.7rem;color:rgba(255,255,255,.5);">
+          ✅ They login at <strong style="color:#fff;">/login/</strong> with this email + password. No signup or OTP needed.
+        </div>
+      </div>
+      <div class="mfoot"><button type="button" class="mbtn mbtn-cancel" onclick="closeModal('addModal')">Cancel</button><button type="submit" class="mbtn mbtn-acc">Create Account →</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- ════ EDIT MECHANIC MODAL ════ -->
+<div class="overlay" id="editModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="mhdr"><h3>Edit Mechanic</h3><div class="mclose" onclick="closeModal('editModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update_mechanic">
+      <input type="hidden" name="mechanic_profile_id" id="editMpId">
+      <div class="mbody">
+        <div class="ff"><label>Name (read-only)</label><input type="text" id="editName" disabled style="opacity:.5;cursor:not-allowed;"></div>
+        <div class="ff-row2">
+          <div class="ff"><label>Designation</label><select name="designation" id="editDesg"><option>Mechanic</option><option>Senior Mechanic</option><option>Lead Mechanic</option><option>AC Specialist</option><option>Electrician</option><option>Painter</option><option>Helper</option></select></div>
+          <div class="ff"><label>Pay Type</label><select name="salary_type" id="editPayType" onchange="toggleEditSalary()"><option value="monthly">Monthly</option><option value="commission">Commission %</option></select></div>
+        </div>
+        <div class="ff"><label id="editSalaryLabel">Monthly Salary (₹)</label><input type="number" name="salary" id="editSalaryInput" placeholder="18000" min="0"></div>
+      </div>
+      <div class="mfoot"><button type="button" class="mbtn mbtn-cancel" onclick="closeModal('editModal')">Cancel</button><button type="submit" class="mbtn mbtn-acc">Save Changes</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- ════ REJECT LEAVE MODAL ════ -->
+<div class="overlay" id="rejectLeaveModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="mhdr"><h3>Reject Leave — <span id="rejectLeaveName"></span></h3><div class="mclose" onclick="closeModal('rejectLeaveModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <div class="mbody">
+      <div class="ff"><label>Reason for rejection *</label><textarea id="rejectLeaveReason" placeholder="e.g. We have too many bookings that week, please reschedule." required></textarea></div>
+      <div style="font-size:.7rem;color:var(--muted);">This reason will be sent to the mechanic as a notification.</div>
+    </div>
+    <div class="mfoot"><button type="button" class="mbtn mbtn-cancel" onclick="closeModal('rejectLeaveModal')">Cancel</button><button type="button" class="mbtn mbtn-red" onclick="submitRejectLeave()">✕ Reject Leave</button></div>
+  </div>
+</div>
+
+<!-- ════ SHIFT EDITOR MODAL ════ -->
+<div class="overlay" id="shiftModal">
+  <div class="modal" style="max-width:680px;">
+    <div class="mhdr"><h3>Schedule — <span id="shiftMechName"></span></h3><div class="mclose" onclick="closeModal('shiftModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <div class="mbody">
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:14px;">Set which days this mechanic works and their arrival/departure times.</div>
+      <div class="sed-grid" id="shiftEditorGrid"></div>
+    </div>
+    <div class="mfoot"><button type="button" class="mbtn mbtn-cancel" onclick="closeModal('shiftModal')">Cancel</button><button type="button" class="mbtn mbtn-acc" onclick="saveShifts()">💾 Save Schedule</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<!-- Shift data from Django -->
+<script>
+var CSRF = '{{ csrf_token }}';
+var DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+// Build shift data from DB
+var SHIFT_DATA = {};
+{% for mp in mechanics %}
+SHIFT_DATA[{{ mp.mechanic.pk }}] = {};
+{% if shifts_map %}{% for sh in shifts_map.values %}{% for s in sh %}{% if s.mechanic_id == mp.mechanic.pk %}
+SHIFT_DATA[{{ mp.mechanic.pk }}][{{ s.day }}] = {start:'{{ s.start_time|time:"H:i" }}',end:'{{ s.end_time|time:"H:i" }}',off:{% if s.is_off %}true{% else %}false{% endif %}};
+{% endif %}{% endfor %}{% endfor %}{% endif %}
+{% endfor %}
+
+/* ═══ TAB SWITCH ═══ */
+function switchTab(el, name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('panel-'+name).classList.add('on');
+}
+
+/* ═══ MODAL ═══ */
+function openModal(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('on');document.body.style.overflow='';}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeModal(o.id);}));
+
+/* ═══ ADD MECHANIC pay toggle ═══ */
+function toggleSalaryField(){
+  var t=document.getElementById('payTypeSelect').value;
+  document.getElementById('salaryLabel').textContent=t==='monthly'?'Monthly Salary (₹)':'Commission % (0–100)';
+  document.getElementById('salaryInput').placeholder=t==='monthly'?'18000':'40';
+}
+
+/* ═══ EDIT MECHANIC ═══ */
+function toggleEditSalary(){
+  var t=document.getElementById('editPayType').value;
+  document.getElementById('editSalaryLabel').textContent=t==='monthly'?'Monthly Salary (₹)':'Commission %';
+}
+function openEditModal(mpId,name,desg,payType,salary,commission){
+  document.getElementById('editMpId').value=mpId;
+  document.getElementById('editName').value=name;
+  var d=document.getElementById('editDesg');
+  for(var i=0;i<d.options.length;i++){if(d.options[i].text===desg){d.selectedIndex=i;break;}}
+  document.getElementById('editPayType').value=payType;
+  toggleEditSalary();
+  document.getElementById('editSalaryInput').value=payType==='monthly'?salary:commission;
+  openModal('editModal');
+}
+
+/* ═══ LEAVE APPROVE / REJECT ═══ */
+function approveLeave(pk, name){
+  if(!confirm('Approve '+name+'\'s leave request?')) return;
+  fetch('/api/leave/'+pk+'/approve/',{
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF}
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){
+      var el=document.getElementById('leave-'+pk);
+      if(el) el.remove();
+      toast('✅ '+name+'\'s leave approved!');
+      // update counter
+      var sub=document.querySelector('.pg-sub');
+      if(sub){
+        var pending=document.querySelectorAll('.lcard').length;
+        sub.textContent=sub.textContent.replace(/\d+ leave/,pending+' leave');
+      }
+    } else toast('Error: '+(d.error||'Failed'));
+  }).catch(()=>toast('Network error'));
+}
+
+var currentRejectPk=null;
+function openRejectLeave(pk, name){
+  currentRejectPk=pk;
+  document.getElementById('rejectLeaveName').textContent=name;
+  document.getElementById('rejectLeaveReason').value='';
+  openModal('rejectLeaveModal');
+}
+function submitRejectLeave(){
+  var reason=document.getElementById('rejectLeaveReason').value.trim();
+  if(!reason){toast('Please enter a rejection reason');return;}
+  fetch('/api/leave/'+currentRejectPk+'/reject/',{
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body:JSON.stringify({reason:reason})
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){
+      var el=document.getElementById('leave-'+currentRejectPk);
+      if(el) el.remove();
+      closeModal('rejectLeaveModal');
+      toast('Leave rejected with reason sent to mechanic.');
+    } else toast('Error: '+(d.error||'Failed'));
+  }).catch(()=>toast('Network error'));
+}
+
+/* ═══ SHIFT SCHEDULE ═══ */
+var currentShiftMechId=null;
+function openShiftEditor(mechId, mechName){
+  currentShiftMechId=mechId;
+  document.getElementById('shiftMechName').textContent=mechName;
+  var existing=SHIFT_DATA[mechId]||{};
+  var html='';
+  for(var d=0;d<7;d++){
+    var s=existing[d]||{start:'09:00',end:'18:00',off:d===6};
+    var isOff=s.off;
+    html+='<div class="sed-day" id="sed-'+d+'">'
+      +'<div class="sed-day-name">'+DAY_NAMES[d]+'</div>'
+      +'<label class="sed-off-tog"><input type="checkbox" id="off-'+d+'" '+(isOff?'checked':'')
+      +' onchange="toggleSedDay('+d+')"> Day Off</label>'
+      +'<div id="sed-times-'+d+'" style="'+(isOff?'opacity:.3;pointer-events:none;':'')+'display:flex;flex-direction:column;gap:4px;">'
+      +'<input type="time" class="sed-time" id="start-'+d+'" value="'+s.start+'" placeholder="Start">'
+      +'<input type="time" class="sed-time" id="end-'+d+'" value="'+s.end+'" placeholder="End">'
+      +'</div>'
+      +'</div>';
+  }
+  document.getElementById('shiftEditorGrid').innerHTML=html;
+  openModal('shiftModal');
+}
+function toggleSedDay(d){
+  var off=document.getElementById('off-'+d).checked;
+  var times=document.getElementById('sed-times-'+d);
+  var card=document.getElementById('sed-'+d);
+  times.style.opacity=off?'.3':'1';
+  times.style.pointerEvents=off?'none':'auto';
+  card.style.opacity=off?'.5':'1';
+}
+function saveShifts(){
+  var shifts=[];
+  for(var d=0;d<7;d++){
+    var off=document.getElementById('off-'+d)?.checked||false;
+    var start=document.getElementById('start-'+d)?.value||'09:00';
+    var end=document.getElementById('end-'+d)?.value||'18:00';
+    shifts.push({day:d,start:start,end:end,off:off});
+  }
+  fetch('/api/mechanic/'+currentShiftMechId+'/shifts/',{
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body:JSON.stringify({shifts:shifts})
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){
+      // Update local SHIFT_DATA and render
+      shifts.forEach(s=>{ SHIFT_DATA[currentShiftMechId][s.day]=s; });
+      renderShiftDisplay(currentShiftMechId);
+      closeModal('shiftModal');
+      toast('✅ Schedule saved!');
+    } else toast('Error: '+(d.error||'Failed'));
+  }).catch(()=>toast('Network error'));
+}
+function renderShiftDisplay(mechId){
+  for(var d=0;d<7;d++){
+    var el=document.getElementById('sdaytime-'+mechId+'-'+d);
+    var card=document.getElementById('sday-'+mechId+'-'+d);
+    if(!el||!card) continue;
+    var s=(SHIFT_DATA[mechId]||{})[d];
+    if(!s){
+      card.className='sday';
+      el.innerHTML='<span style="font-size:.58rem;color:var(--dim);">Not set</span>';
+    } else if(s.off){
+      card.className='sday off';
+      el.innerHTML='<span class="sday-off-label">OFF</span>';
+    } else {
+      card.className='sday working';
+      el.innerHTML=s.start+'<br>'+s.end;
+    }
+  }
+}
+// Render all on load
+{% for mp in mechanics %}
+renderShiftDisplay({{ mp.mechanic.pk }});
+{% endfor %}
+
+/* ═══ TOAST ═══ */
+function toast(msg){
+  var t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),3500);
+}
+{% if messages %}{% for m in messages %}setTimeout(()=>toast('{{ m|escapejs }}'),400);{% endfor %}{% endif %}
+</script>
+{% endblock %}

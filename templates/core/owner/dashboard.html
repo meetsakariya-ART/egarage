@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>My Dashboard — eGarage</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#ff3b30;--red-glow:rgba(255,59,48,.35);
+  --green:#30d158;--blue:#0a84ff;--yellow:#ffd60a;
+  --purple:#bf5af2;--teal:#5ac8fa;--orange:#ff9f0a;
+  --bg:#06060c;--glass:rgba(255,255,255,.06);
+  --glass2:rgba(255,255,255,.10);--glass3:rgba(255,255,255,.14);
+  --border:rgba(255,255,255,.09);--border2:rgba(255,255,255,.14);
+  --muted:rgba(255,255,255,.45);--dim:rgba(255,255,255,.22);
+  --blur:saturate(180%) blur(20px);
+  --fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;
+  --r:16px;--r-sm:11px;
+}
+html,body{height:100%;overflow:hidden;font-family:var(--fb);background:var(--bg);color:#fff;}
+
+/* ── BG ORBS ── */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none;}
+.o1{width:700px;height:700px;background:rgba(255,59,48,.09);top:-200px;left:-150px;animation:of1 14s ease-in-out infinite alternate;}
+.o2{width:600px;height:600px;background:rgba(10,132,255,.08);bottom:-150px;right:-100px;animation:of2 11s ease-in-out infinite alternate;}
+.o3{width:400px;height:400px;background:rgba(48,209,88,.05);top:40%;left:40%;animation:of3 9s ease-in-out infinite alternate;}
+@keyframes of1{0%{transform:translate(0,0)}100%{transform:translate(40px,-50px)}}
+@keyframes of2{0%{transform:translate(0,0)}100%{transform:translate(-50px,30px)}}
+@keyframes of3{0%{transform:scale(1)}100%{transform:translate(20px,20px) scale(1.1)}}
+
+/* ── LAYOUT ── */
+.wrap{display:flex;height:100vh;position:relative;z-index:5;}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:220px;flex-shrink:0;height:100vh;
+  display:flex;flex-direction:column;
+  background:rgba(8,8,16,.8);
+  backdrop-filter:var(--blur);
+  border-right:1px solid var(--border);
+}
+.sl{padding:20px 16px 16px;border-bottom:1px solid var(--border);}
+.sl-brand{display:flex;align-items:center;gap:9px;}
+.sl-ico{width:32px;height:32px;border-radius:9px;background:var(--red);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px var(--red-glow);}
+.sl-ico svg{width:15px;height:15px;}
+.sl-name{font-family:var(--fd);font-size:1.05rem;font-weight:900;color:#fff;}
+.sl-tag{font-size:.52rem;color:var(--dim);letter-spacing:1.8px;text-transform:uppercase;margin-top:2px;}
+.nav{flex:1;padding:10px 8px;overflow-y:auto;display:flex;flex-direction:column;gap:1px;}
+.nav::-webkit-scrollbar{display:none;}
+.nlbl{font-size:.52rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);padding:10px 10px 4px;}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:9px;cursor:pointer;text-decoration:none;color:var(--muted);font-size:.78rem;font-weight:500;transition:all .18s;position:relative;}
+.ni:hover{background:var(--glass2);color:rgba(255,255,255,.85);}
+.ni.on{background:rgba(255,59,48,.14);color:#fff;border:1px solid rgba(255,59,48,.22);box-shadow:0 0 16px rgba(255,59,48,.07);}
+.ni svg{width:14px;height:14px;flex-shrink:0;opacity:.6;transition:opacity .18s;}
+.ni:hover svg,.ni.on svg{opacity:1;}
+.nbadge{margin-left:auto;background:var(--red);color:#fff;font-size:.55rem;font-weight:700;padding:2px 6px;border-radius:20px;font-family:var(--fd);}
+.sb-footer{padding:10px 10px 14px;border-top:1px solid var(--border);}
+.sb-user{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:10px;background:var(--glass);border:1px solid var(--border);cursor:pointer;transition:background .18s;}
+.sb-user:hover{background:var(--glass2);}
+.sb-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.7rem;font-weight:900;color:#fff;flex-shrink:0;}
+.sb-info{flex:1;min-width:0;}
+.sb-nm{font-size:.74rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-rl{font-size:.58rem;color:var(--dim);margin-top:1px;}
+.sb-out{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--dim);text-decoration:none;transition:all .15s;flex-shrink:0;}
+.sb-out:hover{background:rgba(255,59,48,.18);color:var(--red);}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;min-width:0;}
+.topbar{display:flex;align-items:center;padding:0 22px;height:54px;background:rgba(6,6,12,.65);backdrop-filter:var(--blur);border-bottom:1px solid var(--border);gap:12px;flex-shrink:0;}
+.tb-title{font-family:var(--fd);font-size:.88rem;font-weight:700;color:#fff;}
+.tb-sub{font-size:.62rem;color:var(--dim);margin-top:1px;}
+.tb-r{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.tb-bell{width:34px;height:34px;border-radius:9px;background:var(--glass);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:all .15s;}
+.tb-bell:hover{background:var(--glass2);}
+.tb-bell svg{width:14px;height:14px;color:var(--muted);}
+.bell-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;background:var(--red);border-radius:50%;border:1.5px solid var(--bg);animation:bdot 2s infinite;}
+@keyframes bdot{0%,100%{box-shadow:0 0 0 0 rgba(255,59,48,.4);}60%{box-shadow:0 0 0 4px rgba(255,59,48,0);}}
+.tb-book{display:flex;align-items:center;gap:6px;padding:7px 16px;background:var(--red);color:#fff;border:none;border-radius:9px;font-family:var(--fd);font-size:.74rem;font-weight:700;cursor:pointer;box-shadow:0 3px 14px var(--red-glow);transition:all .2s;}
+.tb-book:hover{transform:translateY(-1px);box-shadow:0 6px 20px var(--red-glow);}
+.tb-book svg{width:12px;height:12px;}
+
+.content{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:14px;}
+.content::-webkit-scrollbar{width:4px;}
+.content::-webkit-scrollbar-thumb{background:rgba(255,255,255,.07);border-radius:4px;}
+
+/* ── HERO ── */
+.hero{border-radius:var(--r);overflow:hidden;position:relative;min-height:150px;display:flex;align-items:center;}
+.hero-bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&q=80&auto=format&fit=crop') center/cover no-repeat;}
+.hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,6,12,.95) 0%,rgba(6,6,12,.6) 55%,rgba(6,6,12,.15) 100%);}
+.hero-c{position:relative;z-index:2;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;width:100%;gap:16px;}
+.hero-greet{font-size:.58rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);margin-bottom:5px;}
+.hero-name{font-family:var(--fd);font-size:1.5rem;font-weight:900;color:#fff;letter-spacing:-.5px;line-height:1.1;margin-bottom:5px;}
+.hero-name span{color:var(--red);}
+.hero-sub{font-size:.75rem;color:var(--muted);}
+.hero-chips{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 11px;border-radius:20px;font-size:.62rem;font-weight:600;backdrop-filter:blur(12px);}
+.chip.y{background:rgba(255,214,10,.12);color:var(--yellow);border:1px solid rgba(255,214,10,.22);}
+.chip.g{background:rgba(48,209,88,.12);color:var(--green);border:1px solid rgba(48,209,88,.22);}
+.chip.b{background:rgba(10,132,255,.12);color:var(--blue);border:1px solid rgba(10,132,255,.22);}
+.chip svg{width:9px;height:9px;}
+.hero-acts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+.btn-p{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:var(--red);color:#fff;border:none;border-radius:10px;font-family:var(--fd);font-size:.78rem;font-weight:700;cursor:pointer;box-shadow:0 4px 18px var(--red-glow);transition:all .22s cubic-bezier(.34,1.56,.64,1);}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 7px 26px var(--red-glow);}
+.btn-p svg{width:12px;height:12px;}
+.btn-s{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:var(--glass);color:rgba(255,255,255,.7);border:1px solid var(--border2);border-radius:10px;font-family:var(--fd);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .18s;backdrop-filter:blur(12px);}
+.btn-s:hover{background:var(--glass2);color:#fff;}
+/* hero profile card */
+.hp{display:flex;align-items:center;gap:11px;padding:12px 15px;border-radius:13px;background:rgba(255,255,255,.07);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.12);flex-shrink:0;}
+.hp-av{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.95rem;font-weight:900;color:#fff;border:2px solid rgba(255,255,255,.15);flex-shrink:0;}
+.hp-nm{font-family:var(--fd);font-size:.85rem;font-weight:700;color:#fff;}
+.hp-em{font-size:.65rem;color:var(--dim);margin-top:2px;}
+.hp-role{display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:3px 9px;border-radius:20px;background:rgba(255,59,48,.13);border:1px solid rgba(255,59,48,.25);font-size:.58rem;font-weight:700;color:rgba(255,255,255,.7);}
+.rp-dot{width:5px;height:5px;border-radius:50%;background:var(--red);animation:rpb 2s infinite;}
+@keyframes rpb{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* ── KPI GRID ── */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.kpi{border-radius:var(--r);padding:15px 16px;background:var(--glass);backdrop-filter:var(--blur);border:1px solid var(--border);transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s;cursor:default;position:relative;overflow:hidden;}
+.kpi:hover{transform:translateY(-4px);box-shadow:0 14px 36px rgba(0,0,0,.4);}
+.kpi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+.kpi-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);border:1px solid var(--border);}
+.kpi-ico svg{width:15px;height:15px;}
+.kpi-badge{display:inline-flex;align-items:center;gap:2px;font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:20px;}
+.kb-g{background:rgba(48,209,88,.14);color:var(--green);border:1px solid rgba(48,209,88,.2);}
+.kb-r{background:rgba(255,59,48,.14);color:var(--red);border:1px solid rgba(255,59,48,.2);}
+.kb-n{background:var(--glass);color:var(--muted);border:1px solid var(--border);}
+.kpi-val{font-family:var(--fd);font-size:1.65rem;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1;}
+.kpi-lbl{font-size:.66rem;color:var(--muted);margin-top:4px;}
+.kpi-line{position:absolute;bottom:0;left:0;right:0;height:2px;}
+
+/* ── SECTION ── */
+.two-col{display:grid;grid-template-columns:1fr 280px;gap:12px;}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.sec-title{font-family:var(--fd);font-size:.86rem;font-weight:700;color:#fff;}
+.sec-link{font-size:.7rem;color:var(--red);text-decoration:none;font-weight:600;transition:opacity .15s;}
+.sec-link:hover{opacity:.7;}
+
+/* ── CARD ── */
+.card{border-radius:var(--r);background:var(--glass);backdrop-filter:var(--blur);border:1px solid var(--border);overflow:hidden;margin-bottom:12px;}
+.card-last{margin-bottom:0;}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);}
+.ch h4{font-family:var(--fd);font-size:.82rem;font-weight:700;color:#fff;}
+.ch p{font-size:.62rem;color:var(--dim);margin-top:1px;}
+.ch-r{font-size:.68rem;color:var(--red);text-decoration:none;font-weight:600;}
+
+/* ── BOOKING ROWS ── */
+.brow{display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid rgba(255,255,255,.04);transition:background .1s;}
+.brow:hover{background:rgba(255,255,255,.03);}
+.brow:first-of-type{border-top:none;}
+.brow-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.brow-ref{font-family:var(--fd);font-size:.68rem;font-weight:800;color:var(--blue);}
+.brow-svc{font-size:.76rem;font-weight:600;color:#fff;}
+.brow-dt{font-size:.62rem;color:var(--dim);}
+.brow-pr{font-family:var(--fd);font-size:.78rem;font-weight:800;color:#fff;margin-left:auto;white-space:nowrap;}
+.pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:.58rem;font-weight:700;}
+.pill-g{background:rgba(48,209,88,.12);color:var(--green);border:1px solid rgba(48,209,88,.2);}
+.pill-y{background:rgba(255,214,10,.12);color:var(--yellow);border:1px solid rgba(255,214,10,.2);}
+.pill-b{background:rgba(10,132,255,.12);color:var(--blue);border:1px solid rgba(10,132,255,.2);}
+.pill-r{background:rgba(255,59,48,.12);color:var(--red);border:1px solid rgba(255,59,48,.2);}
+.pill-d{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+/* ── VEHICLE CARDS ── */
+.vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.vc{border-radius:var(--r-sm);overflow:hidden;background:var(--glass);border:1px solid var(--border);cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);}
+.vc:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.18);box-shadow:0 14px 36px rgba(0,0,0,.4);}
+.vc-img{height:90px;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;font-size:2.5rem;position:relative;}
+.vc-badge{position:absolute;top:6px;right:6px;padding:2px 7px;border-radius:20px;font-size:.55rem;font-weight:700;backdrop-filter:blur(8px);}
+.vc-b{padding:9px 11px;}
+.vc-nm{font-family:var(--fd);font-size:.76rem;font-weight:700;color:#fff;}
+.vc-reg{font-size:.56rem;color:var(--dim);background:var(--glass);border:1px solid var(--border);border-radius:4px;padding:1px 5px;display:inline-block;margin-top:3px;letter-spacing:.5px;}
+.vc-meta{display:flex;align-items:center;justify-content:space-between;margin-top:7px;}
+.vc-km{font-size:.62rem;color:var(--muted);}
+.vc-fuel{font-size:.58rem;font-weight:600;color:var(--green);}
+
+/* ── ACTIVE JOB BANNER ── */
+.active-job{border-radius:var(--r);overflow:hidden;background:rgba(10,10,28,.8);border:1px solid rgba(10,132,255,.25);padding:16px 18px;margin-bottom:12px;}
+.aj-label{font-size:.56rem;letter-spacing:1.8px;text-transform:uppercase;color:var(--dim);font-weight:700;margin-bottom:5px;}
+.aj-svc{font-family:var(--fd);font-size:.96rem;font-weight:800;color:#fff;}
+.aj-ref{font-size:.64rem;color:var(--dim);margin-top:2px;}
+.aj-steps{display:flex;gap:5px;margin-top:12px;flex-wrap:wrap;}
+.aj-step{padding:3px 10px;border-radius:20px;font-family:var(--fd);font-size:.58rem;font-weight:700;background:rgba(255,255,255,.06);color:var(--dim);transition:all .2s;}
+.aj-step.done{background:rgba(48,209,88,.18);color:var(--green);}
+.aj-step.now{background:rgba(10,132,255,.25);color:var(--blue);border:1px solid rgba(10,132,255,.35);}
+.aj-track{display:inline-flex;align-items:center;gap:5px;margin-top:12px;padding:7px 15px;border-radius:9px;background:var(--blue);color:#fff;text-decoration:none;font-family:var(--fd);font-size:.7rem;font-weight:700;transition:all .15s;}
+.aj-track:hover{background:#0070e0;}
+
+/* ── ACTIVITY ── */
+.act-item{display:flex;align-items:flex-start;gap:9px;padding:10px 16px;border-top:1px solid rgba(255,255,255,.04);transition:background .1s;}
+.act-item:hover{background:rgba(255,255,255,.03);}
+.act-item:first-of-type{border-top:none;}
+.act-ico{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;border:1px solid rgba(255,255,255,.07);}
+.act-ico svg{width:12px;height:12px;}
+.act-txt{font-size:.74rem;font-weight:600;color:#fff;line-height:1.3;}
+.act-sub{font-size:.65rem;color:var(--dim);margin-top:1px;}
+.act-time{font-size:.6rem;color:var(--dim);white-space:nowrap;flex-shrink:0;margin-left:auto;}
+
+/* ── QUICK LINKS ── */
+.qlink{display:flex;align-items:center;gap:10px;padding:11px 14px;border-top:1px solid rgba(255,255,255,.04);text-decoration:none;transition:background .1s;}
+.qlink:hover{background:rgba(255,255,255,.03);}
+.qlink:first-of-type{border-top:none;}
+.ql-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ql-ico svg{width:13px;height:13px;}
+.ql-lbl{font-family:var(--fd);font-size:.74rem;font-weight:700;color:#fff;}
+.ql-sub{font-size:.6rem;color:var(--dim);}
+.ql-arr{margin-left:auto;width:13px;height:13px;color:var(--dim);}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:30px 16px;}
+.empty-ico{font-size:2.2rem;margin-bottom:10px;}
+.empty-t{font-family:var(--fd);font-size:.86rem;font-weight:700;color:rgba(255,255,255,.3);}
+.empty-s{font-size:.7rem;color:var(--dim);margin-top:4px;}
+.empty-btn{display:inline-flex;align-items:center;gap:5px;margin-top:12px;padding:9px 18px;background:var(--red);color:#fff;border:none;border-radius:9px;font-family:var(--fd);font-size:.72rem;font-weight:700;cursor:pointer;box-shadow:0 3px 14px var(--red-glow);transition:all .2s;}
+.empty-btn:hover{transform:translateY(-1px);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.content>*{animation:fadeUp .38s ease both;}
+.content>*:nth-child(1){animation-delay:.05s;}
+.content>*:nth-child(2){animation-delay:.09s;}
+.content>*:nth-child(3){animation-delay:.13s;}
+.content>*:nth-child(4){animation-delay:.17s;}
+.content>*:nth-child(5){animation-delay:.21s;}
+
+@media(max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr);}.two-col{grid-template-columns:1fr;}.vgrid{grid-template-columns:1fr 1fr;}}
+@media(max-width:760px){.sidebar{display:none;}.hp{display:none;}.vgrid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="bg"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+<div class="wrap">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sl">
+    <div class="sl-brand">
+      <div class="sl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+      <div><div class="sl-name">eGarage</div><div class="sl-tag">Vehicle Owner</div></div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nlbl">Main</div>
+    <a href="{% url 'dashboard' %}"      class="ni on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+    <a href="{% url 'booking' %}"         class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Book a Service</a>
+    <a href="{% url 'bookings' %}"        class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>My Bookings</a>
+    <a href="{% url 'vehicles' %}"        class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>My Vehicles</a>
+    <a href="{% url 'track' %}"           class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Live Track</a>
+    <a href="{% url 'garage_finder' %}"   class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Find Garage</a>
+    <div class="nlbl">Account</div>
+    <a href="{% url 'notifications' %}"   class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Notifications<span class="nbadge">{{ unread_notifs|default:"" }}</span></a>
+    <a href="{% url 'profile' %}"         class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-av" style="overflow:hidden;padding:0;">
+        {% if request.user.profile_photo %}
+          <img src="{{ request.user.profile_photo.url }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+        {% else %}
+          {{ request.user.initials }}
+        {% endif %}
+      </div>
+      <div class="sb-info"><div class="sb-nm">{{ request.user.name }}</div><div class="sb-rl">Vehicle Owner</div></div>
+      <a href="{% url 'logout' %}" class="sb-out" title="Sign out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></a>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <header class="topbar">
+    <div><div class="tb-title">My Dashboard</div><div class="tb-sub" id="topDate">Loading…</div></div>
+    <div class="tb-r">
+      <a href="{% url 'notifications' %}" class="tb-bell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>{% if unread_notifs %}<span class="bell-dot"></span>{% endif %}</a>
+      <a href="{% url 'booking' %}" class="tb-book"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Book Service</a>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- HERO BANNER -->
+    <div class="hero">
+      <div class="hero-bg"></div>
+      <div class="hero-c">
+        <div>
+          <div class="hero-greet" id="heroGreet">Good day</div>
+          <div class="hero-name">Welcome back, <span>{{ request.user.name.split.0 }}</span></div>
+          <div class="hero-sub">{{ total_vehicles|default:"0" }} vehicles · {{ total_bookings|default:"0" }} total bookings</div>
+          <div class="hero-chips">
+            {% if active_booking %}<div class="chip y"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>1 Job Active</div>{% endif %}
+            <div class="chip g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{{ total_bookings|default:"0" }} Completed</div>
+            {% if unread_notifs %}<div class="chip b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>{{ unread_notifs }} New alerts</div>{% endif %}
+          </div>
+          <div class="hero-acts">
+            <a href="{% url 'booking' %}" class="btn-p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Book a Service</a>
+            <a href="{% url 'track' %}" class="btn-s">Track Vehicle <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+          </div>
+        </div>
+        <div class="hp">
+          <div class="hp-av" style="overflow:hidden;padding:0;">
+            {% if request.user.profile_photo %}
+              <img src="{{ request.user.profile_photo.url }}" style="width:100%;height:100%;object-fit:cover;" alt="{{ request.user.name }}">
+            {% else %}
+              {{ request.user.initials }}
+            {% endif %}
+          </div>
+          <div>
+            <div class="hp-nm">{{ request.user.name }}</div>
+            <div class="hp-em">{{ request.user.email }}</div>
+            <div class="hp-role"><span class="rp-dot"></span>Vehicle Owner</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div><span class="kpi-badge kb-g">Registered</span></div><div class="kpi-val" data-count="{{ total_vehicles|default:0 }}">0</div><div class="kpi-lbl">My Vehicles</div><div class="kpi-line" style="background:linear-gradient(90deg,rgba(255,59,48,.7),transparent)"></div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg></div><span class="kpi-badge kb-n">All time</span></div><div class="kpi-val" data-count="{{ total_bookings|default:0 }}">0</div><div class="kpi-lbl">Total Bookings</div><div class="kpi-line" style="background:linear-gradient(90deg,rgba(255,214,10,.7),transparent)"></div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#30d158" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><span class="kpi-badge kb-g">Paid</span></div><div class="kpi-val" style="font-size:{% if total_spent > 9999 %}1.1rem{% else %}1.4rem{% endif %};">₹{{ total_spent|default:0|floatformat:0 }}</div><div class="kpi-lbl">Total Spent</div><div class="kpi-line" style="background:linear-gradient(90deg,rgba(48,209,88,.7),transparent)"></div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0a84ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><span class="kpi-badge {% if upcoming_bookings %}kb-g{% else %}kb-n{% endif %}">{% if upcoming_bookings %}Soon{% else %}None{% endif %}</span></div><div class="kpi-val" data-count="{{ upcoming_bookings|length|default:0 }}">0</div><div class="kpi-lbl">Upcoming</div><div class="kpi-line" style="background:linear-gradient(90deg,rgba(10,132,255,.7),transparent)"></div></div>
+    </div>
+
+    <!-- ACTIVE JOB BANNER -->
+    {% if active_booking %}
+    <div class="active-job">
+      <div class="aj-label">Active Booking</div>
+      <div class="aj-svc">{{ active_booking.service.name|default:"Service" }}</div>
+      <div class="aj-ref">{{ active_booking.reference }} · {{ active_booking.garage.name|default:"eGarage" }}</div>
+      <div class="aj-steps">
+        {% with s=active_booking.status %}
+        <div class="aj-step {% if s == 'confirmed' %}now{% elif s in 'picked_up,at_garage,in_progress,quality_check,delivered' %}done{% endif %}">✓ Confirmed</div>
+        <div class="aj-step {% if s == 'picked_up' %}now{% elif s in 'at_garage,in_progress,quality_check,delivered' %}done{% endif %}">Picked Up</div>
+        <div class="aj-step {% if s == 'in_progress' %}now{% elif s in 'quality_check,delivered' %}done{% endif %}">In Service</div>
+        <div class="aj-step {% if s == 'quality_check' %}now{% elif s == 'delivered' %}done{% endif %}">QC Check</div>
+        <div class="aj-step {% if s == 'delivered' %}done{% endif %}">Delivered</div>
+        {% endwith %}
+      </div>
+      <a href="{% url 'track' %}?ref={{ active_booking.reference }}" class="aj-track">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Track Live
+      </a>
+    </div>
+    {% endif %}
+
+    <!-- VEHICLES + SIDE -->
+    <div class="two-col">
+    <div>
+      <!-- MY VEHICLES -->
+      <div class="sec-hd"><span class="sec-title">My Vehicles</span><a href="{% url 'vehicles' %}" class="sec-link">Manage →</a></div>
+      {% if vehicles %}
+      <div class="vgrid" style="margin-bottom:14px;">
+        {% for v in vehicles %}
+        <div class="vc">
+          <div class="vc-img">
+            {% if v.type == 'car' %}🚗{% else %}🏍️{% endif %}
+            <div class="vc-badge {% if v.is_primary %}pill-g{% else %}pill-b{% endif %}">{% if v.is_primary %}Primary{% else %}{{ v.fuel_type|capfirst }}{% endif %}</div>
+          </div>
+          <div class="vc-b">
+            <div class="vc-nm">{{ v.brand }} {{ v.model_name }}</div>
+            <span class="vc-reg">{{ v.registration_number|default:"No reg" }}</span>
+            <div class="vc-meta">
+              <span class="vc-km">{{ v.odometer|default:"0" }} km</span>
+              <span class="vc-fuel">{{ v.get_fuel_type_display }}</span>
+            </div>
+            <a href="{% url 'vehicle_condition' v.pk %}" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:.62rem;font-weight:700;color:#0a84ff;text-decoration:none;padding:3px 8px;border-radius:6px;background:rgba(10,132,255,.1);border:1px solid rgba(10,132,255,.2);transition:all .15s;" onmouseover="this.style.background='rgba(10,132,255,.2)'" onmouseout="this.style.background='rgba(10,132,255,.1)'">
+              📷 {% if v.condition_submitted %}Update Condition{% else %}Add Condition Photos{% endif %}
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="card" style="margin-bottom:14px;">
+        <div class="empty"><div class="empty-ico">🚗</div><div class="empty-t">No vehicles yet</div><div class="empty-s">Add your car or bike to get started.</div><a href="{% url 'vehicles' %}" class="empty-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Vehicle</a></div>
+      </div>
+      {% endif %}
+
+      <!-- RATE SERVICE PROMPT -->
+      {% if needs_rating %}
+      <div class="card" style="margin-bottom:12px;background:rgba(255,214,10,.06);border-color:rgba(255,214,10,.2);">
+        <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
+          <div style="font-size:1.6rem;flex-shrink:0;">⭐</div>
+          <div style="flex:1;">
+            <div style="font-family:var(--fd);font-size:.82rem;font-weight:800;color:#fff;margin-bottom:2px;">Rate your recent service</div>
+            <div style="font-size:.66rem;color:var(--muted);">You have {{ needs_rating }} completed booking{{ needs_rating|pluralize }} waiting for a review</div>
+          </div>
+          <a href="{% url 'bookings' %}?tab=completed" style="padding:7px 14px;background:var(--yellow);color:#111;border-radius:8px;font-family:var(--fd);font-size:.68rem;font-weight:800;text-decoration:none;flex-shrink:0;">Rate Now →</a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- UPCOMING BOOKINGS -->
+      {% if upcoming_bookings %}
+      <div class="card" style="margin-bottom:12px;">
+        <div class="ch"><div><h4>📅 Upcoming Appointments</h4></div><a href="{% url 'bookings' %}" class="ch-r">All →</a></div>
+        {% for b in upcoming_bookings %}
+        <div class="brow">
+          <div class="brow-ico" style="background:rgba(10,132,255,.1);">{{ b.service.icon_emoji|default:"🔧" }}</div>
+          <div style="flex:1;min-width:0;">
+            <div class="brow-ref">{{ b.scheduled_date|date:"d M Y" }} · {{ b.scheduled_slot|time:"h:i A" }}</div>
+            <div class="brow-svc">{{ b.service.name|default:"Service" }}</div>
+            <div class="brow-dt">{{ b.garage.name|default:"eGarage" }} · {{ b.reference }}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+            {% if b.mechanic %}
+              <div style="font-size:.6rem;color:var(--green);font-weight:700;">✓ Mechanic assigned</div>
+            {% else %}
+              <div style="font-size:.6rem;color:var(--yellow);">⏳ Awaiting mechanic</div>
+            {% endif %}
+            {% if not b.advance_paid %}
+            <a href="{% url 'payment' %}" style="font-size:.6rem;padding:3px 8px;background:rgba(255,59,48,.15);color:var(--red);border-radius:6px;text-decoration:none;font-weight:700;">Pay Advance</a>
+            {% else %}
+            <div style="font-size:.6rem;color:var(--green);">💳 ₹{{ b.advance_amount|floatformat:0 }} paid</div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- RECENT BOOKINGS -->
+      <div class="card card-last">
+        <div class="ch"><div><h4>Recent Bookings</h4></div><a href="{% url 'bookings' %}" class="ch-r">View all</a></div>
+        {% if recent_bookings %}
+          {% for b in recent_bookings %}
+          <div class="brow">
+            <div class="brow-ico" style="background:rgba(255,59,48,.08);">{{ b.service.icon_emoji|default:"🔧" }}</div>
+            <div style="flex:1;min-width:0;">
+              <div class="brow-ref">{{ b.reference }}</div>
+              <div class="brow-svc">{{ b.service.name|default:"Service" }}</div>
+              <div class="brow-dt">{{ b.scheduled_date|date:"d M" }} · {{ b.garage.name|default:"eGarage" }}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+              <div class="brow-pr">₹{{ b.final_price|floatformat:0 }}</div>
+              {% if b.status == 'delivered' %}<div class="pill pill-g"><div class="pill-d"></div>✓ Done</div>
+              {% elif b.status == 'in_progress' or b.status == 'at_garage' or b.status == 'quality_check' %}<div class="pill pill-y"><div class="pill-d"></div>● Active</div>
+              {% elif b.status == 'confirmed' %}
+                {% if b.job and b.job.status == 'accepted' %}<div class="pill pill-g"><div class="pill-d"></div>Accepted</div>
+                {% else %}<div class="pill pill-b"><div class="pill-d"></div>⏳ Pending</div>{% endif %}
+              {% elif b.status == 'cancelled' %}<div class="pill pill-r"><div class="pill-d"></div>Cancelled</div>
+              {% else %}<div class="pill" style="background:var(--glass);color:var(--muted);border:1px solid var(--border);">{{ b.get_status_display }}</div>{% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty"><div class="empty-ico">📋</div><div class="empty-t">No bookings yet</div><div class="empty-s">Book your first service — free pickup included!</div><a href="{% url 'booking' %}" class="empty-btn">Book Now</a></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- SIDEBAR COLUMN -->
+    <div>
+      <!-- Quick Links -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="ch"><h4>Quick Actions</h4></div>
+        <a href="{% url 'booking' %}"     class="qlink"><div class="ql-ico" style="background:rgba(255,59,48,.12);"><svg viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div><div><div class="ql-lbl">Book Service</div><div class="ql-sub">Free pickup & drop</div></div><svg class="ql-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'track' %}"       class="qlink"><div class="ql-ico" style="background:rgba(10,132,255,.12);"><svg viewBox="0 0 24 24" fill="none" stroke="#0a84ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div><div class="ql-lbl">Track Live</div><div class="ql-sub">Real-time job status</div></div><svg class="ql-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'vehicles' %}"    class="qlink"><div class="ql-ico" style="background:rgba(48,209,88,.12);"><svg viewBox="0 0 24 24" fill="none" stroke="#30d158" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div><div><div class="ql-lbl">My Vehicles</div><div class="ql-sub">{{ total_vehicles|default:"0" }} registered</div></div><svg class="ql-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'garage_finder' %}" class="qlink"><div class="ql-ico" style="background:rgba(191,90,242,.12);"><svg viewBox="0 0 24 24" fill="none" stroke="#bf5af2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div><div class="ql-lbl">Find Garage</div><div class="ql-sub">Near Rajkot</div></div><svg class="ql-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'notifications' %}" class="qlink"><div class="ql-ico" style="background:rgba(255,159,10,.12);"><svg viewBox="0 0 24 24" fill="none" stroke="#ff9f0a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div><div><div class="ql-lbl">Notifications</div><div class="ql-sub">{% if unread_notifs %}{{ unread_notifs }} unread{% else %}All caught up{% endif %}</div></div><svg class="ql-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'profile' %}"     class="qlink"><div class="ql-ico" style="background:rgba(90,200,250,.12);"><svg viewBox="0 0 24 24" fill="none" stroke="#5ac8fa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div><div class="ql-lbl">My Profile</div><div class="ql-sub">Edit details</div></div><svg class="ql-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+      </div>
+    </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+</div>
+
+<script>
+/* Greeting */
+(function(){
+  var h=new Date().getHours();
+  var g=h<12?'Good morning ☀️':h<17?'Good afternoon 🌤️':'Good evening 🌙';
+  var el=document.getElementById('heroGreet');if(el)el.textContent=g;
+  var d=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  var el2=document.getElementById('topDate');if(el2)el2.textContent=d+' · Rajkot';
+})();
+/* Count up */
+document.querySelectorAll('[data-count]').forEach(function(el){
+  var target=parseInt(el.getAttribute('data-count'))||0;
+  var step=Math.ceil(target/30),cur=0;
+  el.textContent='0';
+  if(!target)return;
+  var t=setInterval(function(){cur=Math.min(cur+step,target);el.textContent=cur;if(cur>=target)clearInterval(t);},30);
+});
+</script>
+</body>
+</html>

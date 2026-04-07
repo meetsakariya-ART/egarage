@@ -1,0 +1,231 @@
+{% extends 'core/base.html' %}
+{% block title %}Service Pricing — {{ garage.name }}{% endblock %}
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--red:#e8192c;--red2:#c0111f;--green:#00a651;--blue:#1a56db;
+  --fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;
+  --border:#e0e0e0;--muted:#777;--bg:#f0f2f5;}
+html,body{background:var(--bg);color:#111;font-family:var(--fb);}
+nav{position:sticky;top:0;z-index:200;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.navi{display:flex;align-items:center;padding:0 24px;height:60px;max-width:1200px;margin:0 auto;gap:14px;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-ico{width:32px;height:32px;border-radius:9px;background:var(--red);display:flex;align-items:center;justify-content:center;}
+.logo-ico svg{width:15px;height:15px;}
+.logo-name{font-family:var(--fd);font-size:1.1rem;font-weight:900;color:var(--red);}
+.logo-name span{color:#111;}
+.nav-r{margin-left:auto;display:flex;gap:8px;}
+.nb{padding:7px 15px;border-radius:8px;font-family:var(--fd);font-size:.72rem;font-weight:700;text-decoration:none;border:1.5px solid var(--border);color:#333;background:#fff;transition:all .15s;}
+.nb:hover{border-color:var(--red);color:var(--red);}
+.nb.red{background:var(--red);color:#fff;border-color:var(--red);}
+.page{max-width:1000px;margin:24px auto;padding:0 24px;}
+.ph{font-family:var(--fd);font-size:1.3rem;font-weight:900;color:#111;margin-bottom:4px;}
+.ps{font-size:.74rem;color:var(--muted);margin-bottom:24px;}
+.card{background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+.ch{padding:14px 20px;border-bottom:1px solid var(--border);}
+.ch h3{font-family:var(--fd);font-size:.88rem;font-weight:800;color:#111;}
+.ch p{font-size:.66rem;color:var(--muted);margin-top:2px;}
+.cb{padding:20px;}
+.msg{border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:.76rem;font-weight:600;}
+.msg-s{background:rgba(0,166,81,.1);border:1px solid rgba(0,166,81,.2);color:var(--green);}
+.msg-e{background:rgba(232,25,44,.06);border:1px solid rgba(232,25,44,.15);color:var(--red);}
+.fee-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.fee-wrap{display:flex;border:1.5px solid var(--border);border-radius:9px;overflow:hidden;}
+.fee-pre{padding:10px 13px;background:#f8f8f8;font-family:var(--fd);font-size:.9rem;font-weight:800;color:#111;border-right:1px solid var(--border);}
+.fee-wrap input{padding:10px 13px;border:none;font-family:var(--fd);font-size:1rem;font-weight:900;color:var(--red);width:110px;outline:none;}
+.hint{font-size:.68rem;color:var(--muted);line-height:1.7;}
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{padding:9px 10px;font-size:.58rem;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);text-align:center;border-bottom:2px solid var(--border);background:#fafafa;}
+.tbl th:first-child{text-align:left;padding-left:14px;}
+.tbl td{padding:11px 10px;border-bottom:1px solid #f8f8f8;vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.sn{font-size:.78rem;font-weight:700;color:#111;padding-left:4px;}
+.sd{font-size:.6rem;color:var(--muted);padding-left:4px;}
+.pi{width:80px;padding:7px 8px;border:1.5px solid var(--border);border-radius:7px;font-family:var(--fd);font-size:.78rem;font-weight:700;outline:none;text-align:center;display:block;margin:0 auto;}
+.pi:focus{border-color:var(--blue);}
+.gp{font-size:.57rem;color:#bbb;text-align:center;margin-top:2px;}
+.ni{width:100%;padding:6px 9px;border:1.5px solid var(--border);border-radius:7px;font-size:.72rem;outline:none;}
+.toggle{position:relative;width:38px;height:20px;display:inline-block;}
+.toggle input{opacity:0;width:0;height:0;}
+.sl{position:absolute;inset:0;background:#ddd;border-radius:20px;cursor:pointer;transition:.3s;}
+.sl::before{content:'';position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;}
+input:checked+.sl{background:var(--green);}
+input:checked+.sl::before{transform:translateX(18px);}
+.btn-save{padding:11px 26px;background:var(--red);color:#fff;border:none;border-radius:10px;font-family:var(--fd);font-size:.76rem;font-weight:800;cursor:pointer;}
+.btn-save:hover{background:var(--red2);}
+.btn-add{padding:10px 22px;background:var(--green);color:#fff;border:none;border-radius:9px;font-family:var(--fd);font-size:.74rem;font-weight:700;cursor:pointer;}
+.csg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.ff label{display:block;font-size:.6rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.ff input,.ff select{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:.82rem;color:#111;outline:none;}
+.ff input:focus,.ff select:focus{border-color:var(--red);}
+.ff.full{grid-column:1/-1;}
+.csi{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f8f8f8;border:1.5px solid var(--border);border-radius:10px;margin-bottom:8px;}
+.csi-del{margin-left:auto;padding:4px 10px;background:rgba(232,25,44,.08);color:var(--red);border:1px solid rgba(232,25,44,.2);border-radius:6px;font-size:.62rem;font-weight:700;cursor:pointer;}
+@media(max-width:700px){.csg{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<nav>
+  <div class="navi">
+    <a href="{% url 'home' %}" class="logo">
+      <div class="logo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+      <span class="logo-name">e<span>Garage</span></span>
+    </a>
+    <div class="nav-r">
+      <a href="{% url 'dashboard' %}" class="nb">Dashboard</a>
+      <a href="{% url 'garage_settings' %}" class="nb">Settings</a>
+      <a href="{% url 'manager_finance' %}" class="nb red">Finance</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="ph">⚙️ Service Pricing — {{ garage.name }}</div>
+  <div class="ps">Set your advance fee · Customize prices · Add unique services only you offer</div>
+
+  {% if messages %}{% for m in messages %}
+  <div class="msg {% if '❌' in m.message %}msg-e{% else %}msg-s{% endif %}">{{ m }}</div>
+  {% endfor %}{% endif %}
+
+  <!-- ① ADVANCE FEE -->
+  <div class="card">
+    <div class="ch">
+      <h3>💳 Booking Advance Fee</h3>
+      <p>Charged upfront when customer confirms. Remaining amount paid at garage after service.</p>
+    </div>
+    <div class="cb">
+      <form method="POST">
+        {% csrf_token %}<input type="hidden" name="action" value="update_advance">
+        <div class="fee-row">
+          <div class="fee-wrap">
+            <div class="fee-pre">₹</div>
+            <input type="number" name="advance_fee" value="{{ garage.advance_fee|floatformat:0 }}" min="0" max="5000" step="50">
+          </div>
+          <div class="hint">
+            Current: <strong style="color:var(--red);">₹{{ garage.advance_fee|floatformat:0 }}</strong><br>
+            Recommended ₹300–₹1,000. Set ₹0 for no advance.
+          </div>
+          <button type="submit" class="btn-save">Update →</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ② SERVICE PRICES -->
+  <div class="card">
+    <div class="ch">
+      <h3>🔧 Service Menu &amp; Prices</h3>
+      <p>Leave price blank to use global default. Toggle off to hide from customers booking at your garage.</p>
+    </div>
+    <form method="POST">
+      {% csrf_token %}<input type="hidden" name="action" value="update_prices">
+      <div style="overflow-x:auto;">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Offered</th>
+              <th>Basic (₹)</th>
+              <th>Standard (₹)</th>
+              <th>Premium (₹)</th>
+              <th>Customer Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in service_rows %}
+            <tr>
+              <td>
+                <div class="sn">{{ row.svc.icon_emoji }} {{ row.svc.name }}</div>
+                <div class="sd">{{ row.svc.description|truncatechars:48 }}</div>
+              </td>
+              <td style="text-align:center;">
+                <label class="toggle">
+                  <input type="checkbox" name="offered_{{ row.svc.pk }}" {% if row.offered %}checked{% endif %}>
+                  <span class="sl"></span>
+                </label>
+              </td>
+              <td>
+                <input type="number" class="pi" name="basic_{{ row.svc.pk }}"
+                  value="{{ row.basic }}" placeholder="{{ row.svc.price_basic|floatformat:0 }}" min="0" step="50">
+                <div class="gp">global ₹{{ row.svc.price_basic|floatformat:0 }}</div>
+              </td>
+              <td>
+                <input type="number" class="pi" name="standard_{{ row.svc.pk }}"
+                  value="{{ row.standard }}" placeholder="{{ row.svc.price_standard|floatformat:0 }}" min="0" step="50">
+                <div class="gp">global ₹{{ row.svc.price_standard|floatformat:0 }}</div>
+              </td>
+              <td>
+                <input type="number" class="pi" name="premium_{{ row.svc.pk }}"
+                  value="{{ row.premium }}" placeholder="{{ row.svc.price_premium|floatformat:0 }}" min="0" step="50">
+                <div class="gp">global ₹{{ row.svc.price_premium|floatformat:0 }}</div>
+              </td>
+              <td>
+                <input type="text" class="ni" name="notes_{{ row.svc.pk }}"
+                  value="{{ row.notes }}" placeholder="e.g. Includes free tyre check">
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;">
+        <button type="submit" class="btn-save">💾 Save All Prices</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ③ CUSTOM SERVICES -->
+  <div class="card">
+    <div class="ch">
+      <h3>✨ Your Unique Services</h3>
+      <p>Services only your garage offers — not in the global list. These appear in the booking form for customers.</p>
+    </div>
+    <div class="cb">
+      {% for cs in custom_services %}
+      <div class="csi">
+        <div style="font-size:1.4rem;">{{ cs.icon_emoji }}</div>
+        <div style="flex:1;">
+          <div style="font-family:var(--fd);font-size:.82rem;font-weight:800;color:#111;">{{ cs.name }}</div>
+          <div style="font-size:.66rem;color:var(--muted);">Basic ₹{{ cs.price_basic|floatformat:0 }} · Standard ₹{{ cs.price_standard|floatformat:0 }} · Premium ₹{{ cs.price_premium|floatformat:0 }} · {{ cs.duration_hours }}h</div>
+          {% if cs.description %}<div style="font-size:.62rem;color:#aaa;margin-top:2px;">{{ cs.description|truncatechars:60 }}</div>{% endif %}
+        </div>
+        <form method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete_custom">
+          <input type="hidden" name="custom_id" value="{{ cs.pk }}">
+          <button type="submit" class="csi-del" onclick="return confirm('Remove {{ cs.name|escapejs }}?')">✕ Remove</button>
+        </form>
+      </div>
+      {% empty %}
+      <div style="font-size:.74rem;color:#bbb;text-align:center;padding:8px 0 18px;">No custom services yet. Add one below.</div>
+      {% endfor %}
+
+      <div style="background:#f8f8f8;border:1.5px dashed var(--border);border-radius:12px;padding:18px;margin-top:8px;">
+        <div style="font-family:var(--fd);font-size:.76rem;font-weight:800;color:#111;margin-bottom:14px;">+ Add a Custom Service</div>
+        <form method="POST">
+          {% csrf_token %}<input type="hidden" name="action" value="add_custom">
+          <div class="csg">
+            <div class="ff"><label>Name *</label><input type="text" name="custom_name" placeholder="e.g. Ceramic Coating" required></div>
+            <div class="ff"><label>Emoji</label><input type="text" name="custom_icon" placeholder="✨" maxlength="4" value="🔧"></div>
+            <div class="ff full"><label>Description</label><input type="text" name="custom_desc" placeholder="What's included?"></div>
+            <div class="ff"><label>Category</label>
+              <select name="custom_category">
+                <option value="both">Car &amp; Bike</option>
+                <option value="car">Car Only</option>
+                <option value="bike">Bike Only</option>
+              </select>
+            </div>
+            <div class="ff"><label>Duration (hrs)</label><input type="number" name="custom_duration" placeholder="2" min="0.5" step="0.5" value="2"></div>
+            <div class="ff"><label>Basic (₹)</label><input type="number" name="custom_basic" placeholder="0" min="0" step="50"></div>
+            <div class="ff"><label>Standard (₹) *</label><input type="number" name="custom_standard" placeholder="e.g. 5000" min="0" step="50" required></div>
+            <div class="ff"><label>Premium (₹)</label><input type="number" name="custom_premium" placeholder="0" min="0" step="50"></div>
+          </div>
+          <div style="margin-top:14px;"><button type="submit" class="btn-add">+ Add to My Menu</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

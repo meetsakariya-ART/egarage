@@ -1,0 +1,500 @@
+{% extends 'core/base.html' %}
+{% block title %}Schedule — {{ request.user.name }} — eGarage{% endblock %}
+
+{% block extra_head %}
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#e8192c;--green:#00a651;--blue:#1a56db;--yellow:#f59e0b;
+  --purple:#7c3aed;--teal:#0891b2;
+  --fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;
+  --border:#e0e0e0;--muted:#777;--bg:#f0f2f5;
+  --summer-h:#f97316;--summer-l:#fff7ed;
+  --monsoon-h:#3b82f6;--monsoon-l:#eff6ff;
+  --winter-h:#8b5cf6; --winter-l:#f5f3ff;
+}
+html,body{background:var(--bg);color:#111;font-family:var(--fb);overflow-x:hidden;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.navi{display:flex;align-items:center;padding:0 24px;height:60px;max-width:1280px;margin:0 auto;gap:14px;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-ico{width:32px;height:32px;border-radius:9px;background:var(--red);display:flex;align-items:center;justify-content:center;}
+.logo-ico svg{width:15px;height:15px;}
+.logo-name{font-family:var(--fd);font-size:1.15rem;font-weight:900;color:var(--red);}
+.logo-name span{color:#111;}
+.nav-role{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;background:rgba(26,86,219,.1);font-size:.62rem;font-weight:800;color:var(--blue);font-family:var(--fd);}
+.bc{display:flex;align-items:center;gap:5px;font-size:.74rem;color:var(--muted);}
+.bc a{color:var(--muted);text-decoration:none;}
+.bc a:hover{color:var(--blue);}
+.nav-r{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.nb{padding:7px 15px;border-radius:8px;font-family:var(--fd);font-size:.75rem;font-weight:700;text-decoration:none;transition:all .15s;}
+.nb.ghost{border:1.5px solid var(--border);color:#333;background:#fff;}
+.nb.ghost:hover{border-color:var(--blue);color:var(--blue);}
+.nb.blue{background:var(--blue);color:#fff;border:none;}
+
+/* SEASON HERO */
+.season-hero{position:relative;height:220px;overflow:hidden;}
+.sh-sky{position:absolute;inset:0;transition:all 1s ease;}
+.sky-summer {background:linear-gradient(180deg,#fed7aa,#fef3c7 40%,#fde68a);}
+.sky-monsoon{background:linear-gradient(180deg,#1e3a5f,#2563eb 40%,#60a5fa);}
+.sky-winter {background:linear-gradient(180deg,#0f172a,#1e293b 40%,#334155);}
+.sh-ground{position:absolute;bottom:0;left:0;right:0;height:70px;}
+.ground-summer {background:linear-gradient(180deg,#fbbf24,#d97706);}
+.ground-monsoon{background:linear-gradient(180deg,#1e40af,#1e3a8a);}
+.ground-winter {background:linear-gradient(180deg,#e2e8f0,#94a3b8);}
+.sh-road{position:absolute;bottom:0;left:0;right:0;height:36px;}
+.road-summer {background:#44403c;}
+.road-monsoon{background:#1e293b;}
+.road-winter {background:#334155;}
+.sh-roadlines{position:absolute;bottom:12px;left:0;right:0;height:10px;display:flex;overflow:hidden;}
+.rl{flex:0 0 60px;height:4px;background:#fde68a;margin-right:30px;border-radius:2px;animation:roadScroll 1.5s linear infinite;}
+@keyframes roadScroll{from{transform:translateX(0);}to{transform:translateX(-90px);}}
+.sh-sun{position:absolute;width:56px;height:56px;border-radius:50%;transition:all 1s ease;}
+.sun-day   {background:radial-gradient(circle,#fef08a,#fbbf24);box-shadow:0 0 36px 10px rgba(251,191,36,.5);top:28px;right:15%;}
+.sun-night {background:radial-gradient(circle,#93c5fd,#60a5fa);box-shadow:0 0 20px 5px rgba(147,197,253,.3);width:42px;height:42px;top:20px;right:17%;}
+.moon-winter{background:radial-gradient(circle,#f8fafc,#cbd5e1);box-shadow:0 0 22px 8px rgba(248,250,252,.2);width:44px;height:44px;top:20px;right:16%;}
+.sh-cloud{position:absolute;border-radius:50px;transition:all 1s ease;animation:cloudDrift 8s linear infinite;}
+@keyframes cloudDrift{0%{transform:translateX(0);}100%{transform:translateX(20px);}}
+.cloud-summer{background:rgba(255,255,255,.75);}
+.cloud-monsoon{background:rgba(71,85,105,.85);}
+.cloud-winter{background:rgba(226,232,240,.65);}
+.sh-rain{position:absolute;inset:0;pointer-events:none;display:none;}
+.sh-rain.on{display:block;}
+.raindrop{position:absolute;width:2px;border-radius:2px;animation:fall linear infinite;}
+@keyframes fall{from{transform:translateY(-20px);opacity:0;}20%{opacity:1;}to{transform:translateY(230px);opacity:0;}}
+.sh-snow{position:absolute;inset:0;pointer-events:none;display:none;}
+.sh-snow.on{display:block;}
+.snowflake{position:absolute;border-radius:50%;background:#e2e8f0;animation:snowFall linear infinite;}
+@keyframes snowFall{0%{transform:translateY(-10px) translateX(0);opacity:0;}20%{opacity:.8;}100%{transform:translateY(220px) translateX(20px);opacity:0;}}
+.sh-haze{position:absolute;bottom:36px;left:0;right:0;height:26px;background:linear-gradient(180deg,transparent,rgba(251,191,36,.15));display:none;animation:haze 3s ease-in-out infinite;}
+.sh-haze.on{display:block;}
+@keyframes haze{0%,100%{opacity:.6;}50%{opacity:1;}}
+.sh-mechanic{position:absolute;bottom:38px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;animation:mechBob 2s ease-in-out infinite;}
+@keyframes mechBob{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(-4px);}}
+.mech-body{width:26px;height:32px;border-radius:6px 6px 4px 4px;}
+.mech-head{width:18px;height:18px;border-radius:50%;margin-bottom:3px;}
+.mech-tool{width:22px;height:4px;border-radius:2px;margin-top:2px;animation:toolWave .8s ease-in-out infinite alternate;}
+@keyframes toolWave{from{transform:rotate(-15deg);}to{transform:rotate(15deg);}}
+.mech-summer{background:#b45309;}
+.mech-monsoon{background:#1d4ed8;}
+.mech-winter{background:#4c1d95;}
+.mech-head-s{background:#fde68a;}.mech-head-m{background:#93c5fd;}.mech-head-w{background:#c4b5fd;}
+.mech-tool-s{background:#f97316;}.mech-tool-m{background:#60a5fa;}.mech-tool-w{background:#a5b4fc;}
+.sh-label{position:absolute;top:14px;left:20px;display:flex;align-items:center;gap:8px;}
+.sh-season-badge{padding:5px 13px;border-radius:20px;font-family:var(--fd);font-size:.7rem;font-weight:800;letter-spacing:.5px;}
+.ssb-summer {background:rgba(249,115,22,.2);border:1px solid rgba(249,115,22,.4);color:#fed7aa;}
+.ssb-monsoon{background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.4);color:#bfdbfe;}
+.ssb-winter {background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.4);color:#ddd6fe;}
+.sh-name-badge{padding:5px 12px;border-radius:20px;font-family:var(--fd);font-size:.66rem;font-weight:700;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.2);color:#fff;}
+
+/* SEASON TABS */
+.season-tabs{display:flex;background:#fff;border-bottom:1px solid var(--border);}
+.stab{flex:1;padding:11px 14px;text-align:center;cursor:pointer;transition:all .2s;border-bottom:3px solid transparent;display:flex;align-items:center;justify-content:center;gap:6px;font-family:var(--fd);font-size:.74rem;font-weight:700;color:var(--muted);}
+.stab:hover{color:#333;}
+.stab.summer.on {color:var(--summer-h);border-bottom-color:var(--summer-h);background:var(--summer-l);}
+.stab.monsoon.on{color:var(--monsoon-h);border-bottom-color:var(--monsoon-h);background:var(--monsoon-l);}
+.stab.winter.on {color:var(--winter-h); border-bottom-color:var(--winter-h); background:var(--winter-l);}
+
+/* PAGE */
+.page{max-width:1100px;margin:24px auto;padding:0 24px;display:grid;grid-template-columns:1fr 290px;gap:20px;align-items:start;}
+
+/* CARD */
+.card{background:#fff;border:1.5px solid var(--border);border-radius:14px;margin-bottom:16px;overflow:hidden;}
+.cardh{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.cardh h3{font-family:var(--fd);font-size:.86rem;font-weight:800;color:#111;}
+.cardh p{font-size:.63rem;color:var(--muted);margin-top:1px;}
+.cardb{padding:20px;}
+
+/* DAY GROUP */
+.day-group{margin-bottom:20px;}
+.dg-label{display:flex;align-items:center;gap:8px;font-size:.62rem;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:#aaa;margin-bottom:8px;padding:0 2px;}
+.dg-label::after{content:'';flex:1;height:1px;background:#eee;}
+.dg-label.today-lbl{color:var(--blue);}
+.dg-count{background:#f0f0f0;color:#888;border-radius:10px;padding:1px 7px;font-size:.6rem;font-weight:700;}
+.today-lbl .dg-count{background:rgba(26,86,219,.12);color:var(--blue);}
+
+/* JOB ROW */
+.jrow{display:flex;align-items:center;gap:12px;padding:13px 16px;background:#fff;border:1.5px solid var(--border);border-radius:11px;margin-bottom:7px;transition:all .2s;}
+.jrow:hover{box-shadow:0 3px 12px rgba(0,0,0,.07);border-color:#ccc;}
+.jr-time{font-family:var(--fd);font-size:.72rem;font-weight:800;color:var(--blue);min-width:58px;flex-shrink:0;}
+.jr-ico{width:36px;height:36px;border-radius:9px;background:rgba(26,86,219,.07);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.jr-body{flex:1;min-width:0;}
+.jr-name{font-size:.8rem;font-weight:700;color:#111;}
+.jr-ref{font-size:.63rem;color:var(--blue);font-family:var(--fd);}
+.jr-meta{font-size:.64rem;color:var(--muted);margin-top:2px;}
+.jr-badge{padding:3px 9px;border-radius:20px;font-size:.6rem;font-weight:800;font-family:var(--fd);flex-shrink:0;}
+.jb-pending  {background:rgba(26,86,219,.1);color:var(--blue);}
+.jb-done     {background:rgba(0,166,81,.1);color:var(--green);}
+.jb-active   {background:rgba(245,158,11,.1);color:#b45309;}
+.jb-onway    {background:rgba(124,58,237,.1);color:var(--purple);}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:48px 20px;border:1.5px dashed var(--border);border-radius:12px;}
+.empty-state svg{width:44px;height:44px;color:#ddd;display:block;margin:0 auto 12px;}
+.empty-state h3{font-family:var(--fd);font-size:.88rem;font-weight:800;color:#bbb;margin-bottom:5px;}
+.empty-state p{font-size:.72rem;color:#ccc;}
+
+/* SIDEBAR */
+.sidebar{display:flex;flex-direction:column;gap:14px;}
+.sc{background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;}
+.sc-h{padding:13px 16px;border-bottom:1px solid var(--border);}
+.sc-h h3{font-family:var(--fd);font-size:.82rem;font-weight:800;color:#111;}
+.sc-h p{font-size:.63rem;color:var(--muted);margin-top:2px;}
+.sc-b{padding:14px 16px;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0;}
+.sg{background:#f8f8f8;border-radius:10px;padding:11px;text-align:center;}
+.sg-n{font-family:var(--fd);font-size:1.2rem;font-weight:900;color:#111;line-height:1;}
+.sg-l{font-size:.58rem;color:var(--muted);margin-top:3px;}
+.today-card{border-radius:11px;padding:13px;background:rgba(0,166,81,.06);border:1.5px solid rgba(0,166,81,.2);margin-bottom:10px;}
+.tc-status{font-family:var(--fd);font-size:.78rem;font-weight:800;color:#111;display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.tc-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:dot 1.4s infinite;}
+@keyframes dot{0%,100%{opacity:1;}50%{opacity:.3;}}
+.tc-sub{font-size:.64rem;color:var(--muted);}
+.ql{display:flex;align-items:center;gap:10px;padding:10px 16px;transition:background .15s;text-decoration:none;}
+.ql:hover{background:#fafafa;}
+.ql-ico{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ql-ico svg{width:13px;height:13px;}
+.ql span{flex:1;font-size:.75rem;font-weight:600;color:#111;}
+.ql-sep{height:1px;background:var(--border);margin:0 16px;}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;}
+.overlay.on{display:flex;}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:420px;overflow:hidden;animation:slideUp .22s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.mhdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.mhdr h3{font-family:var(--fd);font-size:.88rem;font-weight:800;}
+.mclose{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.mclose:hover{border-color:#999;}
+.mclose svg{width:12px;height:12px;}
+.mbody{padding:20px;}
+.mfoot{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
+.mbtn{padding:9px 20px;border-radius:8px;font-family:var(--fd);font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;}
+.mbtn.cancel{border:1.5px solid var(--border);background:#fff;color:#555;}
+.mbtn.blue{background:var(--blue);color:#fff;border:none;}
+.ff{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.ff label{font-size:.6rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#aaa;}
+.ff input,.ff select,.ff textarea{padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:var(--fb);font-size:.82rem;color:#111;outline:none;background:#f8f8f8;width:100%;resize:none;}
+.ff input:focus,.ff select:focus,.ff textarea:focus{border-color:var(--blue);background:#fff;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:#111;color:#fff;padding:11px 18px;border-radius:10px;font-size:.76rem;font-weight:600;z-index:3000;display:none;align-items:center;gap:7px;}
+.toast.on{display:flex;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.toast svg{width:13px;height:13px;color:var(--green);}
+
+@media(max-width:960px){.page{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<nav>
+  <div class="navi">
+    <a href="{% url 'home' %}" class="logo">
+      <div class="logo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+      <span class="logo-name">e<span>Garage</span></span>
+    </a>
+    <div class="nav-role">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+      Mechanic
+    </div>
+    <div class="bc">
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><polyline points="9 18 15 12 9 6"/></svg>
+      <span style="color:#111;font-weight:600;">Schedule</span>
+    </div>
+    <div class="nav-r">
+      <a href="{% url 'earnings' %}" class="nb ghost">Earnings</a>
+      <a href="{% url 'mechanic_jobs' %}" class="nb ghost">My Jobs</a>
+      <button class="nb blue" onclick="openModal('leaveModal')">+ Request Leave</button>
+    </div>
+  </div>
+</nav>
+
+<!-- 3D SEASON HERO -->
+<div class="season-hero">
+  <div class="sh-sky sky-summer" id="sky"></div>
+  <div class="sh-sun sun-day" id="sunMoon"></div>
+  <div class="sh-cloud cloud-summer" style="width:76px;height:24px;top:38px;left:18%;animation-duration:9s;" id="cloud1"></div>
+  <div class="sh-cloud cloud-summer" style="width:50px;height:16px;top:52px;left:40%;animation-duration:7s;animation-delay:-3s;" id="cloud2"></div>
+  <div class="sh-cloud cloud-summer" style="width:62px;height:20px;top:30px;left:63%;animation-duration:11s;animation-delay:-5s;" id="cloud3"></div>
+  <div class="sh-ground ground-summer" id="ground"></div>
+  <div class="sh-road road-summer" id="road"></div>
+  <div class="sh-roadlines"><div class="rl"></div><div class="rl"></div><div class="rl"></div><div class="rl"></div><div class="rl"></div><div class="rl"></div><div class="rl"></div><div class="rl"></div><div class="rl"></div></div>
+  <div class="sh-rain" id="rain"></div>
+  <div class="sh-snow" id="snow"></div>
+  <div class="sh-haze on" id="haze"></div>
+  <div class="sh-mechanic">
+    <div class="mech-head mech-head-s" id="mechHead"></div>
+    <div class="mech-body mech-summer" id="mechBody"></div>
+    <div class="mech-tool mech-tool-s" id="mechTool"></div>
+  </div>
+  <div class="sh-label">
+    <div class="sh-season-badge ssb-summer" id="sceneBadge">☀️ Summer Season</div>
+    <!-- REAL user name — not hardcoded -->
+    <div class="sh-name-badge">{{ request.user.name }}</div>
+  </div>
+</div>
+
+<!-- SEASON TABS -->
+<div class="season-tabs">
+  <div class="stab summer on" onclick="setSeason('summer',this)">☀️ Summer <span style="font-size:.6rem;opacity:.7;">(Mar–Jun)</span></div>
+  <div class="stab monsoon"   onclick="setSeason('monsoon',this)">🌧️ Monsoon <span style="font-size:.6rem;opacity:.7;">(Jul–Oct)</span></div>
+  <div class="stab winter"    onclick="setSeason('winter',this)">❄️ Winter <span style="font-size:.6rem;opacity:.7;">(Nov–Feb)</span></div>
+</div>
+
+<div class="page">
+<div>
+
+  <!-- REAL JOBS FROM DB -->
+  <div class="card">
+    <div class="cardh">
+      <div>
+        <h3>My Job Schedule</h3>
+        <p>All assigned jobs — {{ request.user.name }}</p>
+      </div>
+    </div>
+    <div class="cardb">
+      {% if jobs %}
+        {% regroup jobs by booking.scheduled_date as day_list %}
+        {% for day in day_list %}
+        <div class="day-group">
+          <div class="dg-label {% if day.grouper == today %}today-lbl{% endif %}">
+            {% if day.grouper == today %}📅 Today — {% endif %}
+            {{ day.grouper|date:"l, d M Y" }}
+            <span class="dg-count">{{ day.list|length }} job{{ day.list|length|pluralize }}</span>
+          </div>
+          {% for job in day.list %}
+          <div class="jrow">
+            <div class="jr-time">{{ job.booking.scheduled_slot|default:"TBD" }}</div>
+            <div class="jr-ico">{{ job.booking.service.icon_emoji|default:"🔧" }}</div>
+            <div class="jr-body">
+              <div class="jr-name">{{ job.booking.service.name|default:"Service" }}</div>
+              <div class="jr-ref">{{ job.booking.reference }}</div>
+              <div class="jr-meta">
+                {{ job.booking.customer_name }}
+                {% if job.booking.vehicle %}· {{ job.booking.vehicle.brand }} {{ job.booking.vehicle.model_name }}{% endif %}
+                {% if job.booking.garage %}· {{ job.booking.garage.name }}{% endif %}
+              </div>
+            </div>
+            <span class="jr-badge
+              {% if job.status == 'completed' %}jb-done
+              {% elif job.status == 'in_progress' %}jb-active
+              {% elif job.status == 'on_way' %}jb-onway
+              {% else %}jb-pending{% endif %}">
+              {% if job.status == 'completed' %}✓ Done
+              {% elif job.status == 'in_progress' %}● Active
+              {% elif job.status == 'on_way' %}🚗 On Way
+              {% else %}{{ job.get_status_display }}{% endif %}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <h3>No jobs scheduled</h3>
+          <p>Your manager will assign jobs and they'll appear here with time slots.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+
+  <!-- Today status — real -->
+  <div class="sc">
+    <div class="sc-h"><h3>Today's Status</h3><p>{{ today|date:"l, d M Y" }}</p></div>
+    <div class="sc-b">
+      <div class="today-card">
+        <div class="tc-status">
+          <div class="tc-dot"></div>
+          {% if request.user.is_available %}On Duty{% else %}Off Duty{% endif %}
+        </div>
+        <div class="tc-sub">
+          {% if request.user.mechanic_profile.designation %}{{ request.user.mechanic_profile.designation }}{% else %}Mechanic{% endif %}
+          {% if request.user.mechanic_profile.garage %} · {{ request.user.mechanic_profile.garage.name }}{% endif %}
+        </div>
+      </div>
+      <button onclick="openModal('leaveModal')" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:9px;background:#fff;font-family:var(--fd);font-size:.72rem;font-weight:700;cursor:pointer;color:#555;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='#555'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Request Leave
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats — real -->
+  <div class="sc">
+    <div class="sc-h"><h3>📊 My Stats</h3><p>All time</p></div>
+    <div class="sc-b">
+      <div class="stat-grid">
+        <div class="sg"><div class="sg-n" style="color:var(--blue);">{{ jobs|length }}</div><div class="sg-l">Total Jobs</div></div>
+        <div class="sg"><div class="sg-n" style="color:var(--green);">{{ jobs|length }}</div><div class="sg-l">Assigned</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="sc">
+    <a class="ql" href="{% url 'mechanic_jobs' %}">
+      <div class="ql-ico" style="background:rgba(26,86,219,.07);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+      <span>My Jobs</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'earnings' %}">
+      <div class="ql-ico" style="background:rgba(0,166,81,.07);"><svg viewBox="0 0 24 24" fill="none" stroke="#00a651" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+      <span>Earnings</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'dashboard' %}">
+      <div class="ql-ico" style="background:rgba(124,58,237,.07);"><svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+      <span>Dashboard</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+  </div>
+
+  <!-- MY LEAVE REQUESTS -->
+  <div class="sc">
+    <div class="sc-h"><h3>📅 My Leave Requests</h3><p>Recent history</p></div>
+    <div class="sc-b">
+      {% if my_leaves %}
+        {% for leave in my_leaves %}
+        <div style="padding:9px 0;border-bottom:1px solid #f5f5f5;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+            <span style="font-family:var(--fd);font-size:.72rem;font-weight:800;color:#111;">{{ leave.get_leave_type_display }}</span>
+            <span style="padding:2px 8px;border-radius:20px;font-size:.58rem;font-weight:800;font-family:var(--fd);
+              {% if leave.status == 'approved' %}background:rgba(0,166,81,.1);color:var(--green);
+              {% elif leave.status == 'rejected' %}background:rgba(232,25,44,.1);color:var(--red);
+              {% else %}background:rgba(245,158,11,.1);color:var(--yellow);{% endif %}">
+              {% if leave.status == 'approved' %}✓ Approved
+              {% elif leave.status == 'rejected' %}✕ Rejected
+              {% else %}⏳ Pending{% endif %}
+            </span>
+          </div>
+          <div style="font-size:.66rem;color:var(--muted);">{{ leave.from_date|date:"d M" }} – {{ leave.to_date|date:"d M Y" }}</div>
+          {% if leave.status == 'rejected' and leave.rejection_reason %}
+          <div style="font-size:.62rem;color:var(--red);margin-top:2px;">Reason: {{ leave.rejection_reason }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="font-size:.72rem;color:#bbb;text-align:center;padding:14px 0;">No leave requests yet</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- LEAVE REQUEST MODAL -->
+<div class="overlay" id="leaveModal">
+  <div class="modal">
+    <div class="mhdr"><h3>Request Leave</h3><div class="mclose" onclick="closeModal('leaveModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <div class="mbody">
+      <form method="POST" action="{% url 'schedule' %}" id="leaveForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="leave_request">
+        <div class="ff"><label>Leave Type</label><select name="leave_type"><option value="casual">Casual Leave</option><option value="sick">Sick Leave</option><option value="emergency">Emergency Leave</option><option value="festival">Festival Holiday</option><option value="personal">Personal Work</option></select></div>
+        <div class="ff"><label>From Date</label><input type="date" name="from_date" required></div>
+        <div class="ff"><label>To Date</label><input type="date" name="to_date" required></div>
+        <div class="ff"><label>Reason</label><textarea name="reason" rows="3" placeholder="Brief reason for leave…"></textarea></div>
+        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:9px;padding:10px 12px;font-size:.72rem;color:#92400e;line-height:1.5;">
+          ⚠ Leave requests require manager approval. Submit at least 24 hours in advance.
+        </div>
+      </form>
+    </div>
+    <div class="mfoot">
+      <button class="mbtn cancel" onclick="closeModal('leaveModal')">Cancel</button>
+      <button class="mbtn blue" onclick="document.getElementById('leaveForm').submit()">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMsg">Saved!</span>
+</div>
+
+<script>
+/* SEASON CONFIG */
+var SEASONS = {
+  summer: {
+    skyClass:'sky-summer',groundClass:'ground-summer',roadClass:'road-summer',
+    cloudClass:'cloud-summer',sunClass:'sun-day',sunStyle:'',
+    badge:'☀️ Summer — Always Working',badgeClass:'ssb-summer',
+    mechBody:'mech-summer',mechHead:'mech-head-s',mechTool:'mech-tool-s',
+    rain:false,snow:false,haze:true
+  },
+  monsoon: {
+    skyClass:'sky-monsoon',groundClass:'ground-monsoon',roadClass:'road-monsoon',
+    cloudClass:'cloud-monsoon',sunClass:'sun-night',
+    sunStyle:'background:radial-gradient(circle,#93c5fd,#60a5fa);box-shadow:0 0 18px 5px rgba(147,197,253,.2);',
+    badge:'🌧️ Monsoon — Rain or Shine',badgeClass:'ssb-monsoon',
+    mechBody:'mech-monsoon',mechHead:'mech-head-m',mechTool:'mech-tool-m',
+    rain:true,snow:false,haze:false
+  },
+  winter: {
+    skyClass:'sky-winter',groundClass:'ground-winter',roadClass:'road-winter',
+    cloudClass:'cloud-winter',sunClass:'moon-winter',
+    sunStyle:'background:radial-gradient(circle,#f8fafc,#cbd5e1);box-shadow:0 0 22px 8px rgba(248,250,252,.2);',
+    badge:'❄️ Winter — Cold Nights, Hot Work',badgeClass:'ssb-winter',
+    mechBody:'mech-winter',mechHead:'mech-head-w',mechTool:'mech-tool-w',
+    rain:false,snow:true,haze:false
+  }
+};
+
+function setSeason(s, tabEl) {
+  var c = SEASONS[s];
+  document.getElementById('sky').className    = 'sh-sky ' + c.skyClass;
+  document.getElementById('ground').className = 'sh-ground ' + c.groundClass;
+  document.getElementById('road').className   = 'sh-road ' + c.roadClass;
+  ['cloud1','cloud2','cloud3'].forEach(function(id){ document.getElementById(id).className = 'sh-cloud ' + c.cloudClass; });
+  var sm = document.getElementById('sunMoon');
+  sm.className = 'sh-sun ' + c.sunClass;
+  if(c.sunStyle) sm.style.cssText = c.sunStyle;
+  document.getElementById('sceneBadge').className   = 'sh-season-badge ' + c.badgeClass;
+  document.getElementById('sceneBadge').textContent = c.badge;
+  document.getElementById('mechBody').className  = 'mech-body ' + c.mechBody;
+  document.getElementById('mechHead').className  = 'mech-head ' + c.mechHead;
+  document.getElementById('mechTool').className  = 'mech-tool ' + c.mechTool;
+  document.getElementById('rain').classList.toggle('on', c.rain);
+  document.getElementById('snow').classList.toggle('on', c.snow);
+  document.getElementById('haze').classList.toggle('on', c.haze);
+  if(c.rain && !document.getElementById('rain').childElementCount) buildRain();
+  if(c.snow && !document.getElementById('snow').childElementCount) buildSnow();
+  document.querySelectorAll('.stab').forEach(function(t){ t.classList.remove('on'); });
+  if(tabEl) tabEl.classList.add('on');
+}
+function buildRain() {
+  var r=''; for(var i=0;i<28;i++){r+='<div class="raindrop" style="left:'+Math.random()*100+'%;height:'+(10+Math.random()*14)+'px;background:rgba(147,197,253,.6);animation-duration:'+(0.5+Math.random()*0.6)+'s;animation-delay:-'+(Math.random()*2)+'s;"></div>';}
+  document.getElementById('rain').innerHTML=r;
+}
+function buildSnow() {
+  var r=''; for(var i=0;i<22;i++){var s=3+Math.random()*5;r+='<div class="snowflake" style="left:'+Math.random()*100+'%;width:'+s+'px;height:'+s+'px;animation-duration:'+(2+Math.random()*3)+'s;animation-delay:-'+(Math.random()*4)+'s;"></div>';}
+  document.getElementById('snow').innerHTML=r;
+}
+
+function openModal(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('on');document.body.style.overflow='';}
+document.querySelectorAll('.overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)closeModal(o.id);});});
+
+{% if messages %}{% for m in messages %}
+setTimeout(function(){
+  var t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent='{{ m|escapejs }}';
+  t.classList.add('on');
+  setTimeout(function(){t.classList.remove('on');},3000);
+},300);
+{% endfor %}{% endif %}
+
+setSeason('summer', document.querySelector('.stab.summer'));
+</script>
+{% endblock %}

@@ -1,0 +1,1005 @@
+{% extends 'core/base.html' %}
+{% block title %}My Jobs — {{ request.user.name }} — eGarage{% endblock %}
+{% block extra_head %}
+<style>
+html,body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;}
+.page{max-width:960px;margin:0 auto;padding:24px 20px 80px;}
+
+/* ── HERO ── */
+.hero{
+  background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);
+  border-bottom:1px solid var(--border);
+  padding:20px 24px;
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;top:-60px;right:-60px;
+  width:200px;height:200px;border-radius:50%;
+  background:rgba(232,25,44,.06);pointer-events:none;
+}
+.hero-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;position:relative;}
+.hero-left{display:flex;align-items:center;gap:14px;}
+.mechanic-av{
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,var(--red),var(--red2));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fd);font-size:1.1rem;font-weight:900;color:#fff;
+  overflow:hidden;padding:0;flex-shrink:0;
+  box-shadow:0 4px 16px var(--red-glow);
+  border:3px solid var(--surface);
+}
+.mechanic-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.hero-name{font-family:var(--fd);font-size:1.1rem;font-weight:900;color:var(--text);}
+.hero-sub{font-size:.72rem;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:6px;}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero-stats{display:flex;gap:20px;flex-shrink:0;}
+.hs{text-align:center;}
+.hs-n{font-family:var(--fd);font-size:1.15rem;font-weight:900;color:var(--text);}
+.hs-l{font-size:.58rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.8px;margin-top:2px;}
+
+/* ── PENDING BANNER ── */
+.pending-banner{
+  background:linear-gradient(135deg,rgba(232,25,44,.1) 0%,rgba(232,25,44,.04) 100%);
+  border:1px solid rgba(232,25,44,.28);
+  border-radius:14px;padding:16px 20px;margin-bottom:20px;
+  display:flex;align-items:center;gap:14px;
+  animation:bannerIn .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes bannerIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.pb-ico{
+  width:40px;height:40px;border-radius:50%;
+  background:rgba(232,25,44,.15);border:1.5px solid rgba(232,25,44,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;flex-shrink:0;
+  animation:iconPulse 2s infinite;
+}
+@keyframes iconPulse{0%,100%{box-shadow:0 0 0 0 rgba(232,25,44,.4)}50%{box-shadow:0 0 0 8px rgba(232,25,44,0)}}
+.pb-body{flex:1;}
+.pb-title{font-family:var(--fd);font-size:.88rem;font-weight:900;color:var(--red);}
+.pb-sub{font-size:.72rem;color:var(--text2);margin-top:3px;}
+.pb-action{
+  padding:9px 20px;background:var(--red);color:#fff;border:none;border-radius:9px;
+  font-family:var(--fd);font-size:.74rem;font-weight:800;cursor:pointer;
+  flex-shrink:0;box-shadow:0 4px 14px var(--red-glow);
+  transition:all .15s;
+}
+.pb-action:hover{background:var(--red2);transform:translateY(-1px);}
+
+/* ── TABS ── */
+.tabs{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:6px;
+  display:flex;gap:4px;margin-bottom:20px;
+  box-shadow:var(--card-shadow);
+}
+.tab{
+  flex:1;padding:9px 12px;border-radius:10px;
+  font-family:var(--fd);font-size:.7rem;font-weight:800;
+  color:var(--muted);cursor:pointer;text-align:center;
+  transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.tab:hover{background:var(--surface3);color:var(--text);}
+.tab.on{background:var(--red);color:#fff;box-shadow:0 3px 12px var(--red-glow);}
+.tab-count{
+  background:rgba(255,255,255,.2);color:inherit;
+  font-size:.58rem;padding:1px 6px;border-radius:10px;
+  font-family:var(--fd);font-weight:900;
+}
+.tab:not(.on) .tab-count{background:var(--surface3);}
+.tab.on .tab-count{background:rgba(255,255,255,.25);}
+
+/* ── PANEL ── */
+.panel{display:none;}
+.panel.on{display:block;}
+
+/* ── JOB CARD ── */
+.jcard{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;margin-bottom:10px;overflow:hidden;
+  transition:all .2s;box-shadow:var(--card-shadow);
+}
+.jcard:hover{border-color:var(--border2);background:var(--surface2);}
+
+/* Status left stripe */
+.jcard.s-assigned  {border-left:3px solid var(--blue);}
+.jcard.s-accepted  {border-left:3px solid var(--purple);}
+.jcard.s-on_way    {border-left:3px solid var(--purple);}
+.jcard.s-arrived   {border-left:3px solid var(--yellow);}
+.jcard.s-in_progress{border-left:3px solid var(--yellow);}
+.jcard.s-quality_check{border-left:3px solid var(--teal);}
+.jcard.s-completed,.jcard.s-verified{border-left:3px solid var(--green);}
+.jcard.s-declined  {border-left:3px solid var(--muted2);opacity:.65;}
+
+/* URGENT pulse for unaccepted */
+.jcard.urgent{animation:urgentPulse 3s infinite;}
+@keyframes urgentPulse{
+  0%,100%{box-shadow:var(--card-shadow)}
+  50%{box-shadow:0 0 0 3px rgba(232,25,44,.2),var(--card-shadow)}
+}
+
+.jcard-head{display:flex;align-items:flex-start;gap:14px;padding:16px 18px 12px;}
+.jcard-ico{
+  width:42px;height:42px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.jcard-body{flex:1;min-width:0;}
+.jcard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;}
+.jcard-ref{font-family:var(--fd);font-size:.62rem;font-weight:900;letter-spacing:2px;color:var(--red);margin-bottom:2px;}
+.jcard-svc{font-size:.9rem;font-weight:700;color:var(--text);}
+.jcard-vehicle{font-size:.68rem;color:var(--muted);margin-top:2px;}
+
+/* STATUS PILL */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:.6rem;font-weight:800;font-family:var(--fd);flex-shrink:0;}
+.p-accept{background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.2);}
+.p-live  {background:rgba(245,158,11,.12);color:var(--yellow);border:1px solid rgba(245,158,11,.2);}
+.p-done  {background:rgba(0,166,81,.12);color:var(--green);border:1px solid rgba(0,166,81,.2);}
+.p-onway {background:rgba(124,77,255,.12);color:var(--purple);border:1px solid rgba(124,77,255,.2);}
+.p-qc    {background:rgba(8,145,178,.12);color:var(--teal);border:1px solid rgba(8,145,178,.2);}
+.p-pend  {background:rgba(232,25,44,.1);color:var(--red);border:1px solid rgba(232,25,44,.2);}
+
+/* META ROW */
+.jcard-meta{display:flex;gap:12px;flex-wrap:wrap;padding:0 18px 12px;}
+.jm{display:flex;align-items:center;gap:5px;font-size:.68rem;color:var(--muted);}
+.jm svg{width:11px;height:11px;flex-shrink:0;color:var(--muted2);}
+.jm.highlight{color:var(--green);font-weight:700;}
+
+/* CUSTOMER INFO STRIP */
+.cust-strip{
+  margin:0 18px 12px;padding:10px 13px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  display:flex;align-items:center;gap:10px;
+}
+.cust-av{
+  width:30px;height:30px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fd);font-size:.62rem;font-weight:900;color:#fff;flex-shrink:0;
+}
+.cust-name{font-size:.76rem;font-weight:700;color:var(--text);}
+.cust-phone{font-size:.65rem;color:var(--muted);margin-top:1px;}
+.cust-call{
+  margin-left:auto;padding:5px 11px;border-radius:7px;
+  background:rgba(0,166,81,.1);color:var(--green);
+  border:1px solid rgba(0,166,81,.2);
+  font-family:var(--fd);font-size:.62rem;font-weight:700;text-decoration:none;
+  transition:all .15s;flex-shrink:0;
+}
+.cust-call:hover{background:rgba(0,166,81,.2);}
+
+/* ACTION BUTTONS */
+.jcard-actions{
+  padding:12px 18px;border-top:1px solid var(--border);
+  display:flex;gap:7px;flex-wrap:wrap;
+  background:var(--surface2);
+}
+.abtn{
+  padding:8px 16px;border-radius:9px;
+  font-family:var(--fd);font-size:.68rem;font-weight:800;
+  cursor:pointer;border:none;transition:all .15s;
+  display:inline-flex;align-items:center;gap:5px;
+}
+.abtn svg{width:12px;height:12px;}
+.abtn-accept{background:var(--green);color:#fff;box-shadow:0 3px 10px rgba(0,166,81,.25);}
+.abtn-accept:hover{background:var(--green2);transform:translateY(-1px);}
+.abtn-onway {background:rgba(124,77,255,.12);color:var(--purple);border:1px solid rgba(124,77,255,.22);}
+.abtn-onway:hover{background:rgba(124,77,255,.22);}
+.abtn-start {background:rgba(245,158,11,.12);color:var(--yellow);border:1px solid rgba(245,158,11,.22);}
+.abtn-start:hover{background:rgba(245,158,11,.22);}
+.abtn-done  {background:rgba(0,166,81,.1);color:var(--green);border:1px solid rgba(0,166,81,.22);}
+.abtn-done:hover{background:rgba(0,166,81,.2);}
+.abtn-chat  {background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.2);}
+.abtn-chat:hover{background:rgba(59,130,246,.2);}
+.abtn-decline{background:rgba(232,25,44,.08);color:var(--red);border:1px solid rgba(232,25,44,.2);}
+.abtn-decline:hover{background:rgba(232,25,44,.15);}
+.abtn-view{background:var(--surface3);color:var(--muted);border:1px solid var(--border);}
+.abtn-view:hover{border-color:var(--border2);}
+.abtn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:52px 24px;border:1px dashed var(--border);border-radius:14px;background:var(--surface);}
+.empty-emoji{font-size:2.6rem;margin-bottom:12px;opacity:.6;}
+.empty-title{font-family:var(--fd);font-size:.88rem;font-weight:900;color:var(--muted);margin-bottom:5px;}
+.empty-sub{font-size:.72rem;color:var(--muted2);line-height:1.5;}
+
+/* ── EMERGENCY CARD ── */
+.ecard{
+  background:rgba(232,25,44,.06);border:1px solid rgba(232,25,44,.2);
+  border-radius:14px;padding:16px 18px;margin-bottom:10px;
+  box-shadow:0 0 0 1px rgba(232,25,44,.08);
+}
+.ecard-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.e-pulse{width:9px;height:9px;border-radius:50%;background:var(--red);animation:ep 1.2s infinite;}
+@keyframes ep{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+.ecard-title{font-family:var(--fd);font-size:.84rem;font-weight:900;color:var(--red);}
+.ecard-info{font-size:.72rem;color:var(--text2);line-height:1.65;margin-bottom:12px;}
+.ecard-info span{color:var(--muted);font-size:.65rem;display:block;margin-bottom:1px;}
+.ecard-accept{
+  padding:9px 20px;background:var(--red);color:#fff;border:none;border-radius:9px;
+  font-family:var(--fd);font-size:.74rem;font-weight:800;cursor:pointer;
+  box-shadow:0 4px 14px var(--red-glow);transition:all .15s;
+}
+.ecard-accept:hover{background:var(--red2);transform:translateY(-1px);}
+
+/* ── CHAT PANEL ── */
+.chat-panel{
+  position:fixed;bottom:80px;right:20px;width:320px;
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:16px;box-shadow:0 12px 48px rgba(0,0,0,.3);
+  overflow:hidden;z-index:600;display:none;flex-direction:column;height:380px;
+}
+.chat-panel.open{display:flex;animation:chatIn .22s cubic-bezier(.34,1.56,.64,1);}
+@keyframes chatIn{from{opacity:0;transform:scale(.92) translateY(12px)}to{opacity:1;transform:none}}
+.chat-head{
+  padding:12px 14px;background:var(--blue);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.chat-head-title{font-family:var(--fd);font-size:.8rem;font-weight:800;color:#fff;}
+.chat-close{background:transparent;border:none;cursor:pointer;color:rgba(255,255,255,.7);font-size:1rem;padding:0 2px;}
+.chat-close:hover{color:#fff;}
+.chat-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px;}
+.chat-msgs::-webkit-scrollbar{width:3px;}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.chat-foot{padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:7px;background:var(--surface2);flex-shrink:0;}
+.chat-input{
+  flex:1;padding:8px 11px;border:1px solid var(--border);border-radius:8px;
+  background:var(--input-bg);color:var(--input-text);font-family:var(--fb);font-size:.76rem;
+  outline:none;
+}
+.chat-input:focus{border-color:var(--blue);}
+.chat-send{
+  padding:8px 14px;background:var(--blue);color:#fff;border:none;
+  border-radius:8px;font-family:var(--fd);font-size:.68rem;font-weight:700;cursor:pointer;
+}
+
+@media(max-width:600px){
+  .hero-stats{gap:14px;}
+  .tabs{flex-wrap:wrap;}
+  .tab{font-size:.65rem;padding:8px;}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="mechanic-av">
+        {% if request.user.profile_photo and request.user.profile_photo.name %}
+          <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.name }}">
+        {% else %}{{ request.user.name|first|upper }}{% endif %}
+      </div>
+      <div>
+        <div class="hero-name">{{ request.user.name }}</div>
+        <div class="hero-sub">
+          <div class="status-dot" {% if not request.user.is_available %}style="background:var(--muted2);animation:none;"{% endif %}></div>
+          {% if request.user.is_available %}On Duty{% else %}Off Duty{% endif %}
+          {% if request.user.mechanic_profile.designation %} · {{ request.user.mechanic_profile.designation }}{% endif %}
+          {% if request.user.mechanic_profile.garage %} · {{ request.user.mechanic_profile.garage.name }}{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hs">
+        <div class="hs-n" style="color:var(--yellow);">{{ today_jobs|length }}</div>
+        <div class="hs-l">Today</div>
+      </div>
+      <div class="hs">
+        <div class="hs-n" style="color:var(--blue);">{{ upcoming_jobs|length }}</div>
+        <div class="hs-l">Upcoming</div>
+      </div>
+      <div class="hs">
+        <div class="hs-n" style="{% if pending_count > 0 %}color:var(--red);{% else %}color:var(--green);{% endif %}">{{ pending_count }}</div>
+        <div class="hs-l">Pending</div>
+      </div>
+      <div class="hs">
+        <div class="hs-n" style="color:var(--green);">{{ past_jobs|length }}</div>
+        <div class="hs-l">Done</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  {# ── PENDING ACCEPTANCE BANNER ── #}
+  {% if pending_count > 0 %}
+  <div class="pending-banner">
+    <div class="pb-ico">⚡</div>
+    <div class="pb-body">
+      <div class="pb-title">{{ pending_count }} job{{ pending_count|pluralize }} awaiting your acceptance</div>
+      <div class="pb-sub">Accept quickly — manager is watching response time. Slow response may affect your rating.</div>
+    </div>
+    <button class="pb-action" onclick="jumpToPending()">Review Now →</button>
+  </div>
+  {% endif %}
+
+  {# ── TABS ── #}
+  <div class="tabs">
+    {% if pending_count > 0 %}
+    <div class="tab" id="tab-pending" onclick="switchTab(this,'pending')" style="background:rgba(232,25,44,.12);color:var(--red);border:1px solid rgba(232,25,44,.22);">
+      ⚡ Pending <span class="tab-count" style="background:var(--red);color:#fff;">{{ pending_count }}</span>
+    </div>
+    {% endif %}
+    {% if active_count > 0 %}
+    <div class="tab" id="tab-active" onclick="switchTab(this,'active')" style="background:rgba(245,158,11,.1);color:var(--yellow);border:1px solid rgba(245,158,11,.22);">
+      🔧 Working <span class="tab-count" style="background:rgba(245,158,11,.25);">{{ active_count }}</span>
+    </div>
+    {% endif %}
+    <div class="tab {% if pending_count == 0 and active_count == 0 %}on{% endif %}" id="tab-today" onclick="switchTab(this,'today')">
+      Today <span class="tab-count">{{ today_jobs|length }}</span>
+    </div>
+    <div class="tab" id="tab-upcoming" onclick="switchTab(this,'upcoming')">
+      Upcoming <span class="tab-count">{{ upcoming_jobs|length }}</span>
+    </div>
+    <div class="tab" id="tab-history" onclick="switchTab(this,'history')">
+      History <span class="tab-count">{{ past_jobs|length }}</span>
+    </div>
+    {% if emergency_requests %}
+    <div class="tab" id="tab-emergency" onclick="switchTab(this,'emergency')">
+      🔴 SOS <span class="tab-count">{{ emergency_requests|length }}</span>
+    </div>
+    {% endif %}
+  </div>
+
+  {# ═══ WORKING ON / ACTIVE JOBS ═══ #}
+  <div class="panel" id="panel-active">
+    {% if active_jobs %}
+      <div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:14px 18px;margin-bottom:16px;font-size:.78rem;color:var(--text2);display:flex;align-items:center;gap:9px;">
+        <span style="font-size:1.1rem;">🔧</span>
+        <span>These jobs are <strong style="color:var(--yellow);">in progress or accepted</strong> — update the status as you work.</span>
+      </div>
+      {% for job in active_jobs %}
+      <div class="jcard s-{{ job.status }}" id="acard{{ job.pk }}">
+        <div class="jcard-head">
+          <div class="jcard-ico" style="background:rgba(245,158,11,.12);">
+            {% if job.booking.service.icon_emoji %}{{ job.booking.service.icon_emoji }}{% else %}🔧{% endif %}
+          </div>
+          <div class="jcard-body">
+            <div class="jcard-top">
+              <div>
+                <div class="jcard-ref">{{ job.booking.reference }}</div>
+                <div class="jcard-svc">{{ job.booking.service.name|default:"Service" }}</div>
+                <div class="jcard-vehicle">
+                  {% if job.booking.vehicle %}{{ job.booking.vehicle.brand }} {{ job.booking.vehicle.model_name }} · {{ job.booking.vehicle.registration_number }}{% endif %}
+                </div>
+              </div>
+              {% if job.status == 'accepted' %}<span class="pill p-accept">✓ Accepted</span>
+              {% elif job.status == 'on_way' %}<span class="pill p-onway">🚗 On Way</span>
+              {% elif job.status == 'arrived' %}<span class="pill p-live">📍 Arrived</span>
+              {% elif job.status == 'in_progress' %}<span class="pill p-live">● In Progress</span>
+              {% elif job.status == 'quality_check' %}<span class="pill p-qc">🔍 QC Check</span>
+              {% elif job.status == 'on_hold' %}<span class="pill p-pend">⏸ On Hold</span>
+              {% else %}<span class="pill p-accept">{{ job.get_status_display }}</span>{% endif %}
+            </div>
+            <div class="jcard-meta" style="padding:0;margin-bottom:0;">
+              <div class="jm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {{ job.booking.scheduled_date|date:"d M Y" }} · {{ job.booking.scheduled_slot|time:"h:i A"|default:"TBD" }}
+                {% if job.booking.scheduled_date < today %}<span style="color:var(--red);font-weight:700;margin-left:4px;">⚠ Overdue</span>{% endif %}
+              </div>
+              {% if job.booking.final_price %}<div class="jm highlight">₹{{ job.booking.final_price|floatformat:0 }}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="cust-strip">
+          <div class="cust-av">{{ job.booking.customer.name|first|upper }}</div>
+          <div>
+            <div class="cust-name">{{ job.booking.customer.name }}</div>
+            <div class="cust-phone">{{ job.booking.customer.phone|default:job.booking.customer.email }}</div>
+          </div>
+          {% if job.booking.customer.phone %}<a href="tel:{{ job.booking.customer.phone }}" class="cust-call">📞 Call</a>{% endif %}
+        </div>
+
+        <div class="jcard-actions">
+          {% if job.status == 'accepted' %}
+            <button class="abtn abtn-onway" onclick="updateStatus({{ job.pk }},'on_way',this)">🚗 On My Way</button>
+          {% elif job.status == 'on_way' %}
+            <button class="abtn" style="background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.22);" onclick="updateStatus({{ job.pk }},'arrived',this)">📍 Mark Arrived</button>
+          {% elif job.status == 'arrived' %}
+            <button class="abtn abtn-start" onclick="updateStatus({{ job.pk }},'in_progress',this)">▶ Start Service</button>
+          {% elif job.status == 'in_progress' %}
+            <button class="abtn abtn-done" onclick="updateStatus({{ job.pk }},'quality_check',this)">🔍 Quality Check</button>
+          {% elif job.status == 'quality_check' %}
+            <button class="abtn abtn-accept" onclick="updateStatus({{ job.pk }},'completed',this)">✓ Mark Complete</button>
+          {% elif job.status == 'on_hold' %}
+            <button class="abtn abtn-start" onclick="updateStatus({{ job.pk }},'in_progress',this)">▶ Resume</button>
+          {% endif %}
+          <button class="abtn abtn-chat" onclick="openChat('{{ job.booking.reference }}','{{ job.booking.customer.name|escapejs }}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            Message
+          </button>
+          <a href="{% url 'job_detail' job.pk %}" class="abtn" style="background:var(--surface3);color:var(--text);border:1px solid var(--border);">Full Details →</a>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">
+        <div class="empty-emoji">✅</div>
+        <div class="empty-title">No active jobs</div>
+        <div class="empty-sub">Jobs you're currently working on will appear here.</div>
+      </div>
+    {% endif %}
+  </div>
+
+  {# ═══ PENDING ACCEPTANCE ═══ #}
+  <div class="panel {% if pending_count > 0 %}{% else %}{% endif %}" id="panel-pending">
+    {% if pending_accept %}
+      <div style="background:rgba(232,25,44,.06);border:1px solid rgba(232,25,44,.2);border-radius:12px;padding:14px 18px;margin-bottom:16px;font-size:.78rem;color:var(--text2);display:flex;align-items:center;gap:9px;">
+        <span style="font-size:1.1rem;">⚡</span>
+        <span>These jobs are waiting for you to accept. <strong style="color:var(--red);">Accept or decline each one.</strong> Manager is notified once you respond.</span>
+      </div>
+      {% for job in pending_accept %}
+      <div class="jcard s-assigned urgent" id="pendcard{{ job.pk }}">
+        <div class="jcard-head">
+          <div class="jcard-ico" style="background:rgba(232,25,44,.1);">
+            {% if job.booking.service.icon_emoji %}{{ job.booking.service.icon_emoji }}{% else %}🔧{% endif %}
+          </div>
+          <div class="jcard-body">
+            <div class="jcard-top">
+              <div>
+                <div class="jcard-ref">{{ job.booking.reference }}</div>
+                <div class="jcard-svc">{{ job.booking.service.name|default:"Service" }}</div>
+                <div class="jcard-vehicle">
+                  {% if job.booking.vehicle %}{{ job.booking.vehicle.brand }} {{ job.booking.vehicle.model_name }} · {{ job.booking.vehicle.registration_number }}{% endif %}
+                </div>
+              </div>
+              <span class="pill p-pend" style="animation:urgentPulse 2s infinite;">⏳ Needs Accept</span>
+            </div>
+            <div class="jcard-meta" style="padding:0;margin-bottom:0;">
+              <div class="jm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {{ job.booking.scheduled_date|date:"d M Y" }} at {{ job.booking.scheduled_slot|time:"h:i A"|default:"TBD" }}
+              </div>
+              {% if job.booking.final_price %}<div class="jm highlight">₹{{ job.booking.final_price|floatformat:0 }}</div>{% endif %}
+              {% if job.booking.payment_method == 'cash' %}<div class="jm"><span style="color:var(--yellow);">💵 Cash</span></div>
+              {% else %}<div class="jm"><span style="color:var(--blue);">💳 Online</span></div>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        {# CUSTOMER STRIP #}
+        <div class="cust-strip">
+          <div class="cust-av">{{ job.booking.customer.name|first|upper }}</div>
+          <div>
+            <div class="cust-name">{{ job.booking.customer.name }}</div>
+            <div class="cust-phone">{{ job.booking.customer.phone|default:job.booking.customer.email }}</div>
+          </div>
+          {% if job.booking.customer.phone %}
+          <a href="tel:{{ job.booking.customer.phone }}" class="cust-call">📞 Call</a>
+          {% endif %}
+        </div>
+
+        {# GARAGE / SERVICE DETAILS #}
+        <div class="jcard-meta">
+          {% if job.booking.garage %}
+          <div class="jm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            {{ job.booking.garage.name }} · {{ job.booking.garage.city }}
+          </div>
+          {% endif %}
+          {% if job.booking.vehicle %}
+          <div class="jm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+            {{ job.booking.vehicle.get_fuel_type_display }}
+          </div>
+          {% endif %}
+          {% if job.booking.pickup_required %}
+          <div class="jm"><span style="color:var(--purple);">🚗 Pickup required</span></div>
+          {% endif %}
+        </div>
+
+        <div class="jcard-actions">
+          <button class="abtn abtn-accept" onclick="acceptFromPending({{ job.pk }}, this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Accept Job
+          </button>
+          <button class="abtn abtn-decline" onclick="declineFromPending({{ job.pk }}, '{{ job.booking.reference|escapejs }}', this)">✕ Decline</button>
+          <button class="abtn abtn-chat" onclick="openChat('{{ job.booking.reference }}','{{ job.booking.customer.name|escapejs }}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            Message
+          </button>
+          <a href="{% url 'job_detail' job.pk %}" class="abtn abtn-view">Details →</a>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">
+        <div class="empty-emoji">✅</div>
+        <div class="empty-title">All caught up!</div>
+        <div class="empty-sub">No jobs waiting for your acceptance right now.</div>
+      </div>
+    {% endif %}
+  </div>
+
+  {# ═══ TODAY ═══ #}
+  <div class="panel {% if pending_count == 0 and active_count == 0 %}on{% endif %}" id="panel-today">
+    {% if today_jobs %}
+      {% for job in today_jobs %}
+      <div class="jcard s-{{ job.status }} {% if job.status == 'assigned' %}urgent{% endif %}" id="jcard{{ job.pk }}">
+        <div class="jcard-head">
+          <div class="jcard-ico" style="background:rgba({% if job.status == 'in_progress' or job.status == 'arrived' %}245,158,11{% elif job.status == 'completed' or job.status == 'verified' %}0,166,81{% elif job.status == 'assigned' %}232,25,44{% else %}59,130,246{% endif %},.1);">
+            {% if job.booking.service.icon_emoji %}{{ job.booking.service.icon_emoji }}{% else %}🔧{% endif %}
+          </div>
+          <div class="jcard-body">
+            <div class="jcard-top">
+              <div>
+                <div class="jcard-ref">{{ job.booking.reference }}</div>
+                <div class="jcard-svc">{{ job.booking.service.name|default:"Service" }}</div>
+                {% if job.booking.vehicle %}
+                <div class="jcard-vehicle">{{ job.booking.vehicle.brand }} {{ job.booking.vehicle.model_name }} · {{ job.booking.vehicle.registration_number }}</div>
+                {% endif %}
+              </div>
+              {# STATUS PILL #}
+              {% if job.status == 'assigned' %}
+                <span class="pill p-pend">⏳ Needs Accept</span>
+              {% elif job.status == 'accepted' %}
+                <span class="pill p-accept">✓ Accepted</span>
+              {% elif job.status == 'on_way' %}
+                <span class="pill p-onway">🚗 On Way</span>
+              {% elif job.status == 'arrived' %}
+                <span class="pill p-live">📍 Arrived</span>
+              {% elif job.status == 'in_progress' %}
+                <span class="pill p-live">● In Progress</span>
+              {% elif job.status == 'quality_check' %}
+                <span class="pill p-qc">🔍 QC Check</span>
+              {% elif job.status in 'completed,verified' %}
+                <span class="pill p-done">✓ Done</span>
+              {% else %}
+                <span class="pill p-accept">{{ job.get_status_display }}</span>
+              {% endif %}
+            </div>
+            <div class="jcard-meta" style="padding:0 0 0 0;margin-bottom:0;">
+              <div class="jm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {{ job.booking.scheduled_slot|time:"h:i A"|default:"TBD" }}
+              </div>
+              {% if job.booking.final_price %}
+              <div class="jm highlight">₹{{ job.booking.final_price|floatformat:0 }}</div>
+              {% endif %}
+              {% if job.booking.pickup_required %}
+              <div class="jm"><span style="font-size:.66rem;color:var(--purple);">🚗 Pickup req.</span></div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        {# CUSTOMER STRIP #}
+        {% if job.booking.customer %}
+        <div class="cust-strip">
+          <div class="cust-av">{{ job.booking.customer.name|first|upper }}</div>
+          <div>
+            <div class="cust-name">{{ job.booking.customer.name }}</div>
+            <div class="cust-phone">{{ job.booking.customer.phone|default:job.booking.customer.email }}</div>
+          </div>
+          {% if job.booking.customer.phone %}
+          <a href="tel:{{ job.booking.customer.phone }}" class="cust-call">📞 Call</a>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {# META ROW #}
+        <div class="jcard-meta">
+          {% if job.booking.garage %}
+          <div class="jm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            {{ job.booking.garage.name }}
+          </div>
+          {% endif %}
+          {% if job.booking.vehicle %}
+          <div class="jm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+            {{ job.booking.vehicle.get_fuel_type_display }}
+          </div>
+          {% endif %}
+          {% if job.booking.payment_method %}
+          <div class="jm">
+            {% if job.booking.payment_method == 'cash' %}
+              <span style="color:var(--yellow);">💵 Cash</span>
+            {% else %}
+              <span style="color:var(--blue);">💳 Online</span>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+
+        {# ACTIONS #}
+        <div class="jcard-actions">
+          {% if job.status == 'assigned' %}
+            <button class="abtn abtn-accept" onclick="updateStatus({{ job.pk }},'accepted',this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Accept Job
+            </button>
+            <button class="abtn abtn-decline" onclick="declineJob({{ job.pk }},'{{ job.booking.reference|escapejs }}')">✕ Decline</button>
+          {% elif job.status == 'accepted' %}
+            <button class="abtn abtn-onway" onclick="updateStatus({{ job.pk }},'on_way',this)">🚗 On My Way</button>
+          {% elif job.status == 'on_way' %}
+            <button class="abtn" style="background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.22);" onclick="updateStatus({{ job.pk }},'arrived',this)">📍 Mark Arrived</button>
+          {% elif job.status == 'arrived' %}
+            <button class="abtn abtn-start" onclick="updateStatus({{ job.pk }},'in_progress',this)">▶ Start Service</button>
+          {% elif job.status == 'in_progress' %}
+            <button class="abtn abtn-done" onclick="updateStatus({{ job.pk }},'quality_check',this)">🔍 Quality Check</button>
+          {% elif job.status == 'quality_check' %}
+            <button class="abtn abtn-accept" onclick="updateStatus({{ job.pk }},'completed',this)">✓ Mark Complete</button>
+          {% endif %}
+          <button class="abtn abtn-chat" onclick="openChat('{{ job.booking.reference }}','{{ job.booking.customer.name|escapejs }}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            Message
+          </button>
+          <a href="{% url 'job_detail' job.pk %}" class="abtn abtn-view">Details →</a>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">
+        <div class="empty-emoji">☀️</div>
+        <div class="empty-title">No jobs today</div>
+        <div class="empty-sub">Your manager hasn't assigned any jobs for today yet.<br>Check back soon or look in Upcoming.</div>
+      </div>
+    {% endif %}
+  </div>
+
+  {# ═══ UPCOMING ═══ #}
+  <div class="panel" id="panel-upcoming">
+    {% if upcoming_jobs %}
+      {% for job in upcoming_jobs %}
+      <div class="jcard s-{{ job.status }} {% if job.status == 'assigned' %}urgent{% endif %}" id="jcardU{{ job.pk }}">
+        <div class="jcard-head">
+          <div class="jcard-ico" style="background:rgba(59,130,246,.1);">
+            {% if job.booking.service.icon_emoji %}{{ job.booking.service.icon_emoji }}{% else %}📅{% endif %}
+          </div>
+          <div class="jcard-body">
+            <div class="jcard-top">
+              <div>
+                <div class="jcard-ref">{{ job.booking.reference }}</div>
+                <div class="jcard-svc">{{ job.booking.service.name|default:"Service" }}</div>
+                <div class="jcard-vehicle">{{ job.booking.scheduled_date|date:"l, d M Y" }} at {{ job.booking.scheduled_slot|time:"h:i A" }}</div>
+              </div>
+              {% if job.status == 'assigned' %}
+                <span class="pill p-pend">⏳ Needs Accept</span>
+              {% elif job.status == 'accepted' %}
+                <span class="pill p-done">✓ Accepted</span>
+              {% else %}
+                <span class="pill p-accept">{{ job.get_status_display }}</span>
+              {% endif %}
+            </div>
+            <div class="jcard-meta" style="padding:0;margin-bottom:0;">
+              <div class="jm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                {{ job.booking.customer_name }}
+              </div>
+              {% if job.booking.final_price %}<div class="jm highlight">₹{{ job.booking.final_price|floatformat:0 }}</div>{% endif %}
+              {% if job.booking.vehicle %}<div class="jm">{{ job.booking.vehicle.brand }} {{ job.booking.vehicle.model_name }}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        {% if job.booking.customer.phone %}
+        <div class="cust-strip">
+          <div class="cust-av">{{ job.booking.customer.name|first|upper }}</div>
+          <div>
+            <div class="cust-name">{{ job.booking.customer.name }}</div>
+            <div class="cust-phone">{{ job.booking.customer.phone }}</div>
+          </div>
+          <a href="tel:{{ job.booking.customer.phone }}" class="cust-call">📞 Call</a>
+        </div>
+        {% endif %}
+
+        <div class="jcard-actions">
+          {% if job.status == 'assigned' %}
+            <button class="abtn abtn-accept" onclick="updateStatus({{ job.pk }},'accepted',this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Accept Job
+            </button>
+            <button class="abtn abtn-decline" onclick="declineJob({{ job.pk }},'{{ job.booking.reference|escapejs }}')">✕ Decline</button>
+          {% elif job.status == 'accepted' %}
+            <span style="font-size:.72rem;color:var(--green);font-weight:700;padding:8px 4px;">✓ You accepted this job</span>
+          {% endif %}
+          <button class="abtn abtn-chat" onclick="openChat('{{ job.booking.reference }}','{{ job.booking.customer.name|escapejs }}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            Message
+          </button>
+          <a href="{% url 'job_detail' job.pk %}" class="abtn abtn-view">Details →</a>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">
+        <div class="empty-emoji">📅</div>
+        <div class="empty-title">No upcoming jobs</div>
+        <div class="empty-sub">Future jobs will appear here once your manager assigns them.</div>
+      </div>
+    {% endif %}
+  </div>
+
+  {# ═══ HISTORY ═══ #}
+  <div class="panel" id="panel-history">
+    {% if past_jobs %}
+      {% for job in past_jobs %}
+      <div class="jcard s-{{ job.status }}">
+        <div class="jcard-head">
+          <div class="jcard-ico" style="background:rgba(0,166,81,.08);">
+            {% if job.booking.service.icon_emoji %}{{ job.booking.service.icon_emoji }}{% else %}✓{% endif %}
+          </div>
+          <div class="jcard-body">
+            <div class="jcard-top">
+              <div>
+                <div class="jcard-ref">{{ job.booking.reference }}</div>
+                <div class="jcard-svc">{{ job.booking.service.name|default:"Service" }}</div>
+                <div class="jcard-vehicle">{{ job.booking.scheduled_date|date:"d M Y" }} · {{ job.booking.customer_name }}</div>
+              </div>
+              <span class="pill {% if job.status == 'verified' %}p-done{% elif job.status == 'completed' %}p-done{% else %}p-live{% endif %}">
+                {% if job.status == 'verified' %}✓ Verified
+                {% elif job.status == 'completed' %}✓ Completed
+                {% else %}{{ job.get_status_display }}{% endif %}
+              </span>
+            </div>
+            <div class="jcard-meta" style="padding:0;margin-bottom:0;">
+              {% if job.booking.final_price %}<div class="jm highlight">₹{{ job.booking.final_price|floatformat:0 }}</div>{% endif %}
+              {% if job.completed_at %}<div class="jm">Done {{ job.completed_at|date:"d M, h:i A" }}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="jcard-actions">
+          <a href="{% url 'job_detail' job.pk %}" class="abtn abtn-view">View Details →</a>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">
+        <div class="empty-emoji">📋</div>
+        <div class="empty-title">No job history yet</div>
+        <div class="empty-sub">Completed jobs will show here.</div>
+      </div>
+    {% endif %}
+  </div>
+
+  {# ═══ EMERGENCY ═══ #}
+  {% if emergency_requests %}
+  <div class="panel" id="panel-emergency">
+    {% for er in emergency_requests %}
+    <div class="ecard">
+      <div class="ecard-top">
+        <div class="e-pulse"></div>
+        <div class="ecard-title">🚨 {{ er.get_issue_type_display }}</div>
+      </div>
+      <div class="ecard-info">
+        <span>Location</span>{{ er.location_address }}
+        <span>Customer</span>{{ er.customer.name }} · {{ er.customer.phone }}
+        <span>Reported</span>{{ er.created_at|timesince }} ago
+        {% if er.notes %}<span>Notes</span>{{ er.notes|truncatechars:100 }}{% endif %}
+      </div>
+      <button class="ecard-accept" onclick="acceptEmergency({{ er.pk }}, this)">Accept Emergency →</button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div><!-- /page -->
+
+{# ── CHAT WIDGET ── #}
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-head">
+    <span class="chat-head-title" id="chatTitle">Messages</span>
+    <button class="chat-close" onclick="closeChat()">✕</button>
+  </div>
+  <div class="chat-msgs" id="chatMsgs"></div>
+  <div class="chat-foot">
+    <input type="text" class="chat-input" id="chatInput" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendMsg()">
+    <button class="chat-send" onclick="sendMsg()">Send</button>
+  </div>
+</div>
+
+<script>
+var CSRF = '{{ csrf_token }}';
+var _chatRef = null;
+var _chatPoll = null;
+
+/* ── TABS ── */
+function switchTab(el, name){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
+  el.classList.add('on');
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+  var p = document.getElementById('panel-'+name);
+  if(p) p.classList.add('on');
+}
+
+/* ── JUMP TO PENDING ── */
+function jumpToPending(){
+  var pendTab = document.getElementById('tab-pending');
+  if(pendTab){
+    switchTab(pendTab, 'pending');
+    window.scrollTo({top:0, behavior:'smooth'});
+  } else {
+    // fallback — scroll to first urgent card in current view
+    var first = document.querySelector('.jcard.urgent');
+    if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+}
+
+/* ── STATUS UPDATE ── */
+function updateStatus(pk, status, btn){
+  btn.disabled = true;
+  var orig = btn.textContent;
+  btn.textContent = '…';
+  fetch('/api/job/'+pk+'/status/', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body: JSON.stringify({status:status})
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.success){
+      showGlobalToast('✅ Status updated to '+status.replace(/_/g,' '),'success');
+      setTimeout(function(){location.reload();},900);
+    } else {
+      showGlobalToast('❌ '+(d.error||'Failed'),'error');
+      btn.disabled=false; btn.textContent=orig;
+    }
+  })
+  .catch(function(){
+    showGlobalToast('Network error','error');
+    btn.disabled=false; btn.textContent=orig;
+  });
+}
+
+/* ── ACCEPT FROM PENDING TAB ── */
+function acceptFromPending(pk, btn){
+  btn.disabled = true;
+  btn.innerHTML = '…Accepting';
+  fetch('/api/job/'+pk+'/status/', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body: JSON.stringify({status:'accepted'})
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.success){
+      showGlobalToast('✅ Job accepted! Check Today tab.','success');
+      // Remove this card from pending panel
+      var card = document.getElementById('pendcard'+pk);
+      if(card){
+        card.style.transition = 'all .3s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(20px)';
+        setTimeout(function(){ card.remove(); updatePendingCount(); }, 320);
+      }
+    } else {
+      showGlobalToast('❌ '+(d.error||'Failed'),'error');
+      btn.disabled=false; btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Accept Job';
+    }
+  })
+  .catch(function(){
+    showGlobalToast('Network error','error');
+    btn.disabled=false;
+  });
+}
+
+function declineFromPending(pk, ref, btn){
+  if(!confirm('Decline booking '+ref+'?\n\nManager will be notified to reassign.')) return;
+  var reason = prompt('(Optional) Reason for declining:') || 'No reason provided';
+  btn.disabled = true;
+  fetch('/api/job/'+pk+'/decline/', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body: JSON.stringify({reason:reason})
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok){
+      showGlobalToast('Job declined. Manager notified.','warning');
+      var card = document.getElementById('pendcard'+pk);
+      if(card){
+        card.style.transition = 'all .3s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(-20px)';
+        setTimeout(function(){ card.remove(); updatePendingCount(); }, 320);
+      }
+    } else {
+      showGlobalToast('❌ '+(d.error||'Error'),'error');
+      btn.disabled=false;
+    }
+  });
+}
+
+function updatePendingCount(){
+  var remaining = document.querySelectorAll('#panel-pending .jcard').length;
+  var badge = document.querySelector('#tab-pending .tab-count');
+  var tabBtn = document.getElementById('tab-pending');
+  var banner = document.querySelector('.pending-banner');
+  if(badge) badge.textContent = remaining;
+  if(remaining === 0){
+    if(tabBtn) tabBtn.style.display = 'none';
+    if(banner) banner.style.display = 'none';
+    // Switch to today tab
+    var todayTab = document.getElementById('tab-today');
+    if(todayTab) switchTab(todayTab,'today');
+    showGlobalToast('✅ All jobs reviewed!','success');
+  }
+}
+
+/* ── DECLINE ── */
+function declineJob(pk, ref){
+  if(!confirm('Decline booking '+ref+'?\n\nManager will be notified to reassign.')) return;
+  var reason = prompt('(Optional) Reason for declining:') || 'No reason provided';
+  fetch('/api/job/'+pk+'/decline/', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body: JSON.stringify({reason:reason})
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok){ showGlobalToast('Job declined. Manager notified.','warning'); setTimeout(function(){location.reload();},1200); }
+    else showGlobalToast('❌ '+(d.error||'Error'),'error');
+  });
+}
+
+/* ── EMERGENCY ── */
+function acceptEmergency(pk, btn){
+  btn.disabled = true;
+  fetch('/api/emergency/'+pk+'/accept/', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok){ showGlobalToast('🚨 Emergency accepted! Customer notified.','success'); setTimeout(function(){location.reload();},1000); }
+    else showGlobalToast('❌ '+(d.error||'Failed'),'error');
+  });
+}
+
+/* ── CHAT ── */
+function openChat(ref, name){
+  _chatRef = ref;
+  document.getElementById('chatTitle').textContent = '💬 '+name;
+  document.getElementById('chatPanel').classList.add('open');
+  loadChat();
+  clearInterval(_chatPoll);
+  _chatPoll = setInterval(loadChat, 8000);
+}
+
+function closeChat(){
+  document.getElementById('chatPanel').classList.remove('open');
+  _chatRef = null;
+  clearInterval(_chatPoll);
+}
+
+function loadChat(){
+  if(!_chatRef) return;
+  fetch('/api/booking/'+_chatRef+'/messages/')
+  .then(function(r){return r.json();})
+  .then(function(d){
+    var el = document.getElementById('chatMsgs');
+    if(!d.messages||!d.messages.length){
+      el.innerHTML = '<div style="text-align:center;padding:20px;font-size:.72rem;color:var(--muted);">No messages yet.</div>';
+      return;
+    }
+    el.innerHTML = d.messages.map(function(m){
+      return '<div style="text-align:'+(m.mine?'right':'left')+';margin-bottom:7px;">'
+        +'<div style="display:inline-block;max-width:82%;padding:8px 12px;border-radius:12px;font-size:.75rem;line-height:1.5;background:'+(m.mine?'var(--blue)':'var(--surface3)')+';color:'+(m.mine?'#fff':'var(--text)')+'">'
+        +m.message+'</div>'
+        +'<div style="font-size:.58rem;color:var(--muted);margin-top:2px;">'+m.sender+' · '+m.time+'</div>'
+        +'</div>';
+    }).join('');
+    el.scrollTop = el.scrollHeight;
+  });
+}
+
+function sendMsg(){
+  var inp = document.getElementById('chatInput');
+  var txt = inp.value.trim();
+  if(!txt || !_chatRef) return;
+  inp.value = '';
+  fetch('/api/booking/'+_chatRef+'/messages/', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body: JSON.stringify({message:txt})
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){ if(d.ok) loadChat(); });
+}
+</script>
+{% endblock %}

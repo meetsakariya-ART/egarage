@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>500 — Server Error · eGarage</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800;900&family=Instrument+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100vh;background:#080c10;color:#fff;font-family:'Instrument Sans',sans-serif;display:flex;align-items:center;justify-content:center;padding:24px;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(245,158,11,.06),transparent 60%);pointer-events:none;}
+.wrap{text-align:center;max-width:460px;position:relative;z-index:1;}
+.ico{font-size:4rem;margin-bottom:16px;animation:shake 1s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+.num{font-family:'Syne',sans-serif;font-size:clamp(80px,15vw,120px);font-weight:900;line-height:1;color:rgba(245,158,11,.2);letter-spacing:-5px;margin-bottom:8px;}
+h1{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:900;margin-bottom:10px;}
+p{font-size:.88rem;color:rgba(255,255,255,.45);line-height:1.7;margin-bottom:28px;}
+.btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.btn{padding:12px 24px;border-radius:10px;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:none;}
+.btn-red{background:#e8192c;color:#fff;box-shadow:0 4px 18px rgba(232,25,44,.3);}
+.btn-red:hover{background:#c0111f;transform:translateY(-1px);}
+.btn-ghost{background:rgba(255,255,255,.07);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1);}
+.btn-ghost:hover{background:rgba(255,255,255,.12);color:#fff;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="ico">⚙️</div>
+  <div class="num">500</div>
+  <h1>Something Broke</h1>
+  <p>Our servers hit an unexpected issue.<br>Our team has been notified and is working on a fix.<br>Please try again in a few minutes.</p>
+  <div class="btns">
+    <button class="btn btn-red" onclick="location.reload()">🔄 Retry</button>
+    <a href="/" class="btn btn-ghost">🏠 Go Home</a>
+  </div>
+</div>
+</body>
+</html>

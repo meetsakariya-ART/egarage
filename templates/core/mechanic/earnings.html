@@ -1,0 +1,545 @@
+{% extends 'core/base.html' %}
+{% block title %}Earnings — {{ request.user.name }} — eGarage{% endblock %}
+
+{% block extra_head %}
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#e8192c;--red2:#c0111f;--green:#00a651;--green2:#008f45;
+  --blue:#1a56db;--blue2:#1448b8;--yellow:#f59e0b;--purple:#7c3aed;
+  --teal:#0891b2;--orange:#ea580c;
+  --fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;
+  --border:#e0e0e0;--muted:#777;--bg:#f0f2f5;
+}
+html,body{background:var(--bg);color:#111;font-family:var(--fb);overflow-x:hidden;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.navi{display:flex;align-items:center;padding:0 24px;height:60px;max-width:1280px;margin:0 auto;gap:14px;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-ico{width:32px;height:32px;border-radius:9px;background:var(--red);display:flex;align-items:center;justify-content:center;}
+.logo-ico svg{width:15px;height:15px;}
+.logo-name{font-family:var(--fd);font-size:1.15rem;font-weight:900;color:var(--red);}
+.logo-name span{color:#111;}
+.nav-role{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;background:rgba(26,86,219,.1);font-size:.62rem;font-weight:800;color:var(--blue);font-family:var(--fd);}
+.bc{display:flex;align-items:center;gap:5px;font-size:.74rem;color:var(--muted);}
+.bc a{color:var(--muted);text-decoration:none;}
+.bc a:hover{color:var(--blue);}
+.nav-r{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.nb{padding:7px 15px;border-radius:8px;font-family:var(--fd);font-size:.75rem;font-weight:700;text-decoration:none;transition:all .15s;}
+.nb.ghost{border:1.5px solid var(--border);color:#333;background:#fff;}
+.nb.ghost:hover{border-color:var(--blue);color:var(--blue);}
+.nb.blue{background:var(--blue);color:#fff;border:none;}
+.nb.blue:hover{background:var(--blue2);}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#050f1a,#0b1f2e);padding:28px 24px 24px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-60px;right:-60px;width:280px;height:280px;border-radius:50%;background:rgba(0,166,81,.08);}
+.hero::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(26,86,219,.1),transparent 55%);pointer-events:none;}
+.hero-inner{max-width:1280px;margin:0 auto;position:relative;}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+.hero-mech{display:flex;align-items:center;gap:14px;}
+.mech-ava{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1a56db,#7c3aed);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:1.1rem;font-weight:900;color:#fff;border:3px solid rgba(255,255,255,.12);flex-shrink:0;overflow:hidden;}
+.mech-ava img{width:100%;height:100%;object-fit:cover;}
+.hero-name{font-family:var(--fd);font-size:1.25rem;font-weight:900;color:#fff;}
+.hero-sub{font-size:.72rem;color:rgba(255,255,255,.4);margin-top:3px;display:flex;align-items:center;gap:6px;}
+.hero-dot{width:5px;height:5px;border-radius:50%;background:var(--green);}
+
+/* BIG STATS */
+.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.hstat{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:16px 18px;}
+.hstat-n{font-family:var(--fd);font-size:1.6rem;font-weight:900;color:#fff;line-height:1;}
+.hstat-l{font-size:.62rem;color:rgba(255,255,255,.4);margin-top:4px;letter-spacing:.3px;}
+.hstat-sub{font-size:.62rem;color:rgba(255,255,255,.3);margin-top:4px;}
+
+/* LAYOUT */
+.page{max-width:1280px;margin:24px auto;padding:0 24px;display:grid;grid-template-columns:1fr 290px;gap:20px;align-items:start;}
+
+/* CARD */
+.card{background:#fff;border:1.5px solid var(--border);border-radius:14px;margin-bottom:16px;overflow:hidden;}
+.cardh{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.cardh-l{display:flex;align-items:center;gap:9px;}
+.cardh-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cardh-ico svg{width:14px;height:14px;}
+.cardh h3{font-family:var(--fd);font-size:.88rem;font-weight:800;color:#111;}
+.cardh p{font-size:.64rem;color:var(--muted);margin-top:1px;}
+.cardb{padding:20px;}
+
+/* BAR CHART */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:160px;flex:1;}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;}
+.bar-outer{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;}
+.bar{width:100%;border-radius:6px 6px 0 0;transition:height .5s ease;cursor:pointer;position:relative;min-height:4px;}
+.bar:hover{filter:brightness(1.08);}
+.bar-tooltip{display:none;position:absolute;top:-32px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:.6rem;font-weight:700;padding:3px 7px;border-radius:6px;white-space:nowrap;font-family:var(--fd);z-index:10;}
+.bar:hover .bar-tooltip{display:block;}
+.bar-lbl{font-size:.58rem;color:var(--muted);font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+
+/* RECENT JOBS TABLE */
+.jtable{width:100%;border-collapse:collapse;font-size:.78rem;}
+.jtable th{text-align:left;padding:8px 0;border-bottom:1px solid var(--border);font-size:.6rem;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:#aaa;}
+.jtable td{padding:11px 0;border-bottom:1px solid #f5f5f5;vertical-align:middle;}
+.jtable tr:last-child td{border-bottom:none;}
+.jt-svc{font-weight:700;color:#111;}
+.jt-ref{font-size:.62rem;color:var(--blue);font-family:var(--fd);margin-top:2px;}
+.jt-cust{font-size:.65rem;color:#aaa;}
+.jt-date{font-size:.68rem;color:var(--muted);}
+.jt-amt{font-family:var(--fd);font-size:.88rem;font-weight:900;color:var(--green);text-align:right;}
+
+/* PERF METRICS */
+.perf-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.perf-cell{background:#f8f8f8;border-radius:11px;padding:14px 16px;}
+.perf-n{font-family:var(--fd);font-size:1.3rem;font-weight:900;color:#111;line-height:1;}
+.perf-lbl{font-size:.62rem;color:var(--muted);margin-top:4px;}
+.perf-bar{height:4px;background:#e8e8e8;border-radius:2px;margin-top:8px;overflow:hidden;}
+.perf-bar-fill{height:100%;border-radius:2px;}
+
+/* PAY STRUCTURE */
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f5f5f5;}
+.info-row:last-child{border-bottom:none;}
+.ir-k{font-size:.72rem;color:var(--muted);}
+.ir-v{font-size:.74rem;font-weight:700;color:#111;}
+.ir-v.green{color:var(--green);}
+.ir-v.blue {color:var(--blue);}
+.ir-v.yellow{color:var(--yellow);}
+
+/* EMPTY */
+.empty-box{text-align:center;padding:40px 20px;border:1.5px dashed var(--border);border-radius:12px;}
+.empty-box svg{width:40px;height:40px;color:#ddd;display:block;margin:0 auto 12px;}
+.empty-box h4{font-family:var(--fd);font-size:.84rem;font-weight:800;color:#bbb;margin-bottom:5px;}
+.empty-box p{font-size:.7rem;color:#ccc;}
+.empty-box a{display:inline-block;margin-top:12px;padding:8px 16px;background:var(--blue);color:#fff;border-radius:8px;font-family:var(--fd);font-size:.72rem;font-weight:700;text-decoration:none;}
+
+/* INFO BAR */
+.info-bar{background:rgba(26,86,219,.06);border:1px solid rgba(26,86,219,.15);border-radius:10px;padding:12px 14px;font-size:.74rem;color:#334;line-height:1.6;margin-bottom:16px;}
+.info-bar strong{color:var(--blue);}
+
+/* SIDEBAR */
+.sidebar{display:flex;flex-direction:column;gap:14px;}
+.sc{background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;}
+.sc-h{padding:13px 16px;border-bottom:1px solid var(--border);}
+.sc-h h3{font-family:var(--fd);font-size:.84rem;font-weight:800;color:#111;}
+.sc-h p{font-size:.64rem;color:var(--muted);margin-top:2px;}
+.sc-b{padding:14px 16px;}
+.goal-row{margin-bottom:10px;}
+.goal-row:last-child{margin-bottom:0;}
+.goal-top{display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:5px;}
+.goal-lbl{font-weight:600;color:#111;}
+.goal-val{color:var(--muted);}
+.goal-track{height:7px;background:#f0f0f0;border-radius:4px;overflow:hidden;}
+.goal-fill{height:100%;border-radius:4px;}
+.ql{display:flex;align-items:center;gap:10px;padding:10px 16px;transition:background .15s;text-decoration:none;}
+.ql:hover{background:#fafafa;}
+.ql-ico{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ql-ico svg{width:13px;height:13px;}
+.ql span{flex:1;font-size:.76rem;font-weight:600;color:#111;}
+.ql-sep{height:1px;background:var(--border);margin:0 16px;}
+
+@media(max-width:960px){.page{grid-template-columns:1fr;}.hero-stats{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.hero-stats{grid-template-columns:1fr 1fr;}.perf-grid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<nav>
+  <div class="navi">
+    <a href="{% url 'home' %}" class="logo">
+      <div class="logo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+      <span class="logo-name">e<span>Garage</span></span>
+    </a>
+    <div class="nav-role">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+      Mechanic
+    </div>
+    <div class="bc">
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><polyline points="9 18 15 12 9 6"/></svg>
+      <span style="color:#111;font-weight:600;">Earnings</span>
+    </div>
+    <div class="nav-r">
+      <a href="{% url 'mechanic_jobs' %}" class="nb ghost">My Jobs</a>
+      <a href="{% url 'schedule' %}" class="nb ghost">Schedule</a>
+      <a href="{% url 'dashboard' %}" class="nb blue">Dashboard</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO — ALL REAL DATA -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-top">
+      <div class="hero-mech">
+        <div class="mech-ava">
+          {% if request.user.profile_photo %}
+            <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.name }}">
+          {% else %}
+            {{ request.user.name|first|upper }}
+          {% endif %}
+        </div>
+        <div>
+          <div class="hero-name">{{ request.user.name }}</div>
+          <div class="hero-sub">
+            <div class="hero-dot"></div>
+            {% if request.user.is_available %}On Duty{% else %}Off Duty{% endif %}
+            {% if request.user.mechanic_profile.designation %} · {{ request.user.mechanic_profile.designation }}{% endif %}
+            {% if request.user.mechanic_profile.garage %} · {{ request.user.mechanic_profile.garage.name }}{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 REAL STAT BOXES -->
+    <div class="hero-stats">
+      <div class="hstat">
+        <div class="hstat-n">₹{{ month_earning|floatformat:0 }}</div>
+        <div class="hstat-l">Earned this month</div>
+        <div class="hstat-sub">Based on completed jobs</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-n">₹{{ week_earning|floatformat:0 }}</div>
+        <div class="hstat-l">Earned this week</div>
+        <div class="hstat-sub">Current week total</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-n">{{ total_jobs }}</div>
+        <div class="hstat-l">Jobs completed</div>
+        <div class="hstat-sub">All time</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-n">
+          {% if avg_rating %}{{ avg_rating|floatformat:1 }}★{% else %}—{% endif %}
+        </div>
+        <div class="hstat-l">Avg customer rating</div>
+        <div class="hstat-sub">From completed jobs</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+<div>
+
+  {% if not recent_jobs %}
+  <div class="info-bar">
+    ℹ️ Your earnings will grow as you complete jobs. Your manager assigns jobs — update their status in <strong><a href="{% url 'mechanic_jobs' %}" style="color:var(--blue);">My Jobs</a></strong> to mark them complete and start earning.
+  </div>
+  {% endif %}
+
+  <!-- EARNINGS CHART — built from real jobs -->
+  <div class="card">
+    <div class="cardh">
+      <div class="cardh-l">
+        <div class="cardh-ico" style="background:rgba(0,166,81,.1);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#00a651" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <div><h3>Earnings by Job</h3><p>{{ recent_jobs|length }} completed jobs shown</p></div>
+      </div>
+      <div style="font-size:.68rem;color:var(--muted);">
+        Total: <strong style="color:var(--green);">₹{{ month_earning|floatformat:0 }}</strong>
+      </div>
+    </div>
+    <div class="cardb">
+      {% if recent_jobs %}
+      <div style="display:flex;gap:8px;">
+        <div style="display:flex;flex-direction:column;justify-content:space-between;padding-bottom:24px;padding-right:4px;height:180px;" id="yAxis"></div>
+        <div class="bar-chart" id="barChart"></div>
+      </div>
+      {% else %}
+      <div class="empty-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <h4>No completed jobs yet</h4>
+        <p>Your earnings chart will appear once you complete jobs assigned by your manager.</p>
+        <a href="{% url 'mechanic_jobs' %}">View My Jobs</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- RECENT COMPLETED JOBS -->
+  <div class="card">
+    <div class="cardh">
+      <div class="cardh-l">
+        <div class="cardh-ico" style="background:rgba(26,86,219,.08);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </div>
+        <div><h3>Recent Completed Jobs</h3><p>Latest earnings</p></div>
+      </div>
+    </div>
+    <div class="cardb">
+      {% if recent_jobs %}
+      <table class="jtable">
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th style="text-align:right;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for job in recent_jobs %}
+          <tr>
+            <td>
+              <div class="jt-svc">{{ job.booking.service.name|default:"Service" }}</div>
+              <div class="jt-ref">{{ job.booking.reference }}</div>
+            </td>
+            <td><div class="jt-cust">{{ job.booking.customer_name }}</div></td>
+            <td><div class="jt-date">{{ job.completed_at|date:"d M Y"|default:job.booking.scheduled_date|date:"d M Y" }}</div></td>
+            <td>
+              <div class="jt-amt">
+                {% if job.booking.final_price %}₹{{ job.booking.final_price|floatformat:0 }}{% else %}—{% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+        <h4>No completed jobs yet</h4>
+        <p>Jobs you complete will appear here with their earnings.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- PAY STRUCTURE + PERFORMANCE -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+    <!-- Pay Structure — real from MechanicProfile -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="cardh">
+        <div class="cardh-l">
+          <div class="cardh-ico" style="background:rgba(0,166,81,.08);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#00a651" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          </div>
+          <div><h3>Pay Structure</h3><p>Set by your manager</p></div>
+        </div>
+      </div>
+      <div class="cardb">
+        {% if request.user.mechanic_profile %}
+        {% with p=request.user.mechanic_profile %}
+        <div class="info-row">
+          <span class="ir-k">Pay type</span>
+          <span class="ir-v blue">{{ p.get_salary_type_display|default:"Commission" }}</span>
+        </div>
+        {% if p.salary_type == 'monthly' %}
+        <div class="info-row">
+          <span class="ir-k">Monthly salary</span>
+          <span class="ir-v green">₹{{ p.salary_amount|floatformat:0 }}</span>
+        </div>
+        {% else %}
+        <div class="info-row">
+          <span class="ir-k">Commission rate</span>
+          <span class="ir-v green">{{ p.commission_pct|default:40 }}% per job</span>
+        </div>
+        {% endif %}
+        {% if p.bonus_per_job %}
+        <div class="info-row">
+          <span class="ir-k">Bonus per job</span>
+          <span class="ir-v green">+₹{{ p.bonus_per_job|floatformat:0 }}</span>
+        </div>
+        {% endif %}
+        <div class="info-row">
+          <span class="ir-k">Designation</span>
+          <span class="ir-v">{{ p.designation|default:"Mechanic" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="ir-k">Garage</span>
+          <span class="ir-v">{{ p.garage.name|default:"—" }}</span>
+        </div>
+        {% endwith %}
+        {% else %}
+        <div style="font-size:.76rem;color:#aaa;padding:8px 0;line-height:1.6;">
+          Pay structure not set yet. Your manager will update this.
+        </div>
+        {% endif %}
+        <div class="info-row" style="border-top:2px solid var(--border);margin-top:6px;padding-top:12px;">
+          <span class="ir-k" style="font-weight:800;color:#111;">This month total</span>
+          <span class="ir-v" style="font-family:var(--fd);font-size:.92rem;color:var(--green);">₹{{ month_earning|floatformat:0 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance — real from DB -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="cardh">
+        <div class="cardh-l">
+          <div class="cardh-ico" style="background:rgba(26,86,219,.08);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div><h3>Performance</h3><p>All time stats</p></div>
+        </div>
+      </div>
+      <div class="cardb">
+        <div class="perf-grid">
+          <div class="perf-cell">
+            <div class="perf-n" style="color:var(--green);">{{ total_jobs }}</div>
+            <div class="perf-lbl">Jobs done</div>
+            <div class="perf-bar"><div class="perf-bar-fill" style="width:{% if total_jobs > 0 %}100{% else %}0{% endif %}%;background:var(--green);"></div></div>
+          </div>
+          <div class="perf-cell">
+            <div class="perf-n" style="color:var(--blue);">
+              {% if avg_rating %}{{ avg_rating|floatformat:1 }}★{% else %}—{% endif %}
+            </div>
+            <div class="perf-lbl">Avg rating</div>
+            <div class="perf-bar"><div class="perf-bar-fill" style="width:{% if avg_rating %}{{ avg_rating|floatformat:0 }}0{% else %}0{% endif %}%;background:var(--blue);"></div></div>
+          </div>
+          <div class="perf-cell">
+            <div class="perf-n" style="color:var(--yellow);">₹{{ week_earning|floatformat:0 }}</div>
+            <div class="perf-lbl">This week</div>
+            <div class="perf-bar"><div class="perf-bar-fill" style="width:60%;background:var(--yellow);"></div></div>
+          </div>
+          <div class="perf-cell">
+            <div class="perf-n" style="color:var(--purple);">₹{{ month_earning|floatformat:0 }}</div>
+            <div class="perf-lbl">This month</div>
+            <div class="perf-bar"><div class="perf-bar-fill" style="width:80%;background:var(--purple);"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+
+  <!-- Mechanic Info — real -->
+  <div class="sc">
+    <div class="sc-h"><h3>👤 My Profile</h3><p>{{ request.user.name }}</p></div>
+    <div class="sc-b">
+      <div class="info-row"><span class="ir-k">Role</span><span class="ir-v blue">Mechanic</span></div>
+      <div class="info-row">
+        <span class="ir-k">Status</span>
+        <span class="ir-v {% if request.user.is_available %}green{% else %}yellow{% endif %}">
+          {% if request.user.is_available %}● On Duty{% else %}○ Off Duty{% endif %}
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="ir-k">City</span>
+        <span class="ir-v">{{ request.user.city|default:"—" }}</span>
+      </div>
+      <div class="info-row">
+        <span class="ir-k">Email</span>
+        <span class="ir-v" style="font-size:.68rem;">{{ request.user.email }}</span>
+      </div>
+      {% if request.user.mechanic_profile.garage %}
+      <div class="info-row">
+        <span class="ir-k">Garage</span>
+        <span class="ir-v">{{ request.user.mechanic_profile.garage.name }}</span>
+      </div>
+      {% endif %}
+      <div class="info-row">
+        <span class="ir-k">Total jobs</span>
+        <span class="ir-v green">{{ total_jobs }}</span>
+      </div>
+      {% if avg_rating %}
+      <div class="info-row">
+        <span class="ir-k">Avg rating</span>
+        <span class="ir-v yellow">⭐ {{ avg_rating|floatformat:1 }}</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Earnings Summary -->
+  <div class="sc">
+    <div class="sc-h"><h3>💰 Earnings Summary</h3></div>
+    <div class="sc-b">
+      <div class="info-row"><span class="ir-k">This week</span><span class="ir-v green">₹{{ week_earning|floatformat:0 }}</span></div>
+      <div class="info-row"><span class="ir-k">This month</span><span class="ir-v green">₹{{ month_earning|floatformat:0 }}</span></div>
+      <div class="info-row" style="border-top:2px solid var(--border);margin-top:6px;padding-top:10px;">
+        <span class="ir-k" style="font-weight:800;color:#111;">Jobs done</span>
+        <span class="ir-v" style="font-family:var(--fd);font-size:.88rem;">{{ total_jobs }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="sc">
+    <a class="ql" href="{% url 'mechanic_jobs' %}">
+      <div class="ql-ico" style="background:rgba(26,86,219,.08);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+      </div>
+      <span>My Jobs</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'schedule' %}">
+      <div class="ql-ico" style="background:rgba(124,58,237,.08);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <span>Schedule</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'profile' %}">
+      <div class="ql-ico" style="background:rgba(0,166,81,.08);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#00a651" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <span>My Profile</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'dashboard' %}">
+      <div class="ql-ico" style="background:rgba(26,86,219,.06);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      </div>
+      <span>Dashboard</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+  </div>
+
+</div>
+</div>
+
+<script>
+/* BUILD BAR CHART FROM REAL JOBS */
+var jobData = [
+  {% for job in recent_jobs %}
+  {
+    label: "{{ job.booking.reference|escapejs }}",
+    amount: {% if job.booking.final_price %}{{ job.booking.final_price }}{% else %}0{% endif %},
+    service: "{{ job.booking.service.name|default:'Service'|escapejs|truncatechars:14 }}"
+  }{% if not forloop.last %},{% endif %}
+  {% endfor %}
+];
+
+function buildBarChart() {
+  var chart = document.getElementById('barChart');
+  var yAxis = document.getElementById('yAxis');
+  if (!chart || jobData.length === 0) return;
+
+  var amounts = jobData.map(function(j){ return j.amount; });
+  var max = Math.max.apply(null, amounts) || 1;
+
+  /* Y-axis labels */
+  if (yAxis) {
+    var labels = [max, Math.round(max*.75), Math.round(max*.5), Math.round(max*.25), 0];
+    yAxis.innerHTML = labels.map(function(v){
+      return '<span style="font-size:.56rem;color:#ccc;font-weight:600;">₹' + (v >= 1000 ? (v/1000).toFixed(1)+'k' : v) + '</span>';
+    }).join('');
+  }
+
+  /* Bars */
+  var html = jobData.map(function(j) {
+    var h = max > 0 ? Math.round((j.amount / max) * 140) : 4;
+    var displayVal = j.amount >= 1000 ? '₹'+(j.amount/1000).toFixed(1)+'k' : (j.amount ? '₹'+j.amount : '—');
+    return '<div class="bar-wrap">'
+      + '<div class="bar-outer">'
+      + '<div class="bar" style="height:'+h+'px;background:var(--green);opacity:'+(j.amount > 0 ? 1 : .15)+';">'
+      + '<div class="bar-tooltip">'+displayVal+'<br><span style="font-size:.55rem;opacity:.7;">'+j.label+'</span></div>'
+      + '</div></div>'
+      + '<div class="bar-lbl" title="'+j.service+'">'+j.service+'</div>'
+      + '</div>';
+  }).join('');
+  chart.innerHTML = html;
+}
+
+buildBarChart();
+</script>
+{% endblock %}

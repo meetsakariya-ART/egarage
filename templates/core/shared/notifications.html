@@ -1,0 +1,505 @@
+{% extends 'core/base.html' %}
+{% block title %}Notifications — eGarage{% endblock %}
+
+{% block extra_head %}
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#e8192c;--red2:#c0111f;--green:#00a651;--blue:#1a56db;
+  --yellow:#f59e0b;--purple:#7c3aed;--orange:#ea580c;--teal:#0891b2;
+  --fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;
+  --border:#e0e0e0;--muted:#777;--bg:#f0f2f5;
+}
+html,body{background:var(--bg);color:#111;font-family:var(--fb);overflow-x:hidden;}
+
+nav{position:sticky;top:0;z-index:200;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.navi{display:flex;align-items:center;padding:0 24px;height:60px;max-width:1280px;margin:0 auto;gap:14px;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-ico{width:32px;height:32px;border-radius:9px;background:var(--red);display:flex;align-items:center;justify-content:center;}
+.logo-ico svg{width:15px;height:15px;}
+.logo-name{font-family:var(--fd);font-size:1.15rem;font-weight:900;color:var(--red);}
+.logo-name span{color:#111;}
+.bc{display:flex;align-items:center;gap:5px;font-size:.74rem;color:var(--muted);}
+.bc a{color:var(--muted);text-decoration:none;}
+.bc a:hover{color:var(--red);}
+.nav-r{margin-left:auto;display:flex;gap:8px;}
+.nb{padding:7px 15px;border-radius:8px;font-family:var(--fd);font-size:.75rem;font-weight:700;text-decoration:none;transition:all .15s;}
+.nb.ghost{border:1.5px solid var(--border);color:#333;background:#fff;}
+.nb.ghost:hover{border-color:var(--red);color:var(--red);}
+.nb.solid{background:var(--red);color:#fff;border:none;}
+.nb.solid:hover{background:var(--red2);}
+.bell-wrap{position:relative;display:inline-flex;}
+.bell-badge{position:absolute;top:-4px;right:-4px;width:17px;height:17px;background:var(--red);color:#fff;border-radius:50%;font-size:.55rem;font-weight:900;font-family:var(--fd);display:flex;align-items:center;justify-content:center;border:2px solid #fff;}
+
+.hero{background:linear-gradient(135deg,#0f0f0f,#1a1a2e);padding:28px 24px 24px;position:relative;overflow:hidden;}
+.hero::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 75% 50%,rgba(232,25,44,.12),transparent 60%);pointer-events:none;}
+.hero-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;position:relative;}
+.hero-left h1{font-family:var(--fd);font-size:1.5rem;font-weight:900;color:#fff;}
+.hero-left p{font-size:.78rem;color:rgba(255,255,255,.45);margin-top:4px;}
+.hero-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.ha-btn{padding:9px 16px;border-radius:9px;font-family:var(--fd);font-size:.74rem;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;border:none;}
+.ha-btn svg{width:13px;height:13px;}
+.ha-btn.outline{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);}
+.ha-btn.outline:hover{background:rgba(255,255,255,.14);color:#fff;}
+.ha-btn.red{background:var(--red);color:#fff;}
+.ha-btn.red:hover{background:var(--red2);}
+
+.page{max-width:1100px;margin:24px auto;padding:0 24px;display:grid;grid-template-columns:1fr 290px;gap:20px;align-items:start;}
+
+.fbar{background:#fff;border:1.5px solid var(--border);border-radius:13px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.fchip{padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;font-family:var(--fd);font-size:.7rem;font-weight:700;color:#666;cursor:pointer;transition:all .15s;background:#fff;white-space:nowrap;display:flex;align-items:center;gap:5px;}
+.fchip:hover{border-color:var(--red);color:var(--red);}
+.fchip.on{background:var(--red);color:#fff;border-color:var(--red);}
+.fchip-count{background:rgba(255,255,255,.3);border-radius:20px;padding:0 5px;font-size:.6rem;min-width:16px;text-align:center;}
+.fchip:not(.on) .fchip-count{background:#f0f0f0;color:#888;}
+
+.date-group{margin-bottom:20px;}
+.dg-label{font-size:.62rem;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:#aaa;margin-bottom:8px;padding:0 2px;display:flex;align-items:center;gap:6px;}
+.dg-label::after{content:'';flex:1;height:1px;background:#eee;}
+
+.notif{background:#fff;border:1.5px solid var(--border);border-radius:13px;padding:0;margin-bottom:8px;overflow:hidden;transition:all .2s;position:relative;}
+.notif:hover{box-shadow:0 3px 14px rgba(0,0,0,.07);}
+.notif.unread{border-color:rgba(26,86,219,.2);background:rgba(26,86,219,.02);}
+.notif.unread::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--blue);border-radius:13px 0 0 13px;}
+.notif-inner{display:flex;align-items:flex-start;gap:13px;padding:14px 16px;}
+.notif-ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.notif-ico svg{width:18px;height:18px;}
+.notif-body{flex:1;min-width:0;}
+.notif-title{font-size:.82rem;font-weight:700;color:#111;line-height:1.3;}
+.notif.unread .notif-title{font-weight:800;}
+.notif-desc{font-size:.71rem;color:var(--muted);margin-top:3px;line-height:1.5;}
+.notif-time{font-size:.62rem;color:#bbb;margin-top:5px;display:flex;align-items:center;gap:4px;}
+.notif-time svg{width:10px;height:10px;}
+.notif-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+.unread-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);}
+.notif-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:.58rem;font-weight:800;font-family:var(--fd);}
+.tag-booking{background:rgba(26,86,219,.1);color:var(--blue);}
+.tag-service{background:rgba(232,25,44,.1);color:var(--red);}
+.tag-offer{background:rgba(0,166,81,.1);color:var(--green);}
+.tag-account{background:rgba(124,58,237,.1);color:var(--purple);}
+.tag-system{background:rgba(8,145,178,.1);color:var(--teal);}
+.tag-emergency{background:rgba(232,25,44,.12);color:var(--red);}
+.tag-payment{background:rgba(0,166,81,.1);color:var(--green);}
+.notif-actions{display:flex;gap:6px;padding:0 16px 12px;border-top:1px solid #f8f8f8;padding-top:10px;margin-top:-2px;}
+.na{padding:6px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:var(--fd);font-size:.64rem;font-weight:700;cursor:pointer;transition:all .15s;background:#fff;color:#555;text-decoration:none;display:inline-flex;align-items:center;}
+.na:hover{border-color:var(--red);color:var(--red);}
+.na.primary{background:var(--red);color:#fff;border-color:var(--red);}
+.na.primary:hover{background:var(--red2);}
+.na.danger{color:#ef4444;border-color:#fecaca;}
+.na.danger:hover{background:#fef2f2;}
+
+.empty-state{text-align:center;padding:60px 20px;}
+.empty-state svg{width:52px;height:52px;color:#ddd;display:block;margin:0 auto 16px;}
+.empty-state h3{font-family:var(--fd);font-size:.95rem;font-weight:800;color:#bbb;margin-bottom:6px;}
+.empty-state p{font-size:.73rem;color:#ccc;}
+.empty-state a{display:inline-block;margin-top:14px;padding:9px 20px;background:var(--red);color:#fff;border-radius:9px;font-family:var(--fd);font-size:.74rem;font-weight:700;text-decoration:none;}
+
+.sidebar{display:flex;flex-direction:column;gap:14px;}
+.sc{background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;}
+.sc-h{padding:13px 16px;border-bottom:1px solid var(--border);}
+.sc-h h3{font-family:var(--fd);font-size:.84rem;font-weight:800;color:#111;}
+.sc-h p{font-size:.64rem;color:var(--muted);margin-top:2px;}
+.sc-b{padding:14px 16px;}
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0;}
+.sum-box{background:#f8f8f8;border-radius:10px;padding:12px;text-align:center;}
+.sum-n{font-family:var(--fd);font-size:1.4rem;font-weight:900;color:#111;line-height:1;}
+.sum-l{font-size:.6rem;color:var(--muted);margin-top:3px;}
+.ql{display:flex;align-items:center;gap:10px;padding:10px 16px;transition:background .15s;cursor:pointer;text-decoration:none;}
+.ql:hover{background:#fafafa;}
+.ql-ico{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ql-ico svg{width:13px;height:13px;}
+.ql span{flex:1;font-size:.76rem;font-weight:600;color:#111;}
+.ql-sep{height:1px;background:var(--border);margin:0 16px;}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;}
+.overlay.on{display:flex;}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:420px;overflow:hidden;animation:slideUp .22s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+.mhdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.mhdr h3{font-family:var(--fd);font-size:.9rem;font-weight:800;}
+.mclose{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.mclose:hover{border-color:#999;}
+.mclose svg{width:12px;height:12px;}
+.mbody{padding:20px;}
+.mfoot{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
+.mbtn{padding:9px 20px;border-radius:8px;font-family:var(--fd);font-size:.76rem;font-weight:700;cursor:pointer;transition:all .15s;}
+.mbtn.cancel{border:1.5px solid var(--border);background:#fff;color:#555;}
+.mbtn.cancel:hover{border-color:#999;}
+.mbtn.red{background:var(--red);color:#fff;border:none;}
+.mbtn.red:hover{background:var(--red2);}
+
+.toast{position:fixed;bottom:24px;right:24px;background:#111;color:#fff;padding:12px 20px;border-radius:10px;font-size:.78rem;font-weight:600;z-index:2000;display:none;align-items:center;gap:8px;}
+.toast.on{display:flex;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.toast svg{width:14px;height:14px;color:var(--green);}
+
+@keyframes slideIn{from{opacity:0;transform:translateY(-12px);}to{opacity:1;transform:translateY(0);}}
+.notif.new-anim{animation:slideIn .35s ease;}
+
+/* icon colour helpers */
+.ico-booking {background:rgba(26,86,219,.08);}
+.ico-service {background:rgba(245,158,11,.1);}
+.ico-account {background:rgba(124,58,237,.1);}
+.ico-emergency{background:rgba(232,25,44,.1);}
+.ico-payment {background:rgba(0,166,81,.1);}
+.ico-system  {background:rgba(8,145,178,.08);}
+
+@media(max-width:860px){.page{grid-template-columns:1fr;}}
+@media(max-width:600px){.ha-btn span{display:none;}.fbar{gap:6px;}}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<nav>
+  <div class="navi">
+    <a href="{% url 'home' %}" class="logo">
+      <div class="logo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+      <span class="logo-name">e<span>Garage</span></span>
+    </a>
+    <div class="bc">
+      <a href="{% url 'home' %}">Home</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><polyline points="9 18 15 12 9 6"/></svg>
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><polyline points="9 18 15 12 9 6"/></svg>
+      <span style="color:#111;font-weight:600;">Notifications</span>
+    </div>
+    <div class="nav-r">
+      {% if unread_count > 0 %}
+      <div class="bell-wrap">
+        <a href="{% url 'notifications' %}" class="nb ghost" style="display:flex;align-items:center;gap:5px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          Notifications
+        </a>
+        <span class="bell-badge">{{ unread_count }}</span>
+      </div>
+      {% endif %}
+      <a href="{% url 'booking' %}" class="nb solid">+ Book Service</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO — real counts -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <h1>Notifications</h1>
+      <p>
+        {% if unread_count > 0 %}{{ unread_count }} unread · {% endif %}
+        {{ notifications|length }} total notification{{ notifications|length|pluralize }}
+      </p>
+    </div>
+    {% if notifications %}
+    <div class="hero-actions">
+      <button class="ha-btn outline" onclick="markAllRead()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>Mark all read</span>
+      </button>
+      <button class="ha-btn outline" onclick="openClearConfirm()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        <span>Clear all</span>
+      </button>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="page">
+<div>
+
+  <!-- FILTER BAR — real counts -->
+  {% if notifications %}
+  <div class="fbar">
+    <div class="fchip on" onclick="filterNotif(this,'all')">All <span class="fchip-count">{{ notifications|length }}</span></div>
+    <div class="fchip" onclick="filterNotif(this,'unread')">Unread <span class="fchip-count">{{ unread_count }}</span></div>
+    <div class="fchip" onclick="filterNotif(this,'booking')">Bookings</div>
+    <div class="fchip" onclick="filterNotif(this,'service')">Service</div>
+    <div class="fchip" onclick="filterNotif(this,'account')">Account</div>
+    <div class="fchip" onclick="filterNotif(this,'system')">System</div>
+    <div class="fchip" onclick="filterNotif(this,'emergency')">🚨 Emergency</div>
+    <div class="fchip" onclick="filterNotif(this,'payment')">Payment</div>
+  </div>
+  {% endif %}
+
+  <!-- NOTIFICATIONS — 100% from DB, grouped by date -->
+  {% if notifications %}
+  <div id="notifList">
+
+    {% regroup notifications by created_at|date:"Y-m-d" as day_groups %}
+    {% for day in day_groups %}
+    <div class="date-group">
+      <div class="dg-label">
+        {% if day.grouper == today|date:"Y-m-d" %}Today
+        {% elif day.grouper == yesterday|date:"Y-m-d" %}Yesterday
+        {% else %}{{ day.list.0.created_at|date:"d M Y" }}{% endif %}
+      </div>
+
+      {% for n in day.list %}
+      <div class="notif {% if not n.is_read %}unread{% endif %}"
+           data-type="{{ n.type }}"
+           id="notif-{{ n.pk }}">
+
+        <div class="notif-inner">
+          <!-- ICON by type -->
+          <div class="notif-ico
+            {% if n.type == 'booking' %}ico-booking
+            {% elif n.type == 'service' %}ico-service
+            {% elif n.type == 'account' %}ico-account
+            {% elif n.type == 'emergency' %}ico-emergency
+            {% elif n.type == 'payment' %}ico-payment
+            {% else %}ico-system{% endif %}">
+            {% if n.type == 'booking' %}
+              <svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 11 17 15 13"/></svg>
+            {% elif n.type == 'service' %}
+              <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            {% elif n.type == 'account' %}
+              <svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            {% elif n.type == 'emergency' %}
+              <svg viewBox="0 0 24 24" fill="none" stroke="#e8192c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {% elif n.type == 'payment' %}
+              <svg viewBox="0 0 24 24" fill="none" stroke="#00a651" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            {% else %}
+              <svg viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            {% endif %}
+          </div>
+
+          <div class="notif-body">
+            <div class="notif-title">{{ n.title }}</div>
+            <div class="notif-desc">{{ n.message }}</div>
+            <div class="notif-time">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              {{ n.created_at|timesince }} ago
+            </div>
+          </div>
+
+          <div class="notif-right">
+            {% if not n.is_read %}<div class="unread-dot"></div>{% endif %}
+            <span class="notif-tag tag-{{ n.type }}">{{ n.type|capfirst }}</span>
+          </div>
+        </div>
+
+        <!-- ACTIONS by type -->
+        <div class="notif-actions">
+          {% if n.type == 'booking' %}
+            <a href="{% url 'bookings' %}" class="na primary">View Booking</a>
+            <a href="{% url 'track' %}" class="na">Track Live</a>
+          {% elif n.type == 'service' %}
+            <a href="{% url 'track' %}" class="na primary">Track Live</a>
+          {% elif n.type == 'emergency' %}
+            <a href="{% url 'emergency' %}" class="na primary">View Emergency</a>
+          {% elif n.type == 'account' %}
+            <a href="{% url 'profile' %}" class="na primary">My Profile</a>
+          {% elif n.type == 'payment' %}
+            <a href="{% url 'bookings' %}" class="na primary">My Bookings</a>
+          {% endif %}
+          {% if not n.is_read %}
+            <button class="na" onclick="markOneRead({{ n.pk }},this)">Mark Read</button>
+          {% endif %}
+          <button class="na danger" onclick="deleteOne({{ n.pk }},this)">Delete</button>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+
+  </div><!-- /notifList -->
+
+  {% else %}
+  <!-- REAL EMPTY STATE -->
+  <div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    <h3>No notifications</h3>
+    <p>You're all caught up! Booking updates, service alerts and account activity will appear here.</p>
+    <a href="{% url 'booking' %}">Book a Service →</a>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+
+  <!-- Real summary -->
+  <div class="sc">
+    <div class="sc-h"><h3>📊 Overview</h3><p>Your notification activity</p></div>
+    <div class="sc-b">
+      <div class="sum-grid">
+        <div class="sum-box"><div class="sum-n">{{ notifications|length }}</div><div class="sum-l">Total</div></div>
+        <div class="sum-box"><div class="sum-n" style="color:var(--blue);">{{ unread_count }}</div><div class="sum-l">Unread</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="sc">
+    <a class="ql" href="{% url 'bookings' %}">
+      <div class="ql-ico" style="background:rgba(232,25,44,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#e8192c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg></div>
+      <span>My Bookings</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'track' %}">
+      <div class="ql-ico" style="background:rgba(245,158,11,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <span>Live Tracking</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'profile' %}">
+      <div class="ql-ico" style="background:rgba(124,58,237,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <span>Profile Settings</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'booking' %}">
+      <div class="ql-ico" style="background:rgba(0,166,81,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#00a651" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      <span>Book a Service</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    <div class="ql-sep"></div>
+    <a class="ql" href="{% url 'dashboard' %}">
+      <div class="ql-ico" style="background:rgba(26,86,219,.06);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+      <span>Dashboard</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" width="12" height="12" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+  </div>
+
+</div>
+</div>
+
+<!-- CLEAR MODAL -->
+<div class="overlay" id="clearModal">
+  <div class="modal">
+    <div class="mhdr">
+      <h3>Clear All Notifications</h3>
+      <div class="mclose" onclick="closeModal('clearModal')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="mbody">
+      <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:14px;font-size:.78rem;color:#555;line-height:1.6;">
+        This will <strong style="color:#ef4444;">permanently delete</strong> all {{ notifications|length }} notification{{ notifications|length|pluralize }}. They will <strong>not come back</strong> after refresh.
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="mbtn cancel" onclick="closeModal('clearModal')">Cancel</button>
+      <button class="mbtn red" onclick="clearAll()">Yes, Delete All</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMsg">Done!</span>
+</div>
+
+<script>
+var CSRF = '{{ csrf_token }}';
+
+/* FILTER */
+function filterNotif(el, type) {
+  document.querySelectorAll('.fchip').forEach(function(c){ c.classList.remove('on'); });
+  el.classList.add('on');
+  document.querySelectorAll('.notif').forEach(function(n){
+    if (type === 'all') n.style.display = '';
+    else if (type === 'unread') n.style.display = n.classList.contains('unread') ? '' : 'none';
+    else n.style.display = (n.dataset.type === type) ? '' : 'none';
+  });
+  document.querySelectorAll('.date-group').forEach(function(g){
+    var visible = Array.from(g.querySelectorAll('.notif')).some(function(n){ return n.style.display !== 'none'; });
+    g.style.display = visible ? '' : 'none';
+  });
+}
+
+/* MARK ONE READ */
+function markOneRead(pk, btn) {
+  fetch('{% url "mark_notif_read" %}', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body:JSON.stringify({id:pk})
+  }).then(function(r){return r.json();}).then(function(d){
+    if(d.success){
+      var el=document.getElementById('notif-'+pk);
+      if(el){el.classList.remove('unread');var dot=el.querySelector('.unread-dot');if(dot)dot.remove();}
+      if(btn)btn.remove();
+      showToast('Marked as read ✓');
+    }
+  });
+}
+
+/* MARK ALL READ */
+function markAllRead() {
+  fetch('{% url "mark_notif_read" %}', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body:JSON.stringify({all:true})
+  }).then(function(r){return r.json();}).then(function(){
+    document.querySelectorAll('.notif.unread').forEach(function(n){
+      n.classList.remove('unread');
+      var dot=n.querySelector('.unread-dot');if(dot)dot.remove();
+    });
+    showToast('All notifications marked as read ✓');
+  });
+}
+
+/* DELETE ONE */
+function deleteOne(pk, btn) {
+  fetch('{% url "mark_notif_read" %}', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body:JSON.stringify({id:pk, delete:true})
+  }).then(function(r){return r.json();}).then(function(d){
+    if(d.success){
+      var el=document.getElementById('notif-'+pk);
+      if(el){
+        el.style.transition='all .25s';
+        el.style.opacity='0';
+        el.style.transform='translateX(16px)';
+        setTimeout(function(){
+          el.remove();
+          checkEmpty();
+        },250);
+      }
+      showToast('Notification deleted.');
+    }
+  });
+}
+
+/* CLEAR ALL — posts to server permanently */
+function openClearConfirm() { openModal('clearModal'); }
+function clearAll() {
+  closeModal('clearModal');
+  var notifs = document.querySelectorAll('.notif');
+  notifs.forEach(function(n,i){
+    setTimeout(function(){
+      n.style.transition='all .2s';
+      n.style.opacity='0';
+      n.style.transform='translateX(14px)';
+    }, i*25);
+  });
+  setTimeout(function(){
+    var form=document.createElement('form');
+    form.method='POST';form.action='{% url "notifications" %}';
+    var csrf=document.createElement('input');csrf.type='hidden';csrf.name='csrfmiddlewaretoken';csrf.value=CSRF;form.appendChild(csrf);
+    var act=document.createElement('input');act.type='hidden';act.name='action';act.value='clear_all';form.appendChild(act);
+    document.body.appendChild(form);form.submit();
+  }, notifs.length*25+400);
+}
+
+function checkEmpty() {
+  if(!document.querySelector('.notif')){
+    var list=document.getElementById('notifList');
+    if(list)list.innerHTML='<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><h3>No notifications</h3><p>You\'re all caught up!</p></div>';
+  }
+}
+function openModal(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('on');document.body.style.overflow='';}
+document.querySelectorAll('.overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)closeModal(o.id);});});
+function showToast(msg){
+  var t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('on');
+  setTimeout(function(){t.classList.remove('on');},3000);
+}
+</script>
+{% endblock %}

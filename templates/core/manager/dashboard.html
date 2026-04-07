@@ -1,0 +1,440 @@
+{% extends 'core/base.html' %}
+{% block title %}Manager Dashboard — eGarage{% endblock %}
+{% block extra_head %}
+<style>
+html,body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;}
+
+/* ── PAGE LAYOUT ── */
+.page-wrap{display:flex;min-height:100vh;}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:220px;flex-shrink:0;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;z-index:50;overflow-y:auto;
+}
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border);}
+.sb-logo-brand{display:flex;align-items:center;gap:9px;}
+.sb-ico{width:32px;height:32px;border-radius:9px;background:var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-ico svg{width:15px;height:15px;}
+.sb-name{font-family:var(--fd);font-size:1rem;font-weight:900;color:var(--text);}
+.sb-tag{font-size:.52rem;color:var(--muted2);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;}
+
+.sb-nav{flex:1;padding:10px 8px;display:flex;flex-direction:column;gap:1px;}
+.sb-nav::-webkit-scrollbar{display:none;}
+.sb-lbl{font-size:.52rem;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted2);padding:10px 10px 4px;}
+.sb-item{
+  display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:9px;
+  cursor:pointer;text-decoration:none;color:var(--muted);font-size:.78rem;font-weight:600;
+  transition:all .15s;border:1px solid transparent;
+}
+.sb-item:hover{background:var(--surface3);color:var(--text);}
+.sb-item.on{background:rgba(232,25,44,.1);color:var(--red);border-color:rgba(232,25,44,.18);}
+.sb-item svg{width:14px;height:14px;flex-shrink:0;opacity:.6;}
+.sb-item:hover svg,.sb-item.on svg{opacity:1;}
+.sb-badge{margin-left:auto;background:var(--red);color:#fff;font-size:.54rem;font-weight:800;padding:1px 6px;border-radius:10px;font-family:var(--fd);}
+
+.sb-footer{padding:10px;border-top:1px solid var(--border);}
+.sb-user{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);}
+.sb-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.7rem;font-weight:900;color:#fff;overflow:hidden;flex-shrink:0;}
+.sb-av img{width:100%;height:100%;object-fit:cover;}
+.sb-uname{font-size:.72rem;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sb-urole{font-size:.58rem;color:var(--muted2);}
+
+/* ── MAIN ── */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;}
+.topbar{
+  padding:14px 28px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--nav-bg);backdrop-filter:blur(16px);
+  position:sticky;top:0;z-index:40;
+}
+.tb-title{font-family:var(--fd);font-size:1rem;font-weight:900;color:var(--text);}
+.tb-sub{font-size:.7rem;color:var(--muted);margin-top:1px;}
+.tb-r{display:flex;gap:8px;flex-wrap:wrap;}
+.tbtn{display:inline-flex;align-items:center;gap:6px;padding:7px 15px;border-radius:9px;font-family:var(--fd);font-size:.72rem;font-weight:700;cursor:pointer;border:none;text-decoration:none;transition:all .15s;}
+.tbtn.ghost{background:var(--surface2);border:1px solid var(--border);color:var(--muted);}
+.tbtn.ghost:hover{border-color:var(--red);color:var(--red);}
+.tbtn.primary{background:var(--red);color:#fff;box-shadow:0 3px 12px rgba(232,25,44,.28);}
+.tbtn.primary:hover{background:var(--red2);}
+.tbtn svg{width:12px;height:12px;}
+
+.content{padding:24px 28px 60px;}
+
+/* ── BANNERS ── */
+.banner{border-radius:16px;padding:22px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px;}
+.banner-wait{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);}
+.banner-setup{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);}
+.banner-pending{background:rgba(124,77,255,.06);border:1px solid rgba(124,77,255,.18);}
+.banner-warn{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);}
+.banner-danger{background:rgba(232,25,44,.07);border:1px solid rgba(232,25,44,.2);}
+.banner-ico{font-size:2rem;flex-shrink:0;}
+.banner-body{flex:1;}
+.banner-title{font-family:var(--fd);font-size:.9rem;font-weight:900;color:var(--text);margin-bottom:4px;}
+.banner-sub{font-size:.74rem;color:var(--muted);line-height:1.55;}
+.banner-btn{padding:9px 18px;border-radius:9px;font-family:var(--fd);font-size:.72rem;font-weight:700;cursor:pointer;border:none;text-decoration:none;flex-shrink:0;transition:all .15s;}
+.banner-btn.yellow{background:var(--yellow);color:#000;}
+.banner-btn.blue{background:var(--blue);color:#fff;}
+.banner-btn.red{background:var(--red);color:#fff;}
+
+/* Approval steps */
+.ab-steps{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;}
+.ab-step{display:flex;align-items:center;gap:7px;font-size:.72rem;color:var(--muted);}
+.ab-num{width:22px;height:22px;border-radius:50%;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.6rem;font-weight:800;color:var(--muted);flex-shrink:0;}
+.ab-step.done .ab-num{background:rgba(0,166,81,.15);border-color:rgba(0,166,81,.35);color:var(--green);}
+.ab-step.done span{color:var(--text2);}
+
+/* ── STAT GRID ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.sg{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:17px 20px;position:relative;overflow:hidden;box-shadow:var(--card-shadow);transition:background .2s;}
+.sg::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--sc,var(--red)),transparent);}
+.sg:hover{background:var(--surface2);}
+.sg-n{font-family:var(--fd);font-size:1.5rem;font-weight:900;color:var(--text);line-height:1;}
+.sg-l{font-size:.6rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.8px;margin-top:4px;}
+.sg-i{position:absolute;top:14px;right:14px;font-size:18px;opacity:.22;}
+.sg-s{font-size:.62rem;color:var(--muted);margin-top:4px;}
+
+/* ── SECTION TITLE ── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;margin-top:24px;}
+.sec-title{font-family:var(--fd);font-size:.8rem;font-weight:900;color:var(--text);display:flex;align-items:center;gap:7px;}
+.sec-link{font-size:.7rem;font-family:var(--fd);font-weight:700;color:var(--red);text-decoration:none;}
+.sec-link:hover{opacity:.7;}
+.sec-badge{padding:2px 9px;border-radius:20px;font-size:.6rem;font-weight:800;font-family:var(--fd);}
+.sec-badge.red{background:rgba(232,25,44,.12);color:var(--red);}
+.sec-badge.yellow{background:rgba(245,158,11,.12);color:var(--yellow);}
+
+/* ── TEAM TABLE ── */
+.tt{width:100%;border-collapse:collapse;}
+.tt th{text-align:left;padding:8px 14px;font-size:.58rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted2);border-bottom:1px solid var(--border);background:var(--surface2);}
+.tt td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:.76rem;color:var(--text2);vertical-align:middle;}
+.tt tr:last-child td{border-bottom:none;}
+.tt tr:hover td{background:var(--surface2);}
+.tt td:first-child{color:var(--text);}
+.tt-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.65rem;font-weight:900;color:#fff;}
+.duty-on{font-size:.64rem;font-weight:700;color:var(--green);}
+.duty-off{font-size:.64rem;font-weight:700;color:var(--muted2);}
+
+/* ── JOB / LEAVE ROW ── */
+.action-row{
+  display:flex;align-items:center;gap:12px;padding:12px 16px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;margin-bottom:8px;box-shadow:var(--card-shadow);
+  transition:background .15s;
+}
+.action-row:hover{background:var(--surface2);}
+.ar-body{flex:1;min-width:0;}
+.ar-ref{font-family:var(--fd);font-size:.62rem;font-weight:900;color:var(--red);}
+.ar-title{font-size:.8rem;font-weight:700;color:var(--text);margin-top:2px;}
+.ar-meta{font-size:.64rem;color:var(--muted);margin-top:2px;}
+.ar-amt{font-family:var(--fd);font-size:.88rem;font-weight:900;color:var(--green);flex-shrink:0;}
+.ar-actions{display:flex;gap:6px;flex-shrink:0;}
+.ar-btn{padding:7px 13px;border-radius:8px;font-family:var(--fd);font-size:.66rem;font-weight:700;cursor:pointer;border:none;transition:all .15s;}
+.ar-btn.ok{background:rgba(0,166,81,.12);color:var(--green);border:1px solid rgba(0,166,81,.22);}
+.ar-btn.ok:hover{background:rgba(0,166,81,.22);}
+.ar-btn.view{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+.ar-btn.view:hover{border-color:var(--border2);}
+
+/* ── BOOKING ROW ── */
+.bk-row{display:flex;align-items:center;gap:12px;padding:11px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:7px;box-shadow:var(--card-shadow);}
+.bk-row:hover{background:var(--surface2);}
+.bk-ref{font-family:var(--fd);font-size:.62rem;font-weight:900;color:var(--red);}
+.bk-svc{font-size:.78rem;font-weight:700;color:var(--text);}
+.bk-meta{font-size:.64rem;color:var(--muted);margin-top:2px;}
+.bk-amt{font-family:var(--fd);font-size:.82rem;font-weight:800;color:var(--text);margin-left:auto;flex-shrink:0;}
+.pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:.58rem;font-weight:800;font-family:var(--fd);}
+.p-done  {background:rgba(0,166,81,.12);color:var(--green);}
+.p-live  {background:rgba(245,158,11,.12);color:var(--yellow);}
+.p-canc  {background:rgba(232,25,44,.12);color:var(--red);}
+.p-pend  {background:rgba(59,130,246,.12);color:var(--blue);}
+
+/* ── EMPTY ── */
+.empty-box{text-align:center;padding:28px;border:1px dashed var(--border);border-radius:12px;background:var(--surface);margin-bottom:16px;}
+.empty-box svg{width:36px;height:36px;color:var(--muted2);display:block;margin:0 auto 10px;}
+.empty-box p{font-size:.76rem;color:var(--muted2);}
+.empty-box a{display:inline-block;margin-top:10px;padding:8px 16px;background:var(--red);color:#fff;border-radius:8px;font-family:var(--fd);font-size:.7rem;font-weight:700;text-decoration:none;}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface);color:var(--text);padding:10px 16px;border-radius:10px;font-size:.74rem;font-weight:700;z-index:999;display:none;align-items:center;gap:7px;box-shadow:var(--card-shadow);border:1px solid var(--border);}
+.toast.on{display:flex;animation:tf .2s;}
+@keyframes tf{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+@media(max-width:900px){
+  .sidebar{width:56px;}.sidebar .sb-item span,.sb-lbl,.sb-uname,.sb-urole,.sb-tag,.sb-name{display:none;}
+  .main{margin-left:56px;}.stat-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-brand">
+      <div class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+      <div><div class="sb-name">eGarage</div><div class="sb-tag">Manager Portal</div></div>
+    </div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-lbl">Manage</div>
+    <a href="{% url 'dashboard' %}"       class="sb-item on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+    <a href="{% url 'reports' %}"          class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Reports</span></a>
+    <a href="{% url 'manager_finance' %}"  class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span>Finance</span></a>
+    <a href="{% url 'team' %}"             class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>Team</span>{% if pending_mechanic_requests > 0 %}<span class="sb-badge">{{ pending_mechanic_requests }}</span>{% endif %}</a>
+    <a href="{% url 'garage_settings' %}"  class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/></svg><span>Garage Settings</span></a>
+    <a href="{% url 'garage_pricing' %}"   class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span>Pricing</span></a>
+    <a href="{% url 'notifications' %}"    class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span>Alerts</span></a>
+    <div class="sb-lbl">Account</div>
+    <a href="{% url 'profile' %}"          class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></a>
+    <a href="{% url 'request_admin' %}"    class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Request Admin</span></a>
+    <a href="{% url 'logout' %}"           class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Logout</span></a>
+  </div>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-av">{% if request.user.profile_photo and request.user.profile_photo.name %}<img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">{% else %}<span>{{ request.user.name|first|upper }}</span>{% endif %}</div>
+      <div><div class="sb-uname">{{ request.user.name }}</div><div class="sb-urole">Garage Manager</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tb-title">{{ garage.name|default:"My Dashboard" }}</div>
+      <div class="tb-sub">{{ request.user.name }} · Manager</div>
+    </div>
+    <div class="tb-r">
+      {% if garage_approved %}
+      <a href="{% url 'team' %}"           class="tbtn ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Team</a>
+      <a href="{% url 'manager_finance' %}" class="tbtn ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Finance</a>
+      <a href="{% url 'garage_settings' %}" class="tbtn primary">⚙️ Settings</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="content">
+
+    {# ── NOT APPROVED ── #}
+    {% if not request.user.manager_approved %}
+    <div class="banner banner-wait">
+      <div class="banner-ico">⏳</div>
+      <div class="banner-body">
+        <div class="banner-title">Waiting for Admin Approval</div>
+        <div class="banner-sub">Your account is pending review. Usually within 24 hours. You'll receive an email once approved.</div>
+        <div class="ab-steps">
+          <div class="ab-step done"><div class="ab-num">✓</div><span>Account created</span></div>
+          <div class="ab-step">      <div class="ab-num">2</div><span>Admin approves</span></div>
+          <div class="ab-step">      <div class="ab-num">3</div><span>Set up garage</span></div>
+          <div class="ab-step">      <div class="ab-num">4</div><span>Go live</span></div>
+        </div>
+      </div>
+    </div>
+
+    {# ── NO GARAGE YET ── #}
+    {% elif not garage %}
+    <div class="banner banner-setup">
+      <div class="banner-ico">🏢</div>
+      <div class="banner-body">
+        <div class="banner-title">Set up your garage</div>
+        <div class="banner-sub">You're approved! Add your garage details — name, address and services. Admin will approve within 24 hours.</div>
+      </div>
+      <a href="{% url 'garage_settings' %}" class="banner-btn blue">Set Up Garage →</a>
+    </div>
+
+    {# ── GARAGE PENDING ── #}
+    {% elif garage.approval_status == 'pending' %}
+    <div class="banner banner-pending">
+      <div class="banner-ico">⏳</div>
+      <div class="banner-body">
+        <div class="banner-title">{{ garage.name }} — Awaiting Approval</div>
+        <div class="banner-sub">Your garage is under review. It will appear to customers once approved. Usually within 24 hours.</div>
+      </div>
+    </div>
+
+    {# ── GARAGE REJECTED ── #}
+    {% elif garage.approval_status == 'rejected' %}
+    <div class="banner banner-danger">
+      <div class="banner-ico">❌</div>
+      <div class="banner-body">
+        <div class="banner-title">Garage Rejected</div>
+        <div class="banner-sub">Your garage application was not approved. Please update your details and resubmit.</div>
+      </div>
+      <a href="{% url 'garage_settings' %}" class="banner-btn red">Update & Resubmit →</a>
+    </div>
+
+    {# ── FULLY ACTIVE DASHBOARD ── #}
+    {% else %}
+
+    {# Pending join requests alert #}
+    {% if pending_mechanic_requests > 0 %}
+    <div class="banner banner-warn" style="margin-bottom:20px;">
+      <div class="banner-ico">🔔</div>
+      <div class="banner-body">
+        <div class="banner-title">{{ pending_mechanic_requests }} mechanic join request{{ pending_mechanic_requests|pluralize }}</div>
+        <div class="banner-sub">Mechanics want to join your garage. Approve or reject from the Team page.</div>
+      </div>
+      <a href="{% url 'team' %}" class="banner-btn yellow">Review →</a>
+    </div>
+    {% endif %}
+
+    {# ── STAT GRID — all using same revenue definition ── #}
+    <div class="stat-grid">
+      <div class="sg" style="--sc:var(--blue);">
+        <div class="sg-i">📅</div>
+        <div class="sg-n">{{ today_bookings }}</div>
+        <div class="sg-l">Today's bookings</div>
+      </div>
+      <div class="sg" style="--sc:var(--green);">
+        <div class="sg-i">💰</div>
+        <div class="sg-n">₹{{ month_revenue|floatformat:0 }}</div>
+        <div class="sg-l">Month revenue</div>
+        <div class="sg-s">Delivered bookings · final bill</div>
+      </div>
+      <div class="sg" style="--sc:var(--yellow);">
+        <div class="sg-i">🏦</div>
+        <div class="sg-n" style="color:var(--yellow);">₹{{ wallet_balance|floatformat:0 }}</div>
+        <div class="sg-l">Wallet balance</div>
+      </div>
+      <div class="sg" style="--sc:var(--purple);">
+        <div class="sg-i">👨‍🔧</div>
+        <div class="sg-n">{{ team_count }}</div>
+        <div class="sg-l">Team members</div>
+      </div>
+    </div>
+
+    {# JOBS PENDING VERIFICATION #}
+    {% if jobs_to_verify %}
+    <div class="sec-hdr">
+      <div class="sec-title">⚡ Jobs Awaiting Verification <span class="sec-badge red">{{ jobs_to_verify|length }}</span></div>
+      <a href="{% url 'reports' %}" class="sec-link">View All →</a>
+    </div>
+    {% for job in jobs_to_verify %}
+    <div class="action-row">
+      <div class="ar-body">
+        <div class="ar-ref">{{ job.booking.reference }}</div>
+        <div class="ar-title">{{ job.booking.service.name|default:"Service" }} — {{ job.mechanic.name|default:"—" }}</div>
+        <div class="ar-meta">{{ job.booking.customer_name }} · Completed {{ job.completed_at|date:"d M, h:i A" }}</div>
+      </div>
+      <div class="ar-amt">₹{{ job.booking.final_price|floatformat:0 }}</div>
+      <div class="ar-actions">
+        <button class="ar-btn ok" onclick="verifyJob({{ job.pk }},'{{ job.booking.reference|escapejs }}',{{ job.booking.final_price|floatformat:0 }})">✓ Verify &amp; Release</button>
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {# PENDING LEAVE REQUESTS #}
+    {% if pending_leaves %}
+    <div class="sec-hdr">
+      <div class="sec-title">📅 Leave Requests <span class="sec-badge yellow">{{ pending_leaves|length }}</span></div>
+      <a href="{% url 'team' %}" class="sec-link">Manage →</a>
+    </div>
+    {% for leave in pending_leaves %}
+    <div class="action-row">
+      <div class="ar-body">
+        <div class="ar-title">{{ leave.mechanic.name }}</div>
+        <div class="ar-meta">{{ leave.get_leave_type_display }} · {{ leave.from_date|date:"d M" }} – {{ leave.to_date|date:"d M Y" }} · {{ leave.reason|default:"No reason"|truncatechars:40 }}</div>
+      </div>
+      <div class="ar-actions">
+        <button class="ar-btn ok"   onclick="quickApproveLeave({{ leave.pk }},'{{ leave.mechanic.name|escapejs }}')">Approve</button>
+        <a href="{% url 'team' %}"  class="ar-btn view">View →</a>
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {# TEAM QUICK VIEW #}
+    <div class="sec-hdr">
+      <div class="sec-title">👨‍🔧 Your Team</div>
+      <a href="{% url 'team' %}" class="sec-link">MANAGE ALL →</a>
+    </div>
+    {% if mechanics %}
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--card-shadow);margin-bottom:16px;">
+      <table class="tt">
+        <thead><tr><th>Mechanic</th><th>Role</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for mp in mechanics %}
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="tt-av">{{ mp.mechanic.name|first|upper }}</div>
+                <div><div style="font-weight:700;color:var(--text);">{{ mp.mechanic.name }}</div><div style="font-size:.62rem;color:var(--muted);">{{ mp.mechanic.email }}</div></div>
+              </div>
+            </td>
+            <td>{{ mp.designation|default:"Mechanic" }}</td>
+            <td>{% if mp.mechanic.is_available %}<span class="duty-on">● On Duty</span>{% else %}<span class="duty-off">○ Off</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p>No mechanics yet.</p><a href="{% url 'team' %}">Add Mechanics →</a></div>
+    {% endif %}
+
+    {# RECENT BOOKINGS #}
+    <div class="sec-hdr">
+      <div class="sec-title">📋 Recent Bookings</div>
+      <a href="{% url 'reports' %}" class="sec-link">ALL REPORTS →</a>
+    </div>
+    {% if recent_bookings %}
+      {% for b in recent_bookings %}
+      <div class="bk-row">
+        <div style="flex:1;">
+          <div class="bk-ref">{{ b.reference }}</div>
+          <div class="bk-svc">{{ b.service.name|default:"Service" }}</div>
+          <div class="bk-meta">{{ b.customer.name }} · {{ b.scheduled_date|date:"d M Y" }}</div>
+        </div>
+        <div class="bk-amt">{% if b.final_price %}₹{{ b.final_price|floatformat:0 }}{% else %}—{% endif %}</div>
+        <span class="pill {% if b.status == 'delivered' %}p-done{% elif b.status == 'in_progress' %}p-live{% elif b.status == 'cancelled' %}p-canc{% else %}p-pend{% endif %}">{{ b.get_status_display }}</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg><p>No bookings yet. Customers will book once your garage is live.</p></div>
+    {% endif %}
+
+    {% endif %}{# end approval checks #}
+  </div>
+</div>
+</div><!-- /page-wrap -->
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+var CSRF = document.cookie.match(/csrftoken=([^;]+)/) ? document.cookie.match(/csrftoken=([^;]+)/)[1] : '';
+
+function verifyJob(pk, ref, amount){
+  if(!confirm('Verify job for '+ref+' and release ₹'+amount+' to garage wallet?')) return;
+  fetch('/api/job/'+pk+'/verify/',{method:'POST',headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},body:'{}'})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok){showToast('✅ '+d.message);setTimeout(function(){location.reload();},1500);}
+    else showToast('❌ '+(d.error||'Error'));
+  });
+}
+
+function quickApproveLeave(pk,name){
+  if(!confirm('Approve leave for '+name+'?')) return;
+  fetch('/api/leave/'+pk+'/approve/',{method:'POST',headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},body:'{}'})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok){showToast('✅ Leave approved for '+name);setTimeout(function(){location.reload();},1200);}
+    else showToast('❌ '+(d.error||'Error'));
+  });
+}
+
+function showToast(msg){
+  var t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('on');
+  setTimeout(function(){t.classList.remove('on');},3500);
+}
+
+{% if messages %}{% for m in messages %}
+setTimeout(function(){showToast('{{ m|escapejs }}');},300);
+{% endfor %}{% endif %}
+</script>
+{% endblock %}

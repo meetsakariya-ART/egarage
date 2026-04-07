@@ -1,0 +1,701 @@
+{% extends 'core/base.html' %}
+{% block title %}Reports — {{ garage.name|default:"My Garage" }} — eGarage{% endblock %}
+{% block extra_head %}
+<style>
+html,body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;}
+.page{max-width:1160px;margin:0 auto;padding:28px 24px 60px;}
+
+.pg-hdr{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:28px;}
+.pg-title{font-family:var(--fd);font-size:1.4rem;font-weight:900;color:var(--text);}
+.pg-sub{font-size:.76rem;color:var(--muted);margin-top:3px;}
+.hl{padding:8px 16px;border:1px solid var(--border);border-radius:9px;font-family:var(--fd);font-size:.72rem;font-weight:700;color:var(--muted);text-decoration:none;background:var(--surface2);transition:all .15s;}
+.hl:hover{border-color:var(--red);color:var(--red);}
+
+/* BENTO STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:17px 20px;position:relative;overflow:hidden;box-shadow:var(--card-shadow);transition:background .2s;}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--ac,var(--red)),transparent);}
+.sc:hover{background:var(--surface2);}
+.sc-n{font-family:var(--fd);font-size:1.5rem;font-weight:900;color:var(--text);line-height:1;}
+.sc-l{font-size:.6rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.8px;margin-top:4px;}
+.sc-i{position:absolute;top:14px;right:14px;font-size:18px;opacity:.22;}
+.sc-s{font-size:.64rem;color:var(--muted);margin-top:4px;}
+
+/* SUMMARY BAR */
+.sum-bar{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px;box-shadow:var(--card-shadow);}
+.sum-item{flex:1;padding:14px 18px;border-right:1px solid var(--border);text-align:center;}
+.sum-item:last-child{border-right:none;}
+.sum-n{font-family:var(--fd);font-size:1.05rem;font-weight:900;color:var(--text);}
+.sum-l{font-size:.58rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.8px;margin-top:3px;}
+
+/* FILTERS */
+.filter-row{display:flex;align-items:center;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.fc{padding:6px 14px;border:1px solid var(--border);border-radius:20px;font-size:.7rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all .15s;background:transparent;font-family:var(--fd);}
+.fc:hover{border-color:rgba(232,25,44,.35);color:var(--red);}
+.fc.on{background:rgba(232,25,44,.1);border-color:rgba(232,25,44,.3);color:var(--red);}
+.fc-search{margin-left:auto;display:flex;align-items:center;gap:8px;padding:6px 13px;background:var(--surface);border:1px solid var(--border);border-radius:10px;}
+.fc-search:focus-within{border-color:rgba(232,25,44,.4);}
+.fc-search svg{width:12px;height:12px;color:var(--muted2);}
+.fc-search input{background:transparent;border:none;outline:none;font-size:.72rem;color:var(--text);font-family:var(--fb);width:160px;}
+.fc-search input::placeholder{color:var(--muted2);}
+
+/* BOOKING CARD */
+.bcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;transition:all .18s;box-shadow:var(--card-shadow);}
+.bcard:hover{border-color:var(--border2);}
+.bcard.status-delivered   {border-left:3px solid var(--green);}
+.bcard.status-in_progress {border-left:3px solid var(--yellow);}
+.bcard.status-quality_check{border-left:3px solid #0891b2;}
+.bcard.status-cancelled   {border-left:3px solid var(--red);}
+.bcard.status-confirmed   {border-left:3px solid var(--blue);}
+.bcard.status-at_garage   {border-left:3px solid var(--purple);}
+
+.bc-head{display:flex;align-items:flex-start;gap:14px;padding:16px 18px 0;}
+.bc-ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.bc-main{flex:1;min-width:0;}
+.bc-ref{font-family:var(--fd);font-size:.62rem;font-weight:900;letter-spacing:2px;color:var(--red);margin-bottom:2px;}
+.bc-svc{font-size:.9rem;font-weight:700;color:var(--text);}
+.bc-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+.bc-price{font-family:var(--fd);font-size:1rem;font-weight:900;color:var(--text);}
+
+/* PILLS */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:.6rem;font-weight:800;font-family:var(--fd);}
+.p-done  {background:rgba(0,166,81,.12);color:var(--green);border:1px solid rgba(0,166,81,.2);}
+.p-live  {background:rgba(245,158,11,.12);color:var(--yellow);border:1px solid rgba(245,158,11,.2);}
+.p-blue  {background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.2);}
+.p-cancel{background:rgba(232,25,44,.12);color:var(--red);border:1px solid rgba(232,25,44,.2);}
+.p-pend  {background:rgba(124,77,255,.12);color:var(--purple);border:1px solid rgba(124,77,255,.2);}
+
+/* INFO GRID */
+.binfo{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;padding:14px 18px;}
+.bi{background:var(--surface3);border:1px solid var(--border);border-radius:10px;padding:10px 13px;}
+.bi-k{font-size:.58rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:4px;}
+.bi-v{font-size:.78rem;font-weight:700;color:var(--text);}
+.bi-sub{font-size:.65rem;color:var(--muted);margin-top:2px;line-height:1.4;}
+.bi-v.green{color:var(--green);}
+.bi-v.red{color:var(--red);}
+.bi-v.blue{color:var(--blue);}
+
+/* ASSIGN BUTTON — inside mechanic bi */
+.assign-trigger{
+  display:flex;align-items:center;gap:8px;padding:8px 11px;
+  background:rgba(232,25,44,.06);
+  border:1.5px dashed rgba(232,25,44,.3);
+  border-radius:9px;cursor:pointer;transition:all .18s;
+  margin-top:4px;
+}
+.assign-trigger:hover{background:rgba(232,25,44,.12);border-color:rgba(232,25,44,.5);}
+.at-ico{width:28px;height:28px;border-radius:50%;background:rgba(232,25,44,.12);border:1.5px dashed rgba(232,25,44,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.at-ico svg{width:13px;height:13px;color:var(--red);}
+.at-text{flex:1;}
+.at-label{font-family:var(--fd);font-size:.72rem;font-weight:800;color:var(--red);}
+.at-hint{font-size:.6rem;color:var(--muted);margin-top:1px;}
+
+.assigned-widget{display:flex;align-items:center;gap:8px;padding:8px 11px;background:rgba(0,166,81,.06);border:1px solid rgba(0,166,81,.18);border-radius:9px;margin-top:4px;}
+.aw-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.66rem;font-weight:900;color:#fff;flex-shrink:0;}
+.aw-name{font-size:.76rem;font-weight:700;color:var(--text);flex:1;}
+.aw-st{font-size:.6rem;color:var(--muted);margin-top:1px;}
+.aw-change{padding:3px 9px;border:1px solid var(--border);border-radius:6px;background:transparent;font-family:var(--fd);font-size:.6rem;font-weight:700;color:var(--muted);cursor:pointer;flex-shrink:0;}
+.aw-change:hover{border-color:var(--blue);color:var(--blue);}
+
+/* PAYMENT BADGE */
+.pay-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:.66rem;font-weight:700;}
+.pb-paid{background:rgba(0,166,81,.1);color:var(--green);border:1px solid rgba(0,166,81,.18);}
+.pb-adv {background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.18);}
+.pb-cash{background:rgba(245,158,11,.1);color:var(--yellow);border:1px solid rgba(245,158,11,.18);}
+.pb-pend{background:var(--surface3);color:var(--muted);border:1px solid var(--border);}
+
+/* CANCEL BANNER */
+.cancel-banner{background:rgba(232,25,44,.05);border-top:1px solid rgba(232,25,44,.14);padding:13px 18px;display:flex;align-items:flex-start;gap:12px;border-radius:0 0 14px 14px;}
+.cb-dot{font-size:1.1rem;flex-shrink:0;}
+.cb-body{flex:1;}
+.cb-title{font-family:var(--fd);font-size:.76rem;font-weight:800;color:var(--red);margin-bottom:6px;}
+.cb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;margin-bottom:8px;}
+.cb-row{font-size:.72rem;color:var(--text2);line-height:1.5;}
+.cb-row span{color:var(--muted);font-size:.64rem;display:block;margin-bottom:1px;}
+.refund-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:.64rem;font-weight:800;font-family:var(--fd);}
+.rc-full{background:rgba(0,166,81,.12);color:var(--green);border:1px solid rgba(0,166,81,.22);}
+.rc-half{background:rgba(245,158,11,.12);color:var(--yellow);border:1px solid rgba(245,158,11,.22);}
+.rc-none{background:rgba(232,25,44,.1);color:var(--red);border:1px solid rgba(232,25,44,.2);}
+.rc-na  {background:var(--surface3);color:var(--muted);border:1px solid var(--border);}
+
+/* INFO BAR */
+.info-bar{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.18);border-radius:10px;padding:11px 16px;font-size:.74rem;color:var(--text2);margin-bottom:20px;}
+
+/* EMPTY */
+.empty-box{text-align:center;padding:48px 24px;border:1px dashed var(--border);border-radius:14px;background:var(--surface);margin-bottom:24px;}
+.empty-box svg{width:44px;height:44px;color:var(--muted2);display:block;margin:0 auto 12px;}
+.empty-box h3{font-family:var(--fd);font-size:.88rem;font-weight:800;color:var(--muted);margin-bottom:6px;}
+.empty-box p{font-size:.72rem;color:var(--muted2);}
+
+/* ════════════════════════════════════════
+   ASSIGN MECHANIC MODAL
+   Fixed at center — no overflow clipping
+════════════════════════════════════════ */
+.overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.65);
+  backdrop-filter:blur(8px);
+  z-index:9999;
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+.overlay.on{display:flex;}
+
+.assign-modal{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:20px;
+  width:100%;
+  max-width:480px;
+  overflow:hidden;
+  box-shadow:0 24px 80px rgba(0,0,0,.45);
+  animation:mup .22s cubic-bezier(.34,1.56,.64,1);
+}
+.assign-modal::before{content:'';display:block;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);}
+@keyframes mup{from{opacity:0;transform:scale(.93) translateY(16px)}to{opacity:1;transform:none}}
+
+.am-head{
+  padding:18px 22px;
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.am-head-info{flex:1;}
+.am-title{font-family:var(--fd);font-size:.9rem;font-weight:900;color:var(--text);}
+.am-sub{font-size:.68rem;color:var(--muted);margin-top:3px;}
+.am-close{
+  width:30px;height:30px;border-radius:50%;
+  border:1px solid var(--border);background:transparent;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--muted);transition:all .15s;flex-shrink:0;
+}
+.am-close:hover{border-color:var(--red);color:var(--red);}
+.am-close svg{width:13px;height:13px;}
+
+/* mechanic list */
+.am-list{max-height:300px;overflow-y:auto;padding:10px;}
+.am-list::-webkit-scrollbar{width:4px;}
+.am-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+.am-item{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 14px;border-radius:11px;
+  cursor:pointer;transition:all .15s;
+  border:1.5px solid transparent;
+  margin-bottom:5px;
+}
+.am-item:hover{background:var(--surface3);}
+.am-item.selected{
+  background:rgba(0,166,81,.08);
+  border-color:rgba(0,166,81,.35);
+}
+.am-item:last-child{margin-bottom:0;}
+
+.am-av{
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fd);font-size:.82rem;font-weight:900;color:#fff;
+  flex-shrink:0;
+}
+.am-info{flex:1;min-width:0;}
+.am-name{font-size:.84rem;font-weight:700;color:var(--text);}
+.am-role{font-size:.66rem;color:var(--muted);margin-top:2px;}
+.am-phone{font-size:.63rem;color:var(--muted2);margin-top:1px;}
+.am-avail{
+  padding:4px 10px;border-radius:20px;font-size:.62rem;font-weight:800;
+  font-family:var(--fd);flex-shrink:0;
+}
+.av-on {background:rgba(0,166,81,.12);color:var(--green);border:1px solid rgba(0,166,81,.2);}
+.av-off{background:var(--surface3);color:var(--muted2);border:1px solid var(--border);}
+
+.am-check{
+  width:20px;height:20px;border-radius:50%;
+  border:2px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .15s;
+}
+.am-item.selected .am-check{background:var(--green);border-color:var(--green);}
+.am-item.selected .am-check::after{content:'✓';color:#fff;font-size:.62rem;font-weight:900;}
+
+.am-empty{padding:30px;text-align:center;font-size:.76rem;color:var(--muted);}
+
+.am-foot{
+  padding:14px 22px;
+  border-top:1px solid var(--border);
+  background:var(--surface2);
+  display:flex;gap:10px;justify-content:flex-end;
+  align-items:center;
+}
+.am-selected-preview{flex:1;font-size:.72rem;color:var(--muted);}
+.am-selected-preview strong{color:var(--text);}
+.am-btn{padding:10px 22px;border-radius:9px;font-family:var(--fd);font-size:.76rem;font-weight:700;cursor:pointer;border:none;transition:all .15s;}
+.am-btn-cancel{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.am-btn-cancel:hover{border-color:var(--border2);color:var(--text);}
+.am-btn-assign{background:var(--green);color:#fff;box-shadow:0 4px 14px rgba(0,166,81,.25);}
+.am-btn-assign:hover{background:var(--green2,#008f45);}
+.am-btn-assign:disabled{background:var(--muted2);cursor:not-allowed;box-shadow:none;}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);color:var(--text);padding:11px 18px;border-radius:10px;font-size:.76rem;font-weight:700;z-index:9998;display:none;align-items:center;gap:8px;border:1px solid var(--border);box-shadow:var(--card-shadow);}
+.toast.on{display:flex;animation:tf .2s ease;}
+@keyframes tf{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+@media(max-width:700px){
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .sum-bar{flex-wrap:wrap;}
+  .sum-item{min-width:50%;border-bottom:1px solid var(--border);}
+  .binfo{grid-template-columns:1fr 1fr;}
+  .cb-grid{grid-template-columns:1fr;}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  <div class="pg-hdr">
+    <div>
+      <div class="pg-title">Reports — {{ garage.name|default:"My Garage" }}</div>
+      <div class="pg-sub">{{ request.user.name }} · Real-time garage data</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <a href="{% url 'team' %}"            class="hl">👥 Team</a>
+      <a href="{% url 'garage_settings' %}" class="hl">⚙️ Settings</a>
+    </div>
+  </div>
+
+  {% if not garage %}
+  <div class="empty-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+    <h3>No garage set up yet</h3>
+    <p>Set up your garage first to see reports.</p>
+  </div>
+  {% else %}
+
+  {% if not garage_approved %}
+  <div class="info-bar">⏳ Garage pending approval. Data will appear once you go live.</div>
+  {% endif %}
+
+  <div class="stats">
+    <div class="sc" style="--ac:var(--blue);"><div class="sc-i">📅</div><div class="sc-n">{{ today_bookings }}</div><div class="sc-l">Today</div></div>
+    <div class="sc" style="--ac:var(--green);"><div class="sc-i">📊</div><div class="sc-n">{{ month_bookings }}</div><div class="sc-l">This month</div><div class="sc-s">{{ cancelled_count|default:0 }} cancelled</div></div>
+    <div class="sc" style="--ac:var(--yellow);"><div class="sc-i">💰</div><div class="sc-n">₹{{ month_revenue|floatformat:0 }}</div><div class="sc-l">Month revenue</div></div>
+    <div class="sc" style="--ac:var(--red);"><div class="sc-i">⭐</div><div class="sc-n">{% if avg_rating %}{{ avg_rating|floatformat:1 }}★{% else %}—{% endif %}</div><div class="sc-l">Avg rating</div></div>
+  </div>
+
+  <div class="sum-bar">
+    <div class="sum-item"><div class="sum-n">₹{{ total_revenue|floatformat:0 }}</div><div class="sum-l">All-time revenue</div></div>
+    <div class="sum-item"><div class="sum-n">{{ total_bookings_count|default:0 }}</div><div class="sum-l">Total bookings</div></div>
+    <div class="sum-item"><div class="sum-n" style="color:var(--red);">{{ cancelled_count|default:0 }}</div><div class="sum-l">Cancelled</div></div>
+    <div class="sum-item"><div class="sum-n" style="color:var(--green);">{{ completed_count|default:0 }}</div><div class="sum-l">Completed</div></div>
+    <div class="sum-item"><div class="sum-n">{{ garage.city|default:"—" }}</div><div class="sum-l">Location</div></div>
+  </div>
+
+  <!-- CASH vs ONLINE BREAKDOWN — this month -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+    <div style="background:var(--surface);border:1px solid rgba(245,158,11,.2);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden;box-shadow:var(--card-shadow);">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--yellow),transparent);"></div>
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;">💵 Cash — This Month</div>
+      <div style="font-family:var(--fd);font-size:1.4rem;font-weight:900;color:var(--yellow);">₹{{ cash_revenue|default:0|floatformat:0 }}</div>
+      <div style="font-size:.64rem;color:var(--muted);margin-top:4px;">Paid at garage counter</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid rgba(59,130,246,.2);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden;box-shadow:var(--card-shadow);">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),transparent);"></div>
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;">💳 Online — This Month</div>
+      <div style="font-family:var(--fd);font-size:1.4rem;font-weight:900;color:var(--blue);">₹{{ online_revenue|default:0|floatformat:0 }}</div>
+      <div style="font-size:.64rem;color:var(--muted);margin-top:4px;">UPI · Card · Advance paid online</div>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <button class="fc on" onclick="filterRows(this,'all')">ALL</button>
+    <button class="fc" onclick="filterRows(this,'confirmed')">CONFIRMED</button>
+    <button class="fc" onclick="filterRows(this,'in_progress')">IN PROGRESS</button>
+    <button class="fc" onclick="filterRows(this,'delivered')">COMPLETED</button>
+    <button class="fc" onclick="filterRows(this,'cancelled')">CANCELLED</button>
+    <div class="fc-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search ref, customer, service…" id="searchInp" oninput="doSearch()">
+    </div>
+  </div>
+
+  {% if recent_bookings %}
+  {% for b in recent_bookings %}
+  <div class="bcard status-{{ b.status }}"
+       id="brow{{ b.pk }}"
+       data-status="{{ b.status }}"
+       data-ref="{{ b.reference|lower }}"
+       data-cust="{{ b.customer.name|lower }}"
+       data-svc="{{ b.service.name|lower|default:'' }}">
+
+    <div class="bc-head">
+      <div class="bc-ico" style="background:rgba({% if b.status == 'delivered' %}0,166,81{% elif b.status == 'cancelled' %}232,25,44{% elif b.status in 'in_progress,quality_check,at_garage' %}245,158,11{% else %}59,130,246{% endif %},.1);">
+        {% if b.service.icon_emoji %}{{ b.service.icon_emoji }}{% else %}🔧{% endif %}
+      </div>
+      <div class="bc-main">
+        <div class="bc-ref">{{ b.reference }}</div>
+        <div class="bc-svc">{{ b.service.name|default:"Car Service" }}</div>
+      </div>
+      <div class="bc-right">
+        {% if b.status == 'delivered' %}<span class="pill p-done">✓ Completed</span>
+        {% elif b.status == 'cancelled' %}<span class="pill p-cancel">✕ Cancelled</span>
+        {% elif b.status in 'in_progress,at_garage,quality_check' %}<span class="pill p-live">● {{ b.get_status_display }}</span>
+        {% elif b.status == 'confirmed' %}<span class="pill p-blue">📅 Confirmed</span>
+        {% else %}<span class="pill p-pend">{{ b.get_status_display }}</span>{% endif %}
+        <div class="bc-price">{% if b.final_price %}₹{{ b.final_price|floatformat:0 }}{% else %}—{% endif %}</div>
+      </div>
+    </div>
+
+    <div class="binfo">
+
+      <!-- CUSTOMER -->
+      <div class="bi">
+        <div class="bi-k">👤 Customer</div>
+        <div class="bi-v">{{ b.customer.name }}</div>
+        <div class="bi-sub">
+          {% if b.customer.phone %}<a href="tel:{{ b.customer.phone }}" style="color:var(--blue);text-decoration:none;">📞 {{ b.customer.phone }}</a><br>{% endif %}
+          {{ b.customer.email }}
+        </div>
+      </div>
+
+      <!-- VEHICLE -->
+      {% if b.vehicle %}
+      <div class="bi">
+        <div class="bi-k">🚗 Vehicle</div>
+        <div class="bi-v">{{ b.vehicle.brand }} {{ b.vehicle.model_name }}</div>
+        <div class="bi-sub">{{ b.vehicle.registration_number|default:"No reg" }} · {{ b.vehicle.get_fuel_type_display|default:"—" }}</div>
+      </div>
+      {% endif %}
+
+      <!-- DATE -->
+      <div class="bi">
+        <div class="bi-k">📅 Scheduled</div>
+        <div class="bi-v">{{ b.scheduled_date|date:"d M Y" }}</div>
+        <div class="bi-sub">{{ b.scheduled_slot|time:"h:i A" }}{% if b.pickup_required %} · 🚗 Pickup{% endif %}</div>
+      </div>
+
+      <!-- MECHANIC + ASSIGN BUTTON -->
+      <div class="bi">
+        <div class="bi-k">🔧 Mechanic</div>
+
+        {% if b.mechanic %}
+          {# ASSIGNED — show widget with change option #}
+          <div class="assigned-widget" id="mwAssigned{{ b.pk }}">
+            <div class="aw-av">{{ b.mechanic.name|first|upper }}</div>
+            <div style="flex:1;">
+              <div class="aw-name">{{ b.mechanic.name }}</div>
+              <div class="aw-st">
+                {% if b.job %}
+                  {% if b.job.status in 'in_progress,on_way,arrived' %}<span style="color:var(--yellow);">● Active</span>
+                  {% elif b.job.status in 'completed,verified' %}<span style="color:var(--green);">✓ Done</span>
+                  {% elif b.job.status == 'assigned' %}<span style="color:var(--muted);">⏳ Awaiting accept</span>
+                  {% else %}<span style="color:var(--muted);">{{ b.job.get_status_display }}</span>{% endif %}
+                {% endif %}
+              </div>
+            </div>
+            {% if b.status == 'confirmed' %}
+            <button class="aw-change"
+              onclick="openAssignModal('{{ b.reference }}','{{ b.pk }}','{{ b.service.name|default:"Service"|escapejs }}')">
+              Change
+            </button>
+            {% endif %}
+          </div>
+        {% else %}
+          {# UNASSIGNED — big clickable button #}
+          <div class="assign-trigger" id="mwUnassigned{{ b.pk }}"
+               onclick="openAssignModal('{{ b.reference }}','{{ b.pk }}','{{ b.service.name|default:"Service"|escapejs }}')">
+            <div class="at-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+                <line x1="12" y1="14" x2="12" y2="20"/>
+                <line x1="9" y1="17" x2="15" y2="17"/>
+              </svg>
+            </div>
+            <div class="at-text">
+              <div class="at-label">Tap to Assign →</div>
+              <div class="at-hint">Select from your team</div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- PAYMENT -->
+      <div class="bi">
+        <div class="bi-k">💳 Payment</div>
+        {% if b.final_paid %}
+          <div class="pay-badge pb-paid">✓ Fully Paid</div>
+          <div class="bi-sub">₹{{ b.final_bill|floatformat:0 }}</div>
+        {% elif b.advance_paid %}
+          <div class="pay-badge pb-adv">Advance Paid</div>
+          <div class="bi-sub">₹{{ b.advance_amount|floatformat:0 }} paid · ₹{{ b.balance_due|floatformat:0 }} balance</div>
+        {% elif b.payment_method == 'cash' %}
+          <div class="pay-badge pb-cash">💵 Cash</div>
+          <div class="bi-sub">₹{{ b.final_price|floatformat:0 }} at garage</div>
+        {% else %}
+          <div class="pay-badge pb-pend">⏳ Pending</div>
+          <div class="bi-sub">{{ b.get_payment_method_display }}</div>
+        {% endif %}
+      </div>
+
+    </div><!-- /binfo -->
+
+    <!-- CANCELLATION BANNER -->
+    {% if b.status == 'cancelled' %}
+    <div class="cancel-banner">
+      <div class="cb-dot">🚫</div>
+      <div class="cb-body">
+        <div class="cb-title">Cancelled by Customer</div>
+        <div class="cb-grid">
+          <div class="cb-row"><span>Customer</span>{{ b.customer.name }}{% if b.customer.phone %} · {{ b.customer.phone }}{% endif %}</div>
+          {% if b.cancellation_reason %}<div class="cb-row"><span>Reason</span>{{ b.cancellation_reason }}</div>{% endif %}
+          <div class="cb-row"><span>Cancelled on</span>{{ b.updated_at|date:"d M Y, h:i A" }}</div>
+          {% if b.advance_paid %}<div class="cb-row"><span>Advance paid</span>₹{{ b.advance_amount|floatformat:0 }}</div>{% endif %}
+        </div>
+        {% if b.advance_paid and b.advance_amount > 0 %}
+          {% if b.refund_amount is not None %}
+            {% if b.refund_amount >= b.advance_amount %}
+              <span class="refund-chip rc-full">💰 Full Refund — ₹{{ b.refund_amount|floatformat:0 }} to customer in 24 hrs</span>
+            {% elif b.refund_amount > 0 %}
+              <span class="refund-chip rc-half">💰 50% Refund — ₹{{ b.refund_amount|floatformat:0 }} in 24 hrs (late cancel)</span>
+            {% else %}
+              <span class="refund-chip rc-none">❌ No Refund — service had started</span>
+            {% endif %}
+          {% else %}
+            <span class="refund-chip rc-half">₹{{ b.advance_amount|floatformat:0 }} advance — refund per policy</span>
+          {% endif %}
+        {% else %}
+          <span class="refund-chip rc-na">No advance paid — no refund required</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div><!-- /bcard -->
+  {% endfor %}
+
+  {% else %}
+  <div class="empty-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+    <h3>No bookings yet</h3>
+    <p>Bookings will appear here once your garage goes live.</p>
+  </div>
+  {% endif %}
+  {% endif %}
+
+</div><!-- /page -->
+
+<!-- ═══════════════════════════════════════════════════
+   ASSIGN MECHANIC MODAL — Fixed position, never clipped
+═══════════════════════════════════════════════════ -->
+<div class="overlay" id="assignOverlay" onclick="handleOverlayClick(event)">
+  <div class="assign-modal">
+
+    <div class="am-head">
+      <div class="am-head-info">
+        <div class="am-title">Assign Mechanic</div>
+        <div class="am-sub" id="amSubtitle">Select a mechanic from your team</div>
+      </div>
+      <button class="am-close" onclick="closeAssignModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- MECHANIC LIST — populated by JS -->
+    <div class="am-list" id="amList">
+      <div class="am-empty">Loading team members…</div>
+    </div>
+
+    <div class="am-foot">
+      <div class="am-selected-preview" id="amPreview">No mechanic selected</div>
+      <button class="am-btn am-btn-cancel" onclick="closeAssignModal()">Cancel</button>
+      <button class="am-btn am-btn-assign" id="amAssignBtn" onclick="confirmAssign()" disabled>
+        ✓ Assign
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<!-- MECHANICS DATA — pass from Django as JS array -->
+<script>
+var MECHANICS = [
+  {% for mp in mechanics %}
+  {
+    pk:        {{ mp.mechanic.pk }},
+    name:      "{{ mp.mechanic.name|escapejs }}",
+    role:      "{{ mp.designation|default:'Mechanic'|escapejs }}",
+    phone:     "{{ mp.mechanic.phone|default:''|escapejs }}",
+    available: {{ mp.mechanic.is_available|yesno:'true,false' }}
+  }{% if not forloop.last %},{% endif %}
+  {% endfor %}
+];
+
+var CSRF = '{{ csrf_token }}';
+var _assignRef  = null;
+var _assignBpk  = null;
+var _assignMechId   = null;
+var _assignMechName = null;
+
+/* ── OPEN MODAL ── */
+function openAssignModal(ref, bpk, svcName){
+  _assignRef  = ref;
+  _assignBpk  = bpk;
+  _assignMechId   = null;
+  _assignMechName = null;
+
+  document.getElementById('amSubtitle').textContent = ref + ' · ' + svcName;
+  document.getElementById('amPreview').textContent  = 'No mechanic selected';
+  document.getElementById('amAssignBtn').disabled   = true;
+  document.getElementById('amAssignBtn').textContent = '✓ Assign';
+
+  buildMechList();
+
+  document.getElementById('assignOverlay').classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAssignModal(){
+  document.getElementById('assignOverlay').classList.remove('on');
+  document.body.style.overflow = '';
+  _assignRef = null; _assignBpk = null;
+  _assignMechId = null; _assignMechName = null;
+}
+
+function handleOverlayClick(e){
+  if(e.target === document.getElementById('assignOverlay')) closeAssignModal();
+}
+
+/* ── BUILD LIST ── */
+function buildMechList(){
+  var list = document.getElementById('amList');
+
+  if(!MECHANICS.length){
+    list.innerHTML = '<div class="am-empty">No mechanics in your garage yet.<br><a href="/team/" style="color:var(--blue);">Add mechanics in Team page →</a></div>';
+    return;
+  }
+
+  var html = '';
+  MECHANICS.forEach(function(m){
+    html += '<div class="am-item" id="amItem_'+m.pk+'" onclick="selectMech('+m.pk+',\''+escJs(m.name)+'\')">'+
+      '<div class="am-av">'+m.name[0].toUpperCase()+'</div>'+
+      '<div class="am-info">'+
+        '<div class="am-name">'+m.name+'</div>'+
+        '<div class="am-role">'+m.role+'</div>'+
+        (m.phone ? '<div class="am-phone">📞 '+m.phone+'</div>' : '')+
+      '</div>'+
+      '<span class="am-avail '+(m.available ? 'av-on':'av-off')+'">'+
+        (m.available ? '● On Duty' : '○ Off')+
+      '</span>'+
+      '<div class="am-check"></div>'+
+    '</div>';
+  });
+  list.innerHTML = html;
+}
+
+function escJs(s){ return s.replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+
+/* ── SELECT MECHANIC ── */
+function selectMech(pk, name){
+  _assignMechId   = pk;
+  _assignMechName = name;
+
+  /* Visual highlight */
+  document.querySelectorAll('.am-item').forEach(function(el){ el.classList.remove('selected'); });
+  var item = document.getElementById('amItem_'+pk);
+  if(item) item.classList.add('selected');
+
+  document.getElementById('amPreview').innerHTML = 'Selected: <strong>'+name+'</strong>';
+  var btn = document.getElementById('amAssignBtn');
+  btn.disabled = false;
+  btn.textContent = '✓ Assign ' + name;
+}
+
+/* ── CONFIRM ── */
+function confirmAssign(){
+  if(!_assignMechId || !_assignRef){ toast('Please select a mechanic'); return; }
+
+  var btn = document.getElementById('amAssignBtn');
+  btn.disabled = true;
+  btn.textContent = 'Assigning…';
+
+  fetch('/api/booking/' + _assignRef + '/assign/', {
+    method: 'POST',
+    headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/json'},
+    body: JSON.stringify({mechanic_id: _assignMechId})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.ok){
+      closeAssignModal();
+
+      var bpk = _assignBpk || d.bpk;
+
+      /* Update mechanic widget on the card — no page reload */
+      var uEl = document.getElementById('mwUnassigned'+bpk);
+      var aEl = document.getElementById('mwAssigned'+bpk);
+
+      /* Build new assigned HTML */
+      var newHtml =
+        '<div class="assigned-widget" id="mwAssigned'+bpk+'">'+
+          '<div class="aw-av">'+d.mechanic[0].toUpperCase()+'</div>'+
+          '<div style="flex:1;">'+
+            '<div class="aw-name">'+d.mechanic+'</div>'+
+            '<div class="aw-st"><span style="color:var(--muted);">⏳ Awaiting accept</span></div>'+
+          '</div>'+
+          '<button class="aw-change" onclick="openAssignModal(\''+_assignRef+'\',\''+bpk+'\',\'Service\')">Change</button>'+
+        '</div>';
+
+      if(uEl){
+        uEl.outerHTML = newHtml;
+      } else if(aEl){
+        aEl.outerHTML = newHtml;
+      }
+
+      toast('✅ '+d.mechanic+' assigned to '+_assignRef+'! They have been notified.');
+    } else {
+      toast('❌ '+( d.error || 'Assignment failed'));
+      btn.disabled = false;
+      btn.textContent = '✓ Assign ' + _assignMechName;
+    }
+  })
+  .catch(function(){
+    toast('Network error — please try again');
+    btn.disabled = false;
+    btn.textContent = '✓ Assign ' + _assignMechName;
+  });
+}
+
+/* ── FILTER ── */
+function filterRows(el, status){
+  document.querySelectorAll('.fc').forEach(function(b){b.classList.remove('on');});
+  el.classList.add('on');
+  document.querySelectorAll('.bcard').forEach(function(c){
+    c.style.display = (status==='all'||c.dataset.status===status) ? '':'none';
+  });
+}
+
+/* ── SEARCH ── */
+function doSearch(){
+  var q = document.getElementById('searchInp').value.toLowerCase();
+  document.querySelectorAll('.bcard').forEach(function(c){
+    var hit = !q||c.dataset.ref.includes(q)||c.dataset.cust.includes(q)||c.dataset.svc.includes(q);
+    c.style.display = hit ? '':'none';
+  });
+}
+
+/* ── TOAST ── */
+function toast(msg){
+  var el=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  el.classList.add('on');
+  setTimeout(function(){el.classList.remove('on');},4500);
+}
+
+{% if messages %}{% for m in messages %}
+setTimeout(function(){toast('{{ m|escapejs }}');},400);
+{% endfor %}{% endif %}
+</script>
+{% endblock %}

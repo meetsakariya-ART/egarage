@@ -1,0 +1,2529 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eGarage — India's Premium Car Service Platform</title>
+<script>
+(function(){
+  var t=localStorage.getItem('eg_theme');
+  if(!t) t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  document.documentElement.setAttribute('data-theme',t);
+})();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+/* ═══ GALLERY STATIC PATHS ═══ */
+.ph1{background-image:url("{% static 'images/gallery/slide1_engine.webp' %}");}
+.ph2{background-image:url("{% static 'images/gallery/slide2_diagnostic.png' %}");}
+.ph3{background-image:url("{% static 'images/gallery/slide3_wash.png' %}");}
+.ph4{background-image:url("{% static 'images/gallery/slide4_tyre.png' %}");}
+.ph5{background-image:url("{% static 'images/gallery/slide5_team.png' %}");}
+
+/* ═══ RESET ═══ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+:root{
+  --ink:#080808;
+  --cream:#f5f0e8;
+  --red:#e8192c;
+  --gold:#c8a96e;
+  --smoke:#1a1a1a;
+  --mist:rgba(245,240,232,.12);
+  --dn:'Bebas Neue',sans-serif;
+  --dc:'Barlow Condensed',sans-serif;
+  --db:'DM Sans',sans-serif;
+}
+body{
+  background:var(--ink);
+  color:var(--cream);
+  font-family:var(--db);
+  overflow-x:hidden;
+  cursor:none;
+}
+::selection{background:var(--red);color:#fff;}
+a{text-decoration:none;color:inherit;}
+
+/* ── LIGHT MODE ── */
+[data-theme="light"]{
+  --ink:#ffffff;
+  --cream:#0d0d0d;
+  --smoke:#f5f5f5;
+  --mist:rgba(13,13,13,.08);
+}
+[data-theme="light"] body{
+  background:#f8f7f4 !important;
+  color:#0d0d0d !important;
+}
+[data-theme="light"] nav.scrolled{
+  background:rgba(255,255,255,.92) !important;
+  border-bottom-color:rgba(0,0,0,.08) !important;
+}
+[data-theme="light"] .nl{color:rgba(0,0,0,.4);}
+[data-theme="light"] .nl:hover{color:#0d0d0d;background:rgba(0,0,0,.04);}
+[data-theme="light"] .nb-ghost{
+  border-color:rgba(0,0,0,.15);
+  color:rgba(0,0,0,.55);
+}
+[data-theme="light"] .nb-ghost:hover{border-color:rgba(0,0,0,.3);color:#0d0d0d;}
+[data-theme="light"] .theme-pill{
+  border-color:rgba(0,0,0,.12);
+  background:rgba(0,0,0,.04);
+  color:rgba(0,0,0,.45);
+}
+[data-theme="light"] .theme-pill:hover{border-color:rgba(0,0,0,.25);color:#0d0d0d;}
+[data-theme="light"] .tp-track{background:rgba(0,0,0,.12);}
+/* Keep hero text visible on video */
+[data-theme="light"] .hero-h1,
+[data-theme="light"] .hero-sub,
+[data-theme="light"] .hero-eyebrow{color:var(--cream) !important;filter:none;}
+/* Sections */
+[data-theme="light"] .stats-band,
+[data-theme="light"] .step,
+[data-theme="light"] .feat,
+[data-theme="light"] .role,
+[data-theme="light"] .cta-band,
+[data-theme="light"] .vf-content{
+  background:rgba(255,255,255,.85) !important;
+  border-color:rgba(0,0,0,.08) !important;
+  backdrop-filter:saturate(150%) blur(20px) !important;
+}
+[data-theme="light"] .stat-num,
+[data-theme="light"] .step h3,
+[data-theme="light"] .feat h3,
+[data-theme="light"] .role h3,
+[data-theme="light"] .cta-h2,
+[data-theme="light"] .section-h2,
+[data-theme="light"] .ed-title,
+[data-theme="light"] .vf-stat-n{color:#0d0d0d !important;}
+[data-theme="light"] .step p,
+[data-theme="light"] .feat p,
+[data-theme="light"] .role p,
+[data-theme="light"] .cta-sub,
+[data-theme="light"] .vf-desc,
+[data-theme="light"] .stat-label,
+[data-theme="light"] .vf-stat-l,
+[data-theme="light"] .ed-desc{color:rgba(0,0,0,.5) !important;}
+[data-theme="light"] .step-n{background:#f5f5f5 !important;border-color:rgba(0,0,0,.1) !important;color:#0d0d0d !important;}
+[data-theme="light"] .step:hover .step-n{background:var(--red) !important;color:#fff !important;}
+[data-theme="light"] .feat-num{color:rgba(0,0,0,.04) !important;}
+[data-theme="light"] .role-big-num{color:rgba(0,0,0,.04) !important;}
+[data-theme="light"] footer{border-top-color:rgba(0,0,0,.08) !important;}
+[data-theme="light"] .footer-logo{color:rgba(0,0,0,.2) !important;}
+[data-theme="light"] .footer-links a{color:rgba(0,0,0,.22) !important;}
+[data-theme="light"] .footer-copy{color:rgba(0,0,0,.15) !important;}
+/* Marquee stays red */
+[data-theme="light"] .marquee-wrap{background:var(--red) !important;}
+/* Nav logo text */
+[data-theme="light"] .nav-logo{color:#0d0d0d !important;}
+[data-theme="light"] .tp-thumb{background:#0d0d0d;}
+
+
+/* ═══ CUSTOM CURSOR ═══ */
+#cursor{
+  position:fixed;width:10px;height:10px;
+  background:var(--red);border-radius:50%;
+  pointer-events:none;z-index:99999;
+  transform:translate(-50%,-50%);
+  transition:width .2s,height .2s,background .2s;
+  mix-blend-mode:normal;
+}
+#cursor-ring{
+  position:fixed;width:36px;height:36px;
+  border:1px solid rgba(232,25,44,.45);
+  border-radius:50%;pointer-events:none;z-index:99998;
+  transform:translate(-50%,-50%);
+  transition:transform .12s ease,width .25s,height .25s,border-color .25s;
+}
+body:has(a:hover) #cursor{width:16px;height:16px;background:var(--gold);}
+body:has(a:hover) #cursor-ring{width:52px;height:52px;border-color:rgba(200,169,110,.5);}
+
+/* ═══ PRELOADER ═══ */
+#preloader{
+  position:fixed;inset:0;z-index:10000;
+  background:var(--ink);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  transition:opacity .8s ease,visibility .8s ease;
+}
+#preloader.done{opacity:0;visibility:hidden;}
+.pl-logo{
+  font-family:var(--dn);
+  font-size:clamp(3rem,10vw,8rem);
+  letter-spacing:4px;
+  color:var(--cream);
+  margin-bottom:40px;
+  overflow:hidden;
+}
+.pl-logo span{color:var(--red);}
+.pl-bar-wrap{
+  width:200px;height:2px;
+  background:rgba(245,240,232,.1);
+  border-radius:2px;overflow:hidden;
+}
+.pl-bar{
+  height:100%;width:0;
+  background:linear-gradient(90deg,var(--red),var(--gold));
+  border-radius:2px;
+  transition:width .05s linear;
+}
+.pl-num{
+  font-family:var(--dc);font-size:.72rem;font-weight:500;
+  letter-spacing:3px;color:rgba(245,240,232,.3);
+  margin-top:14px;
+}
+
+/* ══════════════════════════════════════
+   APPLE-GRADE GLASS SYSTEM
+══════════════════════════════════════ */
+:root{
+  --glass-bg:rgba(14,12,18,.58);
+  --glass-border:rgba(255,255,255,.08);
+  --glass-blur:saturate(200%) blur(24px);
+  --gr:20px;
+}
+.glass{
+  background:var(--glass-bg);
+  backdrop-filter:var(--glass-blur);
+  -webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border);
+  border-radius:var(--gr);
+  position:relative;overflow:hidden;
+}
+/* top specular edge */
+.glass::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,
+    transparent,rgba(255,255,255,.22) 30%,
+    rgba(255,255,255,.32) 50%,
+    rgba(255,255,255,.22) 70%,transparent);
+  z-index:5;pointer-events:none;
+}
+/* inner bloom */
+.glass::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 45% at 50% -5%,rgba(255,255,255,.052),transparent 65%);
+  z-index:4;pointer-events:none;
+}
+.glass:hover{
+  border-color:rgba(255,255,255,.15);
+  background:rgba(20,18,28,.65);
+}
+/* curved refractive rim */
+.glass-rim{
+  position:absolute;inset:1px;
+  border-radius:calc(var(--gr) - 1px);
+  border:1px solid transparent;
+  background:
+    linear-gradient(rgba(0,0,0,0),rgba(0,0,0,0)) padding-box,
+    linear-gradient(155deg,
+      rgba(255,255,255,.22),rgba(255,255,255,.06) 25%,
+      transparent 50%,rgba(255,255,255,.04) 75%,
+      rgba(255,255,255,.14)) border-box;
+  pointer-events:none;z-index:6;
+}
+
+/* ═══ NOISE GRAIN ═══ */
+.grain{
+  position:fixed;inset:-50%;z-index:1;pointer-events:none;
+  width:200%;height:200%;opacity:.028;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:gn .45s steps(2) infinite;
+}
+@keyframes gn{0%{transform:translate(0,0)}25%{transform:translate(-2%,2%)}50%{transform:translate(2%,-2%)}75%{transform:translate(-1%,1%)}100%{transform:translate(0,0)}}
+
+/* ═══ NAV ═══ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  padding:0 48px;height:68px;
+  display:flex;align-items:center;
+  mix-blend-mode:normal;
+  transition:background .4s,backdrop-filter .4s;
+}
+nav.scrolled{
+  background:rgba(8,8,8,.82);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(245,240,232,.06);
+}
+.nav-logo{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--dn);font-size:1.4rem;letter-spacing:2px;
+  color:var(--cream);margin-right:auto;
+}
+.nav-logo-mark{
+  width:32px;height:32px;border-radius:7px;
+  background:var(--red);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.nav-logo-mark svg{width:16px;height:16px;}
+.nav-links{display:flex;align-items:center;gap:2px;margin-right:28px;}
+.nl{
+  padding:6px 14px;
+  font-family:var(--dc);font-size:.82rem;font-weight:500;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:rgba(245,240,232,.4);
+  transition:color .2s;border-radius:6px;
+}
+.nl:hover{color:var(--cream);}
+.nav-btns{display:flex;gap:10px;align-items:center;}
+
+/* ── DAY/NIGHT TOGGLE ── */
+.theme-pill{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 14px 6px 10px;
+  border-radius:20px;
+  border:1px solid rgba(245,240,232,.12);
+  background:rgba(245,240,232,.05);
+  cursor:pointer;
+  transition:all .22s;
+  font-family:var(--dc);font-size:.7rem;font-weight:500;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:rgba(245,240,232,.45);
+  user-select:none;-webkit-user-select:none;
+  flex-shrink:0;
+}
+.theme-pill:hover{
+  border-color:rgba(245,240,232,.28);
+  color:rgba(245,240,232,.8);
+  background:rgba(245,240,232,.08);
+}
+.tp-track{
+  width:30px;height:16px;border-radius:8px;
+  background:rgba(245,240,232,.12);
+  position:relative;transition:background .3s;flex-shrink:0;
+}
+[data-theme="light"] .tp-track{background:var(--red);}
+.tp-thumb{
+  position:absolute;top:2px;left:2px;
+  width:12px;height:12px;border-radius:50%;
+  background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.3);
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  font-size:8px;line-height:12px;text-align:center;
+}
+[data-theme="light"] .tp-thumb{transform:translateX(14px);}
+.tp-label{transition:color .2s;}
+.nb-ghost{
+  padding:8px 18px;border-radius:7px;
+  border:1px solid rgba(245,240,232,.14);
+  font-family:var(--dc);font-size:.8rem;font-weight:500;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:rgba(245,240,232,.55);transition:all .2s;
+}
+.nb-ghost:hover{border-color:rgba(245,240,232,.3);color:var(--cream);}
+.nb-red{
+  padding:8px 22px;border-radius:7px;
+  background:var(--red);
+  font-family:var(--dc);font-size:.8rem;font-weight:600;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:#fff;transition:all .22s;
+  box-shadow:0 4px 18px rgba(232,25,44,.35);
+}
+.nb-red:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(232,25,44,.5);}
+@media(max-width:700px){.nav-links{display:none;}nav{padding:0 24px;}}
+
+/* ═══ HERO ═══ */
+.hero{
+  position:relative;height:100vh;min-height:600px;
+  display:flex;flex-direction:column;
+  justify-content:flex-end;
+  overflow:hidden;
+}
+
+/* Video BG */
+.hero-video-bg{
+  position:absolute;inset:0;z-index:0;overflow:hidden;
+}
+.hero-video-bg video{
+  width:100%;height:100%;object-fit:cover;
+  filter:brightness(.35) saturate(.8);
+}
+.hero-video-bg::after{
+  content:'';position:absolute;inset:0;
+  background:
+    linear-gradient(to top,rgba(8,8,8,1) 0%,rgba(8,8,8,.7) 30%,rgba(8,8,8,.15) 60%,transparent 100%),
+    linear-gradient(to right,rgba(8,8,8,.5) 0%,transparent 50%);
+}
+
+/* Red vertical accent line */
+.hero-line{
+  position:absolute;left:48px;top:0;bottom:0;z-index:2;
+  width:1px;background:linear-gradient(to bottom,transparent,var(--red) 20%,var(--red) 80%,transparent);
+  opacity:.6;
+}
+
+/* Hero content */
+.hero-content{
+  position:relative;z-index:3;
+  padding:0 60px 80px;
+  max-width:1000px;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--dc);font-size:.72rem;font-weight:500;
+  letter-spacing:3px;text-transform:uppercase;
+  color:var(--gold);margin-bottom:24px;
+  opacity:0;animation:revealUp .6s ease .3s forwards;
+}
+.hero-eyebrow::before{
+  content:'';width:30px;height:1px;background:var(--gold);flex-shrink:0;
+}
+.hero-h1{
+  font-family:var(--dn);
+  font-size:clamp(2.8rem,7vw,6.5rem);
+  line-height:.92;letter-spacing:2px;
+  color:var(--cream);
+  margin-bottom:28px;
+  opacity:0;animation:revealUp .8s cubic-bezier(.16,1,.3,1) .5s forwards;
+}
+.hero-h1 .red{color:var(--red);}
+.hero-h1 .outline{
+  -webkit-text-stroke:1.5px rgba(245,240,232,.25);
+  color:transparent;
+}
+.hero-sub{
+  font-family:var(--db);font-size:1rem;font-weight:300;
+  color:rgba(245,240,232,.5);
+  max-width:440px;line-height:1.7;
+  margin-bottom:36px;
+  opacity:0;animation:revealUp .6s ease .7s forwards;
+}
+.hero-actions{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  opacity:0;animation:revealUp .6s ease .85s forwards;
+}
+.ha-primary{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:11px 26px;border-radius:4px;
+  background:var(--red);color:#fff;
+  font-family:var(--dc);font-size:.8rem;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;
+  box-shadow:0 4px 20px rgba(232,25,44,.38);
+  transition:all .25s cubic-bezier(.34,1.56,.64,1);
+}
+.ha-primary:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(232,25,44,.55);}
+.ha-primary svg{transition:transform .2s;}
+.ha-primary:hover svg{transform:translateX(3px);}
+.ha-ghost{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:11px 22px;border-radius:4px;
+  border:1px solid rgba(245,240,232,.18);
+  color:rgba(245,240,232,.65);
+  font-family:var(--dc);font-size:.8rem;font-weight:500;
+  letter-spacing:2px;text-transform:uppercase;
+  transition:all .2s;
+}
+.ha-ghost:hover{border-color:rgba(245,240,232,.4);color:var(--cream);background:rgba(245,240,232,.04);}
+.ha-vid{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:14px 20px;border-radius:4px;
+  background:transparent;
+  border:none;
+  color:rgba(245,240,232,.65);
+  font-family:var(--dc);font-size:.82rem;font-weight:500;
+  letter-spacing:1.5px;text-transform:uppercase;
+  transition:all .2s;cursor:pointer;
+}
+.ha-vid:hover{background:rgba(245,240,232,.1);}
+.vid-play-btn{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--red);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 16px rgba(232,25,44,.55);
+  animation:vidPulse 2s ease infinite;flex-shrink:0;
+}
+@keyframes vidPulse{0%,100%{box-shadow:0 0 16px rgba(232,25,44,.55);}50%{box-shadow:0 0 30px rgba(232,25,44,.85),0 0 0 8px rgba(232,25,44,.08);}}
+
+/* Hero scroll indicator */
+.hero-scroll{
+  position:absolute;bottom:36px;right:48px;z-index:3;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  opacity:0;animation:fadeIn .6s ease 1.4s forwards;
+}
+.hs-line{
+  width:1px;height:50px;
+  background:linear-gradient(to bottom,var(--red),transparent);
+  animation:scrollPulse 2s ease infinite;
+}
+@keyframes scrollPulse{0%{transform:scaleY(0);transform-origin:top;}50%{transform:scaleY(1);transform-origin:top;}51%{transform:scaleY(1);transform-origin:bottom;}100%{transform:scaleY(0);transform-origin:bottom;}}
+.hs-txt{
+  font-family:var(--dc);font-size:.6rem;font-weight:500;
+  letter-spacing:3px;text-transform:uppercase;
+  color:rgba(245,240,232,.25);writing-mode:vertical-rl;
+}
+
+@keyframes revealUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ═══ MARQUEE TICKER ═══ */
+.marquee-wrap{
+  position:relative;z-index:10;
+  background:var(--red);
+  padding:14px 0;overflow:hidden;
+  border-top:1px solid rgba(255,255,255,.1);
+  border-bottom:1px solid rgba(255,255,255,.1);
+}
+.marquee-track{
+  display:flex;gap:0;
+  animation:marquee 28s linear infinite;
+  width:max-content;
+}
+.marquee-wrap:hover .marquee-track{animation-play-state:paused;}
+.marquee-item{
+  display:flex;align-items:center;gap:18px;
+  padding:0 28px;
+  font-family:var(--dn);font-size:1rem;letter-spacing:2px;
+  color:rgba(255,255,255,.9);white-space:nowrap;
+}
+.marquee-item::before{
+  content:'◆';font-size:.45rem;color:rgba(255,255,255,.5);flex-shrink:0;
+}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ═══ EDITORIAL PHOTO SECTION ═══ */
+.editorial{
+  position:relative;z-index:10;
+  padding:100px 48px;
+  max-width:1400px;margin:0 auto;
+}
+.ed-header{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  margin-bottom:60px;gap:40px;flex-wrap:wrap;
+}
+.ed-label{
+  font-family:var(--dc);font-size:.65rem;font-weight:500;
+  letter-spacing:3.5px;text-transform:uppercase;
+  color:var(--gold);margin-bottom:12px;
+  display:flex;align-items:center;gap:12px;
+}
+.ed-label::before{content:'';width:28px;height:1px;background:var(--gold);}
+.ed-title{
+  font-family:var(--dn);
+  font-size:clamp(2.8rem,6vw,5.5rem);
+  line-height:.92;letter-spacing:1px;color:var(--cream);
+}
+.ed-title em{font-style:normal;color:var(--red);}
+.ed-desc{
+  max-width:340px;
+  font-size:.88rem;font-weight:300;
+  color:rgba(245,240,232,.38);line-height:1.75;
+}
+
+/* Photo grid */
+.ed-grid{
+  display:grid;
+  grid-template-columns:1.2fr .8fr .9fr;
+  grid-template-rows:340px 260px;
+  gap:12px;
+}
+.ed-photo{
+  position:relative;overflow:hidden;
+  border-radius:4px;
+  cursor:pointer;
+}
+.ed-photo.span2{grid-row:span 2;}
+.ed-photo .ep-img{
+  position:absolute;inset:-5%;
+  background-size:cover;background-position:center;
+  transition:transform .7s cubic-bezier(.25,.46,.45,.94);
+  filter:brightness(.75) saturate(.9);
+}
+.ed-photo:hover .ep-img{transform:scale(1.06);filter:brightness(.85) saturate(1);}
+.ed-photo .ep-over{
+  position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(8,8,8,.88) 0%,transparent 55%);
+  transition:opacity .3s;
+}
+.ed-photo .ep-tag{
+  position:absolute;top:16px;left:16px;
+  font-family:var(--dc);font-size:.6rem;font-weight:600;
+  letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--gold);
+  padding:5px 12px;border-radius:2px;
+  background:rgba(8,8,8,.45);
+  border:1px solid rgba(200,169,110,.2);
+}
+.ed-photo .ep-info{
+  position:absolute;bottom:20px;left:20px;right:20px;
+}
+.ed-photo .ep-title{
+  font-family:var(--dc);font-size:1.05rem;font-weight:600;
+  letter-spacing:1px;color:var(--cream);margin-bottom:4px;
+}
+.ed-photo .ep-sub{
+  font-size:.72rem;color:rgba(245,240,232,.45);font-weight:300;
+}
+@media(max-width:900px){
+  .ed-grid{grid-template-columns:1fr 1fr;grid-template-rows:auto;}
+  .ed-photo.span2{grid-row:auto;}
+  .ed-photo{height:220px;}
+  .editorial{padding:60px 24px;}
+}
+@media(max-width:600px){.ed-grid{grid-template-columns:1fr;}}
+
+/* ═══ STATS BAND ═══ */
+.stats-band{
+  position:relative;z-index:10;
+  margin:0 48px 100px;
+  padding:60px;
+  background:rgba(12,10,16,.58);
+  backdrop-filter:saturate(200%) blur(28px);
+  -webkit-backdrop-filter:saturate(200%) blur(28px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--gr);
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:40px;overflow:hidden;
+  box-shadow:0 32px 80px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.1),inset 0 -1px 0 rgba(0,0,0,.3);
+}
+.stats-band::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.28) 30%,rgba(255,255,255,.38) 50%,rgba(255,255,255,.28) 70%,transparent);
+  z-index:5;pointer-events:none;
+}
+.stats-band::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 90% 55% at 50% -10%,rgba(255,255,255,.05),transparent 60%),
+    radial-gradient(ellipse 60% 40% at 20% 110%,rgba(232,25,44,.06),transparent 55%);
+  z-index:4;pointer-events:none;
+}
+.stat{border-right:1px solid rgba(245,240,232,.06);}
+.stat:last-child{border-right:none;}
+.stat-num{
+  font-family:var(--dn);
+  font-size:clamp(3rem,5vw,5rem);
+  line-height:1;letter-spacing:1px;
+  color:var(--cream);margin-bottom:8px;
+}
+.stat-num sup{font-size:40%;color:var(--red);vertical-align:super;}
+.stat-label{
+  font-family:var(--dc);font-size:.7rem;font-weight:500;
+  letter-spacing:2.5px;text-transform:uppercase;
+  color:rgba(245,240,232,.3);
+}
+@media(max-width:700px){
+  .stats-band{grid-template-columns:repeat(2,1fr);margin:0 24px 60px;padding:40px 24px;}
+  .stat{border-right:none;border-bottom:1px solid rgba(245,240,232,.06);padding-bottom:20px;}
+}
+
+/* ═══ HOW IT WORKS ═══ */
+.hiw{
+  position:relative;z-index:10;
+  padding:100px 48px;max-width:1400px;margin:0 auto;
+}
+.section-tag{
+  display:inline-flex;align-items:center;gap:12px;
+  font-family:var(--dc);font-size:.65rem;font-weight:500;
+  letter-spacing:3.5px;text-transform:uppercase;color:var(--gold);
+  margin-bottom:14px;
+}
+.section-tag::before{content:'';width:28px;height:1px;background:var(--gold);}
+.section-h2{
+  font-family:var(--dn);
+  font-size:clamp(2.4rem,5vw,5rem);
+  line-height:.95;letter-spacing:1px;color:var(--cream);
+  margin-bottom:70px;
+}
+.section-h2 em{font-style:normal;color:var(--red);}
+
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative;}
+.steps::before{
+  content:'';position:absolute;top:28px;left:calc(12.5% + 4px);right:calc(12.5% + 4px);
+  height:1px;background:linear-gradient(to right,transparent,rgba(245,240,232,.1) 20%,rgba(245,240,232,.1) 80%,transparent);
+}
+.step{
+  padding:32px 26px;
+  background:rgba(14,12,18,.52);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--gr);
+  position:relative;overflow:hidden;
+  transition:all .3s cubic-bezier(.25,.46,.45,.94);
+}
+.step::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.2) 50%,transparent);
+  z-index:5;pointer-events:none;
+}
+.step::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 40% at 50% -5%,rgba(255,255,255,.045),transparent 60%);
+  z-index:4;pointer-events:none;
+}
+.step:hover{
+  background:rgba(22,18,32,.65);
+  border-color:rgba(255,255,255,.16);
+  transform:translateY(-6px);
+  box-shadow:0 24px 60px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.08);
+}
+.step-n{
+  width:56px;height:56px;border-radius:50%;
+  border:1px solid rgba(245,240,232,.1);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--dn);font-size:1.2rem;
+  color:var(--cream);margin-bottom:24px;
+  background:var(--ink);position:relative;z-index:1;
+  transition:all .3s;
+}
+.step:hover .step-n{background:var(--red);border-color:var(--red);box-shadow:0 0 30px rgba(232,25,44,.4);}
+.step-icon{font-size:1.8rem;margin-bottom:14px;display:block;}
+.step h3{
+  font-family:var(--dc);font-size:1.05rem;font-weight:600;
+  letter-spacing:.5px;color:var(--cream);margin-bottom:10px;
+}
+.step p{font-size:.8rem;font-weight:300;color:rgba(245,240,232,.38);line-height:1.7;}
+@media(max-width:800px){.steps{grid-template-columns:repeat(2,1fr);gap:40px;}.steps::before{display:none;}}
+@media(max-width:480px){.steps{grid-template-columns:1fr;}}
+@media(max-width:768px){.hiw{padding:60px 24px;}}
+
+/* ═══ VIDEO FEATURE ═══ */
+.vid-feature{
+  position:relative;z-index:10;
+  margin:0 48px 100px;
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:0;border-radius:var(--gr);overflow:hidden;
+  min-height:480px;
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:0 32px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1);
+}
+.vf-vid{
+  position:relative;overflow:hidden;
+}
+.vf-vid video{
+  width:100%;height:100%;object-fit:cover;
+  filter:brightness(.6) saturate(.85);
+}
+.vf-vid::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to right,transparent 60%,var(--smoke));
+}
+.vf-live{
+  position:absolute;top:20px;left:20px;z-index:2;
+  display:flex;align-items:center;gap:6px;
+  padding:5px 12px;
+  background:rgba(8,8,8,.6);backdrop-filter:blur(8px);
+  border:1px solid rgba(232,25,44,.3);border-radius:2px;
+  font-family:var(--dc);font-size:.62rem;font-weight:500;
+  letter-spacing:2px;text-transform:uppercase;color:#fff;
+}
+.vf-dot{width:5px;height:5px;border-radius:50%;background:var(--red);animation:pulse2 1.3s ease infinite;}
+@keyframes pulse2{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(232,25,44,.5);}50%{opacity:.5;box-shadow:0 0 0 5px rgba(232,25,44,0);}}
+.vf-play{
+  position:absolute;bottom:20px;left:20px;z-index:2;
+  width:50px;height:50px;border-radius:50%;
+  background:var(--red);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 24px rgba(232,25,44,.5);
+  transition:all .22s cubic-bezier(.34,1.56,.64,1);
+}
+.vf-play:hover{transform:scale(1.12);}
+.vf-content{
+  background:rgba(12,10,18,.62);
+  backdrop-filter:saturate(180%) blur(24px);
+  -webkit-backdrop-filter:saturate(180%) blur(24px);
+  padding:60px 50px;
+  display:flex;flex-direction:column;justify-content:center;
+  border-left:1px solid rgba(255,255,255,.07);
+  position:relative;
+}
+.vf-content::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.18) 50%,transparent);
+  z-index:5;
+}
+.vf-content .section-tag{margin-bottom:18px;}
+.vf-content .section-h2{font-size:clamp(2rem,4vw,3.5rem);margin-bottom:20px;}
+.vf-desc{
+  font-size:.88rem;font-weight:300;
+  color:rgba(245,240,232,.4);line-height:1.8;
+  margin-bottom:36px;
+}
+.vf-stats{
+  display:flex;gap:32px;margin-bottom:36px;padding-top:24px;
+  border-top:1px solid rgba(245,240,232,.06);
+}
+.vf-stat-n{
+  font-family:var(--dn);font-size:2.2rem;letter-spacing:1px;
+  color:var(--cream);
+}
+.vf-stat-n span{font-size:1rem;color:var(--gold);}
+.vf-stat-l{
+  font-family:var(--dc);font-size:.62rem;font-weight:500;
+  letter-spacing:2px;text-transform:uppercase;
+  color:rgba(245,240,232,.3);margin-top:3px;
+}
+@media(max-width:800px){
+  .vid-feature{grid-template-columns:1fr;margin:0 24px 60px;}
+  .vf-vid{height:280px;}
+  .vf-content{padding:40px 28px;}
+}
+
+/* ═══ FEATURES ═══ */
+.features{
+  position:relative;z-index:10;
+  padding:100px 48px;max-width:1400px;margin:0 auto;
+}
+.feat-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;
+  background:rgba(255,255,255,.05);
+  border-radius:var(--gr);overflow:hidden;
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:0 28px 70px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.1);
+  backdrop-filter:blur(4px);
+}
+.feat{
+  padding:44px 38px;
+  background:rgba(12,10,16,.55);
+  backdrop-filter:saturate(200%) blur(24px);
+  -webkit-backdrop-filter:saturate(200%) blur(24px);
+  transition:all .32s cubic-bezier(.25,.46,.45,.94);
+  position:relative;overflow:hidden;
+}
+.feat::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.18) 40%,rgba(255,255,255,.25) 50%,rgba(255,255,255,.18) 60%,transparent);
+  z-index:5;pointer-events:none;opacity:.7;
+}
+.feat::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 50% at 50% -8%,rgba(255,255,255,.048),transparent 65%),
+    linear-gradient(135deg,rgba(232,25,44,.04),transparent 50%);
+  opacity:0;transition:opacity .3s;z-index:4;pointer-events:none;
+}
+.feat:hover::after{opacity:1;}
+.feat:hover{
+  background:rgba(20,16,26,.68);
+  transform:translateY(-4px);
+  box-shadow:0 20px 55px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.12);
+}
+.feat-num{
+  font-family:var(--dn);font-size:5rem;
+  color:rgba(245,240,232,.04);letter-spacing:1px;
+  line-height:1;margin-bottom:-20px;
+}
+.feat-icon{
+  width:42px;height:42px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:18px;
+}
+.feat h3{
+  font-family:var(--dc);font-size:1.1rem;font-weight:600;
+  letter-spacing:.5px;color:var(--cream);margin-bottom:10px;
+}
+.feat p{font-size:.8rem;font-weight:300;color:rgba(245,240,232,.38);line-height:1.7;}
+.feat-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:18px;
+  font-family:var(--dc);font-size:.6rem;font-weight:500;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--gold);
+}
+.feat-tag::before{content:'';width:16px;height:1px;background:var(--gold);}
+@media(max-width:900px){.feat-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:560px){.feat-grid{grid-template-columns:1fr;}}
+@media(max-width:768px){.features{padding:60px 24px;}}
+
+/* ═══ ROLES ═══ */
+.roles{
+  position:relative;z-index:10;
+  padding:100px 48px;max-width:1400px;margin:0 auto;
+}
+.roles-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:16px;
+}
+.role{
+  padding:44px 38px;border-radius:var(--gr);
+  background:rgba(14,12,20,.55);
+  backdrop-filter:saturate(180%) blur(22px);
+  -webkit-backdrop-filter:saturate(180%) blur(22px);
+  border:1px solid rgba(255,255,255,.08);
+  position:relative;overflow:hidden;
+  transition:all .32s cubic-bezier(.25,.46,.45,.94);
+}
+.role::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.22) 40%,rgba(255,255,255,.3) 50%,rgba(255,255,255,.22) 60%,transparent);
+  z-index:5;pointer-events:none;
+}
+/* curved rim */
+.role .role-rim{
+  position:absolute;inset:1px;border-radius:calc(var(--gr) - 1px);
+  border:1px solid transparent;
+  background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,0)) padding-box,
+    linear-gradient(150deg,rgba(255,255,255,.18),rgba(255,255,255,.04) 30%,transparent 55%,rgba(255,255,255,.03) 80%,rgba(255,255,255,.1)) border-box;
+  pointer-events:none;z-index:6;
+}
+.role::after{
+  content:'';position:absolute;
+  bottom:0;left:0;right:0;height:2px;
+  opacity:0;transition:opacity .3s;
+}
+.role:nth-child(1)::after{background:var(--red);}
+.role:nth-child(2)::after{background:var(--gold);}
+.role:nth-child(3)::after{background:#30d158;}
+.role:hover::after{opacity:1;}
+.role:hover{
+  transform:translateY(-7px);
+  border-color:rgba(255,255,255,.16);
+  background:rgba(22,18,30,.7);
+  box-shadow:0 28px 65px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.14);
+}
+.role-big-num{
+  font-family:var(--dn);font-size:6rem;
+  color:rgba(245,240,232,.04);line-height:1;
+  margin-bottom:-24px;letter-spacing:1px;
+}
+.role-icon{font-size:2rem;display:block;margin-bottom:16px;}
+.role h3{
+  font-family:var(--dc);font-size:1.15rem;font-weight:600;
+  letter-spacing:.5px;color:var(--cream);margin-bottom:10px;
+}
+.role p{font-size:.82rem;font-weight:300;color:rgba(245,240,232,.38);line-height:1.7;margin-bottom:28px;}
+.role-link{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--dc);font-size:.75rem;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;
+  transition:gap .2s;
+}
+.role:nth-child(1) .role-link{color:var(--red);}
+.role:nth-child(2) .role-link{color:var(--gold);}
+.role:nth-child(3) .role-link{color:#30d158;}
+.role-link:hover{gap:14px;}
+@media(max-width:750px){.roles-grid{grid-template-columns:1fr;}}
+@media(max-width:768px){.roles{padding:60px 24px;}}
+
+/* ═══ CTA BAND ═══ */
+.cta-band{
+  position:relative;z-index:10;
+  margin:0 48px 100px;
+  padding:100px 60px;
+  background:rgba(14,10,18,.6);
+  backdrop-filter:saturate(200%) blur(28px);
+  -webkit-backdrop-filter:saturate(200%) blur(28px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--gr);
+  overflow:hidden;text-align:center;
+  box-shadow:0 36px 90px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(0,0,0,.25);
+}
+/* top shine */
+.cta-band::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.3) 35%,rgba(255,255,255,.42) 50%,rgba(255,255,255,.3) 65%,transparent);
+  z-index:5;pointer-events:none;
+}
+/* inner bloom + ghost text */
+.cta-band::after{
+  content:'eGarage';
+  position:absolute;
+  font-family:var(--dn);font-size:18vw;
+  color:rgba(245,240,232,.018);
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  white-space:nowrap;pointer-events:none;
+  letter-spacing:4px;z-index:0;
+}
+.cta-band .section-tag{justify-content:center;margin-bottom:16px;}
+.cta-h2{
+  font-family:var(--dn);
+  font-size:clamp(2.5rem,6vw,6rem);
+  line-height:.95;letter-spacing:2px;
+  color:var(--cream);margin-bottom:16px;
+}
+.cta-h2 em{font-style:normal;color:var(--red);}
+.cta-sub{
+  font-size:.92rem;font-weight:300;
+  color:rgba(245,240,232,.38);
+  max-width:420px;margin:0 auto 40px;
+  line-height:1.7;
+}
+.cta-actions{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;}
+@media(max-width:768px){.cta-band{margin:0 24px 60px;padding:60px 28px;}}
+
+/* ═══ FOOTER ═══ */
+footer{
+  position:relative;z-index:10;
+  border-top:1px solid rgba(245,240,232,.06);
+  padding:44px 48px;
+  display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;gap:20px;
+}
+.footer-logo{
+  font-family:var(--dn);font-size:1.4rem;
+  letter-spacing:3px;color:rgba(245,240,232,.25);
+}
+.footer-links{display:flex;gap:24px;justify-content:center;}
+.footer-links a{
+  font-family:var(--dc);font-size:.68rem;font-weight:500;
+  letter-spacing:2px;text-transform:uppercase;
+  color:rgba(245,240,232,.22);transition:color .2s;
+}
+.footer-links a:hover{color:rgba(245,240,232,.6);}
+.footer-copy{
+  font-family:var(--dc);font-size:.62rem;font-weight:400;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:rgba(245,240,232,.15);text-align:right;
+}
+@media(max-width:700px){footer{grid-template-columns:1fr;text-align:center;padding:40px 24px;}.footer-copy{text-align:center;}.footer-links{flex-wrap:wrap;}}
+
+/* ═══ VIDEO MODAL ═══ */
+.vmodal{
+  position:fixed;inset:0;z-index:5000;
+  display:none;align-items:center;justify-content:center;padding:24px;
+}
+.vmodal.open{display:flex;}
+.vmodal-bg{
+  position:absolute;inset:0;
+  background:rgba(5,5,5,.92);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  animation:fadeIn .3s ease;
+}
+.vmodal-box{
+  position:relative;z-index:10;width:100%;max-width:820px;
+  background:#0d0d0d;border:1px solid rgba(245,240,232,.07);
+  border-radius:6px;overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,.9);
+  animation:modalIn .35s cubic-bezier(.16,1,.3,1);
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.9) translateY(30px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.vm-close{
+  position:absolute;top:12px;right:12px;z-index:20;
+  width:34px;height:34px;border-radius:4px;
+  background:rgba(245,240,232,.08);border:none;
+  cursor:pointer;color:rgba(245,240,232,.6);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.vm-close:hover{background:rgba(245,240,232,.15);color:var(--cream);}
+.vm-header{padding:24px 28px 0;}
+.vm-eyebrow{
+  font-family:var(--dc);font-size:.62rem;font-weight:500;
+  letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-bottom:6px;
+}
+.vm-title{font-family:var(--dc);font-size:1.1rem;font-weight:600;letter-spacing:.5px;color:var(--cream);}
+.vm-player{position:relative;padding-bottom:56.25%;background:#000;margin-top:16px;}
+.vm-player video{position:absolute;inset:0;width:100%;height:100%;}
+.vm-footer{
+  padding:16px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;
+  border-top:1px solid rgba(245,240,232,.05);
+}
+.vm-stats{display:flex;gap:20px;}
+.vm-stat-item{
+  font-family:var(--dc);font-size:.68rem;font-weight:400;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:rgba(245,240,232,.3);
+  display:flex;align-items:center;gap:6px;
+}
+.vm-cta{
+  padding:9px 22px;border-radius:4px;
+  background:var(--red);color:#fff;
+  font-family:var(--dc);font-size:.75rem;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;
+  transition:all .2s;
+}
+.vm-cta:hover{background:#c41222;}
+
+/* ═══ SCROLL REVEAL ═══ */
+.reveal{
+  opacity:0;transform:translateY(28px);
+  transition:opacity .7s ease,transform .7s cubic-bezier(.16,1,.3,1);
+}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.reveal-delay-1{transition-delay:.1s;}
+.reveal-delay-2{transition-delay:.2s;}
+.reveal-delay-3{transition-delay:.3s;}
+.reveal-delay-4{transition-delay:.4s;}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- GRAIN -->
+<div class="grain"></div>
+<canvas id="bg3d"></canvas>
+<style>
+#bg3d{
+  position:fixed;inset:0;
+  z-index:0;
+  pointer-events:none;
+  width:100%;height:100%;
+}
+</style>
+<div id="preloader">
+  <div class="pl-logo">e<span>G</span>arage</div>
+  <div class="pl-bar-wrap"><div class="pl-bar" id="plBar"></div></div>
+  <div class="pl-num" id="plNum">0%</div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="/" class="nav-logo">
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/>
+        <circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+      </svg>
+    </div>
+    eGarage
+  </a>
+  <div class="nav-links">
+    <a href="#work" class="nl">Our Work</a>
+    <a href="#how" class="nl">Process</a>
+    <a href="#features" class="nl">Features</a>
+    <a href="#join" class="nl">Join</a>
+  </div>
+  <div class="nav-btns">
+    <!-- Day/Night Toggle -->
+    <button class="theme-pill" onclick="toggleTheme()" id="themePill" aria-label="Toggle day/night mode">
+      <div class="tp-track"><div class="tp-thumb" id="tpThumb">🌙</div></div>
+      <span class="tp-label" id="tpLabel">Night</span>
+    </button>
+    <a href="{% url 'login' %}" class="nb-ghost">Login</a>
+    <a href="{% url 'booking' %}" class="nb-red">Book Now</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-video-bg">
+    <video autoplay loop muted playsinline preload="auto" id="heroBgVid">
+      <source src="/static/videos/service_promo.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="hero-line"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">Now Live in Rajkot, Gujarat</div>
+    <h1 class="hero-h1">
+      Book Car<br>
+      <em>Service</em><br>
+      <span class="outline">In 60 Sec.</span>
+    </h1>
+    <p class="hero-sub">
+      Certified mechanics. Live tracking. Transparent pricing.
+      India's most trusted car service platform — now in your city.
+    </p>
+    <div class="hero-actions">
+      <a href="{% url 'booking' %}" class="ha-primary">
+        Book a Service
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+      <a href="{% url 'signup' %}" class="ha-ghost">Create Account</a>
+      <button class="ha-vid" onclick="openVid()">
+        <div class="vid-play-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="9" height="9"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+        Watch the Story
+      </button>
+    </div>
+  </div>
+
+  <div class="hero-scroll">
+    <div class="hs-line"></div>
+    <div class="hs-txt">Scroll</div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track" id="marq">
+    <div class="marquee-item">Engine Service</div>
+    <div class="marquee-item">Oil Change</div>
+    <div class="marquee-item">Tyre Replacement</div>
+    <div class="marquee-item">AC Service</div>
+    <div class="marquee-item">Digital Diagnosis</div>
+    <div class="marquee-item">Denting & Painting</div>
+    <div class="marquee-item">Battery Replacement</div>
+    <div class="marquee-item">Full Checkup</div>
+    <div class="marquee-item">Wheel Alignment</div>
+    <div class="marquee-item">Brake Service</div>
+    <div class="marquee-item">Detailing & Wash</div>
+    <div class="marquee-item">Suspension Check</div>
+    <div class="marquee-item">Engine Service</div>
+    <div class="marquee-item">Oil Change</div>
+    <div class="marquee-item">Tyre Replacement</div>
+    <div class="marquee-item">AC Service</div>
+    <div class="marquee-item">Digital Diagnosis</div>
+    <div class="marquee-item">Denting & Painting</div>
+    <div class="marquee-item">Battery Replacement</div>
+    <div class="marquee-item">Full Checkup</div>
+    <div class="marquee-item">Wheel Alignment</div>
+    <div class="marquee-item">Brake Service</div>
+    <div class="marquee-item">Detailing & Wash</div>
+    <div class="marquee-item">Suspension Check</div>
+  </div>
+</div>
+
+<!-- EDITORIAL PHOTO SECTION -->
+<section class="editorial" id="work">
+  <div class="ed-header reveal">
+    <div>
+      <div class="ed-label">Real Work. Real People.</div>
+      <div class="ed-title">Mechanics<br>You Can <em>Trust.</em></div>
+    </div>
+    <div class="ed-desc">
+      Certified experts. Every job documented. Every detail checked.
+      Your car is treated like ours.
+    </div>
+  </div>
+
+  <div class="ed-grid">
+    <div class="ed-photo span2 reveal">
+      <div class="ep-img ph1"></div>
+      <div class="ep-over"></div>
+      <div class="ep-tag">Engine Service</div>
+      <div class="ep-info">
+        <div class="ep-title">Full 30-Point Engine Inspection</div>
+        <div class="ep-sub">Oil · Filters · Belts · Cooling System</div>
+      </div>
+    </div>
+    <div class="ed-photo reveal reveal-delay-1">
+      <div class="ep-img ph2"></div>
+      <div class="ep-over"></div>
+      <div class="ep-tag">Digital Diagnosis</div>
+      <div class="ep-info">
+        <div class="ep-title">OBD-II Live Scanning</div>
+        <div class="ep-sub">Real-time fault codes & sensor data</div>
+      </div>
+    </div>
+    <div class="ed-photo reveal reveal-delay-2">
+      <div class="ep-img ph3"></div>
+      <div class="ep-over"></div>
+      <div class="ep-tag">Detailing</div>
+      <div class="ep-info">
+        <div class="ep-title">Pressure Wash & Polish</div>
+        <div class="ep-sub">Returned cleaner than you gave it</div>
+      </div>
+    </div>
+    <div class="ed-photo reveal reveal-delay-3">
+      <div class="ep-img ph4"></div>
+      <div class="ep-over"></div>
+      <div class="ep-tag">Tyre & Wheel</div>
+      <div class="ep-info">
+        <div class="ep-title">All 4 Wheels in 45 Minutes</div>
+        <div class="ep-sub">Balancing · Alignment · Replacement</div>
+      </div>
+    </div>
+    <div class="ed-photo reveal reveal-delay-4">
+      <div class="ep-img ph5"></div>
+      <div class="ep-over"></div>
+      <div class="ep-tag">Our Team</div>
+      <div class="ep-info">
+        <div class="ep-title">Certified & Background-Checked</div>
+        <div class="ep-sub">120-hour certification before first job</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-band reveal">
+  <div class="stat">
+    <div class="stat-num" data-count="{{ total_bookings|default:3400 }}">0<sup>+</sup></div>
+    <div class="stat-label">Jobs Completed</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" data-count="{{ total_garages|default:12 }}">0<sup>+</sup></div>
+    <div class="stat-label">Verified Garages</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" data-count="{{ total_mechanics|default:80 }}">0<sup>+</sup></div>
+    <div class="stat-label">Certified Mechanics</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">4.9<sup>★</sup></div>
+    <div class="stat-label">Average Rating</div>
+  </div>
+</div>
+
+<!-- VIDEO FEATURE -->
+<div class="vid-feature reveal">
+  <div class="vf-vid">
+    <video autoplay loop muted playsinline preload="auto">
+      <source src="/static/videos/service_promo.mp4" type="video/mp4">
+    </video>
+    <div class="vf-live"><span class="vf-dot"></span> Live Service</div>
+    <button class="vf-play" onclick="openVid()">
+      <svg viewBox="0 0 24 24" fill="white" width="18" height="18"><polygon points="5,3 19,12 5,21"/></svg>
+    </button>
+  </div>
+  <div class="vf-content">
+    <div class="section-tag">The Platform</div>
+    <div class="section-h2">Your Car.<br><em>Our Promise.</em></div>
+    <p class="vf-desc">
+      From the moment you book to the second you get your keys back — every step is tracked, documented, and delivered with precision. No surprises. Ever.
+    </p>
+    <div class="vf-stats">
+      <div>
+        <div class="vf-stat-n">{{ advance_fee_display|default:"₹300" }}<span>–{{ max_fee|default:"₹600" }}</span></div>
+        <div class="vf-stat-l">Advance Only</div>
+      </div>
+      <div>
+        <div class="vf-stat-n">60<span>sec</span></div>
+        <div class="vf-stat-l">To Book</div>
+      </div>
+      <div>
+        <div class="vf-stat-n">0<span>Hidden</span></div>
+        <div class="vf-stat-l">Charges</div>
+      </div>
+    </div>
+    <a href="{% url 'booking' %}" class="ha-primary" style="display:inline-flex;align-items:center;gap:10px;padding:13px 28px;border-radius:4px;">
+      Book Now
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </a>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="hiw" id="how">
+  <div class="reveal">
+    <div class="section-tag">Simple Process</div>
+    <div class="section-h2">How It <em>Works</em></div>
+  </div>
+  <div class="steps">
+    <div class="step reveal reveal-delay-1">
+      <div class="glass-rim"></div>
+      <div class="step-n">01</div>
+      <span class="step-icon">🚗</span>
+      <h3>Pick Your Vehicle</h3>
+      <p>Select from your saved cars and bikes or add a new one. Brand, model, fuel type — done in seconds.</p>
+    </div>
+    <div class="step reveal reveal-delay-2">
+      <div class="glass-rim"></div>
+      <div class="step-n">02</div>
+      <span class="step-icon">🔧</span>
+      <h3>Choose Service</h3>
+      <p>Oil change, AC service, tyre replacement, full checkup — see prices per garage before confirming.</p>
+    </div>
+    <div class="step reveal reveal-delay-3">
+      <div class="glass-rim"></div>
+      <div class="step-n">03</div>
+      <span class="step-icon">📅</span>
+      <h3>Pick a Slot</h3>
+      <p>Choose your date and time. A certified mechanic is assigned to your booking automatically.</p>
+    </div>
+    <div class="step reveal reveal-delay-4">
+      <div class="glass-rim"></div>
+      <div class="step-n">04</div>
+      <span class="step-icon">📱</span>
+      <h3>Track & Pay</h3>
+      <p>Live status updates as work happens. Pay only the advance upfront — balance after the job is done.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="reveal">
+    <div class="section-tag">Why eGarage</div>
+    <div class="section-h2">Built for the <em>Real World</em></div>
+  </div>
+  <div class="feat-grid" style="margin-top:50px;">
+    <div class="feat reveal">
+      <div class="feat-num">01</div>
+      <div class="feat-icon" style="background:rgba(232,25,44,.1);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e8192c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <h3>Real-Time Tracking</h3>
+      <p>Know exactly where your car is in the service queue. Live status — assigned, in progress, done.</p>
+      <div class="feat-tag">Live Updates</div>
+    </div>
+    <div class="feat reveal reveal-delay-1">
+      <div class="feat-num">02</div>
+      <div class="feat-icon" style="background:rgba(200,169,110,.1);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h3>Verified Mechanics</h3>
+      <p>Background-checked, certified, and rated by real customers before they ever touch your car.</p>
+      <div class="feat-tag">100% Verified</div>
+    </div>
+    <div class="feat reveal reveal-delay-2">
+      <div class="feat-num">03</div>
+      <div class="feat-icon" style="background:rgba(48,209,88,.1);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#30d158" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      </div>
+      <h3>Transparent Pricing</h3>
+      <p>See every rupee before you confirm. Parts added during service update your bill in real time.</p>
+      <div class="feat-tag">Zero Hidden Fees</div>
+    </div>
+    <div class="feat reveal">
+      <div class="feat-num">04</div>
+      <div class="feat-icon" style="background:rgba(10,132,255,.1);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0a84ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      </div>
+      <h3>Direct Mechanic Chat</h3>
+      <p>Message the mechanic or manager directly inside the app. No phone calls needed.</p>
+      <div class="feat-tag">In-App Chat</div>
+    </div>
+    <div class="feat reveal reveal-delay-1">
+      <div class="feat-num">05</div>
+      <div class="feat-icon" style="background:rgba(191,90,242,.1);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#bf5af2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <h3>Smart Scheduling</h3>
+      <p>Slot suggestions based on your area, vehicle type, and mechanic availability.</p>
+      <div class="feat-tag">AI Powered</div>
+    </div>
+    <div class="feat reveal reveal-delay-2">
+      <div class="feat-num">06</div>
+      <div class="feat-icon" style="background:rgba(255,214,10,.1);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+      </div>
+      <h3>Complete Service History</h3>
+      <p>Every job logged. Full history per vehicle — accessible from anywhere, forever.</p>
+      <div class="feat-tag">Cloud Synced</div>
+    </div>
+  </div>
+</section>
+
+<!-- ROLES -->
+<section class="roles" id="join">
+  <div class="reveal">
+    <div class="section-tag">For Everyone</div>
+    <div class="section-h2">Pick Your <em>Role</em></div>
+  </div>
+  <div class="roles-grid" style="margin-top:50px;">
+    <div class="role reveal reveal-delay-1">
+      <div class="role-rim"></div>
+      <div class="role-big-num">01</div>
+      <span class="role-icon">🚗</span>
+      <h3>Vehicle Owner</h3>
+      <p>Book any service, track your car live, and pay only when the job is done. Your vehicle, fully covered.</p>
+      <a href="{% url 'signup' %}" class="role-link">
+        Get Started
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+    <div class="role reveal reveal-delay-2">
+      <div class="role-rim"></div>
+      <div class="role-big-num">02</div>
+      <span class="role-icon">🔧</span>
+      <h3>Mechanic</h3>
+      <p>Receive jobs, manage your schedule, build your rating, and grow your income — on your terms.</p>
+      <a href="{% url 'signup' %}" class="role-link">
+        Join as Mechanic
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+    <div class="role reveal reveal-delay-3">
+      <div class="role-rim"></div>
+      <div class="role-big-num">03</div>
+      <span class="role-icon">🏢</span>
+      <h3>Garage Manager</h3>
+      <p>Manage your team, set custom pricing, view all bookings and revenue. Grow your business fast.</p>
+      <a href="{% url 'signup' %}" class="role-link">
+        List Your Garage
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BAND -->
+<div class="cta-band reveal">
+  <div class="section-tag">Get Started Today</div>
+  <div class="cta-h2">Ready to Book?<br><em>It's Free.</em></div>
+  <p class="cta-sub">Join thousands of vehicle owners, mechanics, and garage managers already on eGarage.</p>
+  <div class="cta-actions">
+    <a href="{% url 'signup' %}" class="ha-primary">
+      Create Free Account
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </a>
+    <a href="{% url 'booking' %}" class="ha-ghost">Book a Service</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">eGarage</div>
+  <div class="footer-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Support</a>
+    <a href="#">Careers</a>
+  </div>
+  <div class="footer-copy">© 2025 · Made in Rajkot</div>
+</footer>
+
+<!-- VIDEO MODAL -->
+<div class="vmodal" id="vmodal">
+  <div class="vmodal-bg" onclick="closeVid()"></div>
+  <div class="vmodal-box">
+    <button class="vm-close" onclick="closeVid()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="vm-header">
+      <div class="vm-eyebrow">eGarage — Real Work</div>
+      <div class="vm-title">From booking to delivery in 60 seconds</div>
+    </div>
+    <div class="vm-player">
+      <video id="modalVid" controls preload="metadata" playsinline>
+        <source src="/static/videos/service_promo.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div class="vm-footer">
+      <div class="vm-stats">
+        <div class="vm-stat-item">🔧 Certified Mechanics</div>
+        <div class="vm-stat-item">⏱ 60-Second Booking</div>
+        <div class="vm-stat-item">📱 Live Tracking</div>
+      </div>
+      <a href="{% url 'signup' %}" class="vm-cta">Book Now — Free</a>
+    </div>
+  </div>
+</div>
+
+<!-- SCRIPTS -->
+<script>
+/* ── THEME ── */
+(function(){
+  var DARK='dark',LIGHT='light',KEY='eg_theme';
+  function getT(){var s=localStorage.getItem(KEY);if(s)return s;return window.matchMedia('(prefers-color-scheme: dark)').matches?DARK:LIGHT;}
+  function applyT(t){
+    document.documentElement.setAttribute('data-theme',t);
+    localStorage.setItem(KEY,t);
+    var isDark=t===DARK;
+    var lbl=document.getElementById('tpLabel');
+    var thumb=document.getElementById('tpThumb');
+    if(lbl) lbl.textContent=isDark?'Night':'Day';
+    if(thumb) thumb.textContent=isDark?'🌙':'☀️';
+  }
+  window.toggleTheme=function(){
+    var cur=document.documentElement.getAttribute('data-theme')||DARK;
+    applyT(cur===DARK?LIGHT:DARK);
+  };
+  applyT(getT());
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(e){
+    if(!localStorage.getItem(KEY)) applyT(e.matches?DARK:LIGHT);
+  });
+})();
+
+/* ── CURSOR ── */
+var cur = document.getElementById('cursor');
+var ring = document.getElementById('cursor-ring');
+var mx=window.innerWidth/2, my=window.innerHeight/2;
+var rx=mx, ry=my;
+document.addEventListener('mousemove', function(e){ mx=e.clientX; my=e.clientY; });
+(function ringLoop(){
+  rx += (mx-rx)*.14; ry += (my-ry)*.14;
+  cur.style.left = mx+'px'; cur.style.top = my+'px';
+  ring.style.left = rx+'px'; ring.style.top = ry+'px';
+  requestAnimationFrame(ringLoop);
+})();
+
+/* ── PRELOADER ── */
+var plBar = document.getElementById('plBar');
+var plNum = document.getElementById('plNum');
+var pl = document.getElementById('preloader');
+var p = 0;
+var plInt = setInterval(function(){
+  p = Math.min(p + Math.random()*4 + 1, 100);
+  plBar.style.width = p + '%';
+  plNum.textContent = Math.floor(p) + '%';
+  if(p >= 100){
+    clearInterval(plInt);
+    setTimeout(function(){ pl.classList.add('done'); }, 300);
+  }
+}, 40);
+
+/* ── NAV SCROLL ── */
+var nav = document.getElementById('nav');
+window.addEventListener('scroll', function(){
+  nav.classList.toggle('scrolled', window.scrollY > 60);
+});
+
+/* ── VIDEO MODAL ── */
+function openVid(){
+  document.getElementById('vmodal').classList.add('open');
+  var v = document.getElementById('modalVid');
+  if(v){ v.currentTime=0; v.play().catch(function(){}); }
+  var bv = document.getElementById('heroBgVid');
+  if(bv) bv.pause();
+}
+function closeVid(){
+  document.getElementById('vmodal').classList.remove('open');
+  var v = document.getElementById('modalVid');
+  if(v){ v.pause(); v.currentTime=0; }
+  var bv = document.getElementById('heroBgVid');
+  if(bv) bv.play().catch(function(){});
+}
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeVid(); });
+
+/* ── SCROLL REVEAL ── */
+var reveals = document.querySelectorAll('.reveal');
+var io = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, {threshold:.12});
+reveals.forEach(function(el){ io.observe(el); });
+
+/* ── COUNTER ANIMATION ── */
+var counters = document.querySelectorAll('.stat-num[data-count]');
+var cIO = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(!e.isIntersecting) return;
+    var el = e.target;
+    var target = parseInt(el.getAttribute('data-count'));
+    var sup = el.querySelector('sup') ? el.querySelector('sup').outerHTML : '';
+    var start = 0;
+    var dur = 1800;
+    var step = dur / 60;
+    var inc = target / 60;
+    var t = setInterval(function(){
+      start = Math.min(start + inc, target);
+      el.innerHTML = Math.floor(start).toLocaleString('en-IN') + sup;
+      if(start >= target) clearInterval(t);
+    }, step);
+    cIO.unobserve(el);
+  });
+}, {threshold:.3});
+counters.forEach(function(el){ cIO.observe(el); });
+
+/* ── SMOOTH SCROLL ── */
+document.querySelectorAll('a[href^="#"]').forEach(function(a){
+  a.addEventListener('click', function(e){
+    var t = document.querySelector(this.getAttribute('href'));
+    if(t){ e.preventDefault(); t.scrollIntoView({behavior:'smooth'}); }
+  });
+});
+</script>
+<!-- ══════════════════════════════════════════════════
+     THE GARAGE UNIVERSE — Pure Canvas2D Magnum Opus
+     Cars · Tools · Gears · Sparks · Silhouettes · Depth
+══════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+var cv = document.getElementById('bg3d');
+var cx = cv.getContext('2d');
+var W, H;
+function resize(){ W = cv.width = window.innerWidth; H = cv.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', function(){ resize(); buildNebula(); });
+
+var T = 0, dT = 0, lastTime = 0;
+
+/* ══ ATMOSPHERE LAYER (nebula offscreen) ══ */
+var nb = document.createElement('canvas');
+var nc = nb.getContext('2d');
+function buildNebula(){
+  nb.width = W; nb.height = H;
+  nc.clearRect(0,0,W,H);
+  var blobs = [
+    {x:.08, y:.35, r:.45, c:'rgba(232,25,44,.055)'},
+    {x:.92, y:.65, r:.42, c:'rgba(10,50,200,.05)'},
+    {x:.5,  y:.1,  r:.38, c:'rgba(180,20,50,.038)'},
+    {x:.2,  y:.85, r:.32, c:'rgba(80,40,200,.042)'},
+    {x:.78, y:.2,  r:.28, c:'rgba(200,140,20,.032)'},
+    {x:.55, y:.6,  r:.25, c:'rgba(232,25,44,.028)'},
+  ];
+  blobs.forEach(function(b){
+    var g = nc.createRadialGradient(b.x*W,b.y*H,0,b.x*W,b.y*H,b.r*Math.max(W,H));
+    g.addColorStop(0, b.c); g.addColorStop(1,'transparent');
+    nc.fillStyle = g; nc.fillRect(0,0,W,H);
+  });
+}
+buildNebula();
+
+/* ══ GEARS ══ */
+var GEARS = [
+  {x:.02, y:.02, r:220, teeth:28, spd:.0006, col:'rgba(232,25,44,.04)', phase:0},
+  {x:.98, y:.98, r:180, teeth:22, spd:-.0008, col:'rgba(200,169,110,.035)', phase:Math.PI/22},
+  {x:.96, y:.05, r:140, teeth:18, spd:.001, col:'rgba(10,50,200,.03)', phase:0},
+  {x:.04, y:.96, r:160, teeth:20, spd:-.0007, col:'rgba(232,25,44,.025)', phase:0},
+  {x:.5,  y:.5,  r:90,  teeth:12, spd:.0014, col:'rgba(200,169,110,.02)', phase:0},
+];
+function drawGear(g, angle){
+  var x=g.x*W, y=g.y*H, r=g.r, t=g.teeth, th=0.55, ti=r*.22;
+  cx.save();
+  cx.translate(x,y);
+  cx.rotate(angle);
+  cx.beginPath();
+  for(var i=0;i<t;i++){
+    var a0 = (i/t)*Math.PI*2 - Math.PI/t*th;
+    var a1 = a0 + Math.PI/t*th;
+    var a2 = a1 + Math.PI/t*(1-th)*.5;
+    var a3 = (i+1-th*0)/t*Math.PI*2 - Math.PI/t*th*0;
+    cx.lineTo((r-ti)*Math.cos(a0), (r-ti)*Math.sin(a0));
+    cx.lineTo(r*Math.cos(a1*.7+a0*.3), r*Math.sin(a1*.7+a0*.3));
+    cx.lineTo(r*Math.cos(a1), r*Math.sin(a1));
+    cx.lineTo((r-ti)*Math.cos((i+1)/t*Math.PI*2-Math.PI/t*th), (r-ti)*Math.sin((i+1)/t*Math.PI*2-Math.PI/t*th));
+  }
+  cx.closePath();
+  cx.strokeStyle = g.col; cx.lineWidth = 1.5;
+  cx.stroke();
+  /* inner ring */
+  cx.beginPath(); cx.arc(0,0,r*.72,0,Math.PI*2);
+  cx.strokeStyle = g.col; cx.lineWidth = 1; cx.stroke();
+  cx.beginPath(); cx.arc(0,0,r*.4,0,Math.PI*2);
+  cx.stroke();
+  /* spokes */
+  for(var s=0;s<6;s++){
+    var sa = s/6*Math.PI*2;
+    cx.beginPath();
+    cx.moveTo(Math.cos(sa)*r*.42, Math.sin(sa)*r*.42);
+    cx.lineTo(Math.cos(sa)*r*.7, Math.sin(sa)*r*.7);
+    cx.stroke();
+  }
+  cx.restore();
+}
+
+/* ══ TOOLS POOL ══ */
+function makeTool(init){
+  var depth = .2 + Math.random()*.8;
+  var sc = .3 + depth*.7;
+  return {
+    x: init ? Math.random()*W : (Math.random()>.5 ? -100 : W+100),
+    y: Math.random()*H,
+    z: depth,
+    scale: sc,
+    alpha: .04 + depth*.09,
+    vx: (.15+Math.random()*.3)*depth*(Math.random()>.5?1:-1),
+    vy: (.04+Math.random()*.08)*(Math.random()>.5?.5:-1),
+    rot: Math.random()*Math.PI*2,
+    vrot: (Math.random()-.5)*.008,
+    type: Math.floor(Math.random()*7), // 0=wrench,1=screw,2=socket,3=gear-s,4=nut,5=spanner,6=rod
+  };
+}
+var tools = [];
+for(var i=0;i<55;i++) tools.push(makeTool(true));
+
+function drawWrench(sc, col){
+  cx.save(); cx.scale(sc,sc);
+  cx.strokeStyle=col; cx.lineWidth=2.5/sc; cx.lineCap='round';
+  /* handle */
+  cx.beginPath(); cx.moveTo(0,-35); cx.lineTo(0,35); cx.stroke();
+  /* open jaw top */
+  cx.beginPath();
+  cx.arc(-8,-32,9,Math.PI*.8,Math.PI*2.2); cx.stroke();
+  cx.beginPath();
+  cx.arc(8,-32,9,Math.PI*-.2,Math.PI*.8); cx.stroke();
+  /* box end */
+  cx.beginPath(); cx.arc(0,35,11,0,Math.PI*2); cx.stroke();
+  cx.beginPath(); cx.arc(0,35,6,0,Math.PI*2); cx.stroke();
+  cx.restore();
+}
+function drawSocketHead(sc, col){
+  cx.save(); cx.scale(sc,sc);
+  cx.strokeStyle=col; cx.lineWidth=2/sc;
+  /* hex */
+  cx.beginPath();
+  for(var i=0;i<6;i++){
+    var a=i/6*Math.PI*2;
+    i===0?cx.moveTo(Math.cos(a)*14,Math.sin(a)*14):cx.lineTo(Math.cos(a)*14,Math.sin(a)*14);
+  }
+  cx.closePath(); cx.stroke();
+  cx.beginPath(); cx.arc(0,0,8,0,Math.PI*2); cx.stroke();
+  /* drive square */
+  cx.strokeRect(-5,-5,10,10);
+  cx.restore();
+}
+function drawNut(sc, col){
+  cx.save(); cx.scale(sc,sc);
+  cx.strokeStyle=col; cx.lineWidth=2/sc;
+  cx.beginPath();
+  for(var i=0;i<6;i++){
+    var a=i/6*Math.PI*2-Math.PI/6;
+    i===0?cx.moveTo(Math.cos(a)*12,Math.sin(a)*12):cx.lineTo(Math.cos(a)*12,Math.sin(a)*12);
+  }
+  cx.closePath(); cx.stroke();
+  cx.beginPath(); cx.arc(0,0,5,0,Math.PI*2); cx.stroke();
+  cx.restore();
+}
+function drawScrew(sc, col){
+  cx.save(); cx.scale(sc,sc);
+  cx.strokeStyle=col; cx.lineWidth=2.2/sc; cx.lineCap='round';
+  cx.beginPath(); cx.moveTo(0,-28); cx.lineTo(0,18); cx.stroke();
+  cx.beginPath(); cx.moveTo(-6,18); cx.lineTo(6,18); cx.stroke();
+  /* thread lines */
+  for(var i=0;i<6;i++){
+    cx.globalAlpha*=.8;
+    cx.beginPath();
+    cx.moveTo(-4,-20+i*7); cx.lineTo(4,-20+i*7);
+    cx.stroke();
+  }
+  /* head */
+  cx.globalAlpha=1;
+  cx.beginPath();
+  cx.arc(0,-32,7,0,Math.PI*2); cx.stroke();
+  cx.beginPath(); cx.moveTo(-6,-32); cx.lineTo(6,-32); cx.stroke();
+  cx.restore();
+}
+function drawSpanner(sc, col){
+  cx.save(); cx.scale(sc,sc);
+  cx.strokeStyle=col; cx.lineWidth=2.5/sc; cx.lineCap='round';
+  /* handle shape */
+  cx.beginPath();
+  cx.moveTo(-4,-40); cx.lineTo(-4,40); cx.lineTo(4,40); cx.lineTo(4,-40);
+  cx.closePath(); cx.stroke();
+  /* jaw */
+  cx.beginPath();
+  cx.moveTo(-12,-40); cx.lineTo(-4,-40);
+  cx.stroke();
+  cx.beginPath();
+  cx.moveTo(4,-40); cx.lineTo(12,-40);
+  cx.stroke();
+  cx.beginPath(); cx.arc(-12,-34,8,-.8,.4); cx.stroke();
+  cx.beginPath(); cx.arc(12,-34,8,Math.PI-.4,Math.PI+.8); cx.stroke();
+  cx.restore();
+}
+function drawRod(sc, col){
+  cx.save(); cx.scale(sc,sc);
+  cx.strokeStyle=col; cx.lineWidth=3.5/sc; cx.lineCap='round';
+  cx.beginPath(); cx.moveTo(0,-45); cx.lineTo(0,45); cx.stroke();
+  cx.lineWidth=1.2/sc;
+  for(var i=0;i<8;i++){
+    cx.beginPath(); cx.arc(0,-36+i*10,4.5,0,Math.PI*2); cx.stroke();
+  }
+  cx.restore();
+}
+function drawMiniGear(sc, col){
+  cx.save(); cx.scale(sc*0.8,sc*0.8);
+  cx.strokeStyle=col; cx.lineWidth=1.8/sc; 
+  cx.beginPath();
+  for(var i=0;i<10;i++){
+    var a0=(i/10)*Math.PI*2, a1=a0+Math.PI/10;
+    cx.lineTo(14*Math.cos(a0),14*Math.sin(a0));
+    cx.lineTo(18*Math.cos((a0+a1)/2),18*Math.sin((a0+a1)/2));
+    cx.lineTo(14*Math.cos(a1),14*Math.sin(a1));
+  }
+  cx.closePath(); cx.stroke();
+  cx.beginPath(); cx.arc(0,0,7,0,Math.PI*2); cx.stroke();
+  cx.restore();
+}
+function drawTool(t){
+  cx.save();
+  cx.translate(t.x,t.y);
+  cx.rotate(t.rot);
+  cx.globalAlpha = t.alpha;
+  var col = 'rgba(245,240,232,1)';
+  if(t.type===0) drawWrench(t.scale, col);
+  else if(t.type===1) drawScrew(t.scale, col);
+  else if(t.type===2) drawSocketHead(t.scale, col);
+  else if(t.type===3) drawMiniGear(t.scale, col);
+  else if(t.type===4) drawNut(t.scale, col);
+  else if(t.type===5) drawSpanner(t.scale, col);
+  else drawRod(t.scale, col);
+  cx.restore();
+}
+
+/* ══ CAR POOL ══ */
+var CARS = [
+  {body:'#b91c1c',roof:'#7f1d1d',glow:'232,25,44'},
+  {body:'#1d4ed8',roof:'#1e3a8a',glow:'59,130,246'},
+  {body:'#065f46',roof:'#064e3b',glow:'52,211,153'},
+  {body:'#78350f',roof:'#451a03',glow:'251,191,36'},
+  {body:'#581c87',roof:'#3b0764',glow:'167,139,250'},
+  {body:'#0e7490',roof:'#164e63',glow:'34,211,238'},
+  {body:'#9d174d',roof:'#831843',glow:'244,114,182'},
+  {body:'#c8a96e',roof:'#92400e',glow:'200,169,110'},
+];
+var cars = [];
+var NUM_CARS = 16;
+for(var ci=0;ci<NUM_CARS;ci++) spawnCar(ci, true);
+function spawnCar(idx, init){
+  var lane = idx/NUM_CARS;
+  var depth = .18 + lane*.82;
+  var sc = .18 + depth*.68;
+  var col = CARS[idx%CARS.length];
+  cars[idx] = {
+    x: init ? Math.random()*W*2-W*.5 : -420*sc,
+    y: H*.08 + lane*H*.84,
+    speed: (.25+Math.random()*.65)*depth*2.5,
+    scale: sc, depth: depth, col: col,
+    floatAmp: 2+Math.random()*8,
+    floatPh: Math.random()*Math.PI*2,
+    floatSpd: .3+Math.random()*.5,
+    alpha: init ? .25+Math.random()*.25 : 0,
+    trailLen: 50+depth*140,
+  };
+}
+function drawCar(c, fy){
+  var x=c.x, y=c.y+fy, sc=c.scale, col=c.col, alpha=c.alpha;
+  cx.save(); cx.globalAlpha=alpha;
+  cx.translate(x,y); cx.scale(sc,sc);
+  var w=180, h=52;
+  /* light trail */
+  cx.globalAlpha=alpha*.45;
+  var tg=cx.createLinearGradient(-w*.5-c.trailLen,0,-w*.5,0);
+  tg.addColorStop(0,'transparent');
+  tg.addColorStop(.5,'rgba('+col.glow+',.1)');
+  tg.addColorStop(1,'rgba('+col.glow+',.55)');
+  cx.fillStyle=tg; cx.fillRect(-w*.5-c.trailLen,-10,c.trailLen,20);
+  cx.globalAlpha=alpha;
+  /* glow */
+  cx.shadowColor='rgba('+col.glow+',.5)'; cx.shadowBlur=28*sc;
+  /* body */
+  cx.fillStyle=col.body;
+  cx.beginPath(); cx.roundRect(-w/2,-h/2+9,w,h-9,10); cx.fill();
+  var bg=cx.createLinearGradient(0,-h/2+9,0,h/2);
+  bg.addColorStop(0,'rgba(255,255,255,.14)'); bg.addColorStop(1,'rgba(0,0,0,.12)');
+  cx.fillStyle=bg; cx.beginPath(); cx.roundRect(-w/2,-h/2+9,w,h-9,10); cx.fill();
+  /* roof */
+  cx.shadowBlur=0;
+  cx.fillStyle=col.roof;
+  cx.beginPath(); cx.roundRect(-w*.28,-h/2-30,w*.56,h*.6,[10,10,0,0]); cx.fill();
+  /* windshield */
+  var wg=cx.createLinearGradient(-w*.24,-h/2-28,0,4);
+  wg.addColorStop(0,'rgba(140,210,255,.7)'); wg.addColorStop(1,'rgba(80,160,220,.22)');
+  cx.fillStyle=wg; cx.beginPath(); cx.roundRect(-w*.24,-h/2-28,w*.48,h*.54,6); cx.fill();
+  /* door panel */
+  cx.strokeStyle='rgba(0,0,0,.14)'; cx.lineWidth=1.2;
+  cx.beginPath(); cx.moveTo(0,-h/2+9); cx.lineTo(0,h/2); cx.stroke();
+  /* brand strip */
+  var stripColor='rgba(245,240,232,.06)';
+  cx.fillStyle=stripColor; cx.fillRect(-w*.3,-h/2+12,w*.6,4);
+  /* wheels */
+  [-w*.31,w*.31].forEach(function(wx){
+    cx.fillStyle='#060606'; cx.beginPath(); cx.ellipse(wx,h/2+4,17,17,0,0,Math.PI*2); cx.fill();
+    cx.fillStyle='#222'; cx.beginPath(); cx.ellipse(wx,h/2+4,10,10,0,0,Math.PI*2); cx.fill();
+    cx.fillStyle='#0d0d0d'; cx.beginPath(); cx.ellipse(wx,h/2+4,4.5,4.5,0,0,Math.PI*2); cx.fill();
+    /* spokes */
+    cx.strokeStyle='rgba(255,255,255,.12)'; cx.lineWidth=1;
+    for(var s=0;s<5;s++){
+      var a=s/5*Math.PI*2+T*2;
+      cx.beginPath();
+      cx.moveTo(wx+Math.cos(a)*4.5,h/2+4+Math.sin(a)*4.5);
+      cx.lineTo(wx+Math.cos(a)*9,h/2+4+Math.sin(a)*9);
+      cx.stroke();
+    }
+    /* arch */
+    cx.fillStyle='rgba(0,0,0,.22)';
+    cx.beginPath(); cx.ellipse(wx,h/2-5,21,6,0,Math.PI,0); cx.fill();
+  });
+  /* headlights */
+  cx.shadowColor='rgba(255,240,120,.9)'; cx.shadowBlur=20;
+  cx.fillStyle='rgba(255,248,190,.96)';
+  cx.beginPath(); cx.ellipse(w/2-12,-2,11,7,0,0,Math.PI*2); cx.fill();
+  /* headlight beam */
+  cx.globalAlpha=alpha*.08; cx.shadowBlur=0;
+  var hb=cx.createLinearGradient(w/2,0,w/2+260,0);
+  hb.addColorStop(0,'rgba(255,248,190,.8)'); hb.addColorStop(1,'transparent');
+  cx.fillStyle=hb;
+  cx.beginPath(); cx.moveTo(w/2,-5); cx.lineTo(w/2+260,-28); cx.lineTo(w/2+260,28); cx.lineTo(w/2,5); cx.closePath(); cx.fill();
+  cx.globalAlpha=alpha;
+  /* taillights */
+  cx.shadowColor='rgba(232,25,44,.9)'; cx.shadowBlur=16;
+  cx.fillStyle='rgba(232,25,44,.95)';
+  cx.beginPath(); cx.ellipse(-w/2+11,-2,10,6,0,0,Math.PI*2); cx.fill();
+  cx.shadowBlur=0;
+  cx.restore();
+}
+
+/* ══ MECHANIC SILHOUETTES ══ */
+function makeSilhouette(init){
+  var side = Math.random()>.5;
+  return {
+    x: init ? Math.random()*W : (side ? -200 : W+200),
+    y: H*.3 + Math.random()*H*.5,
+    vx: (.1+Math.random()*.2)*(side?1:-1),
+    vy: 0,
+    alpha: .035+Math.random()*.055,
+    scale: .55+Math.random()*.7,
+    pose: Math.floor(Math.random()*4), // 0=standing,1=working,2=crouching,3=reaching
+    flipX: Math.random()>.5,
+    bobPh: Math.random()*Math.PI*2,
+  };
+}
+var silhouettes = [];
+for(var si=0;si<7;si++) silhouettes.push(makeSilhouette(true));
+
+function drawMechanicSilhouette(sil, time){
+  cx.save();
+  cx.translate(sil.x, sil.y + Math.sin(time*.4+sil.bobPh)*3);
+  cx.scale(sil.flipX ? -sil.scale : sil.scale, sil.scale);
+  cx.globalAlpha = sil.alpha;
+  cx.fillStyle = 'rgba(245,240,232,1)';
+  cx.strokeStyle = 'rgba(245,240,232,1)';
+  cx.lineWidth = 2;
+  cx.lineCap = 'round';
+  cx.lineJoin = 'round';
+
+  if(sil.pose===0){ /* standing with tool */
+    /* body */
+    cx.beginPath(); cx.roundRect(-14,-80,28,55,4); cx.fill();
+    /* head */
+    cx.beginPath(); cx.arc(0,-95,16,0,Math.PI*2); cx.fill();
+    /* cap */
+    cx.beginPath(); cx.arc(0,-102,13,Math.PI,0); cx.fill();
+    cx.fillRect(-13,-103,26,6);
+    cx.fillRect(-16,-103,6,4);
+    /* legs */
+    cx.beginPath(); cx.roundRect(-13,-25,12,50,3); cx.fill();
+    cx.beginPath(); cx.roundRect(1,-25,12,50,3); cx.fill();
+    /* boots */
+    cx.beginPath(); cx.ellipse(-7,25,12,6,-.1,0,Math.PI*2); cx.fill();
+    cx.beginPath(); cx.ellipse(7,25,12,6,.1,0,Math.PI*2); cx.fill();
+    /* arm up with wrench */
+    cx.beginPath();
+    cx.moveTo(14,-65); cx.lineTo(40,-90); cx.lineWidth=10; cx.stroke();
+    /* wrench head */
+    cx.lineWidth=2;
+    cx.beginPath(); cx.arc(44,-96,9,0,Math.PI*2); cx.stroke();
+    cx.beginPath(); cx.moveTo(36,-88); cx.lineTo(44,-96); cx.lineWidth=3; cx.stroke();
+    /* arm down */
+    cx.lineWidth=10;
+    cx.beginPath(); cx.moveTo(-14,-65); cx.lineTo(-30,-35); cx.stroke();
+  }
+  else if(sil.pose===1){ /* bending over engine */
+    /* torso bent */
+    cx.save(); cx.rotate(.4);
+    cx.beginPath(); cx.roundRect(-12,-40,24,48,4); cx.fill();
+    cx.restore();
+    /* head bent */
+    cx.beginPath(); cx.arc(18,-52,14,0,Math.PI*2); cx.fill();
+    /* cap */
+    cx.beginPath(); cx.arc(18,-58,11,Math.PI,0); cx.fill();
+    cx.fillRect(7,-59,22,5);
+    /* legs */
+    cx.beginPath(); cx.roundRect(-18,8,12,44,3); cx.fill();
+    cx.beginPath(); cx.roundRect(-4,8,12,44,3); cx.fill();
+    /* arms reaching */
+    cx.lineWidth=9;
+    cx.beginPath(); cx.moveTo(12,-28); cx.lineTo(55,-50); cx.stroke();
+    cx.beginPath(); cx.moveTo(6,-22); cx.lineTo(52,-38); cx.stroke();
+    /* tool */
+    cx.lineWidth=2;
+    cx.beginPath(); cx.moveTo(55,-50); cx.lineTo(70,-55); cx.lineWidth=5; cx.stroke();
+    cx.lineWidth=2;
+    cx.beginPath(); cx.arc(73,-56,8,0,Math.PI*2); cx.stroke();
+  }
+  else if(sil.pose===2){ /* crouching at wheel */
+    /* body crouched */
+    cx.beginPath(); cx.roundRect(-12,-35,24,36,4); cx.fill();
+    /* head */
+    cx.beginPath(); cx.arc(0,-50,13,0,Math.PI*2); cx.fill();
+    cx.beginPath(); cx.arc(0,-55,10,Math.PI,0); cx.fill();
+    cx.fillRect(-10,-56,20,4);
+    /* crouched legs */
+    cx.save(); cx.rotate(.5);
+    cx.beginPath(); cx.roundRect(-10,0,11,32,3); cx.fill();
+    cx.restore();
+    cx.save(); cx.rotate(-.2);
+    cx.beginPath(); cx.roundRect(0,2,11,30,3); cx.fill();
+    cx.restore();
+    /* impact gun */
+    cx.lineWidth=10;
+    cx.beginPath(); cx.moveTo(14,-20); cx.lineTo(44,-22); cx.stroke();
+    cx.lineWidth=2;
+    cx.beginPath(); cx.arc(50,-22,10,0,Math.PI*2); cx.stroke();
+    cx.beginPath(); cx.arc(50,-22,5,0,Math.PI*2); cx.stroke();
+    cx.lineWidth=3;
+    cx.beginPath(); cx.moveTo(36,-14); cx.lineTo(36,2); cx.stroke();
+  }
+  else { /* reaching up, diagnostic */
+    cx.beginPath(); cx.roundRect(-13,-70,26,48,4); cx.fill();
+    cx.beginPath(); cx.arc(0,-85,15,0,Math.PI*2); cx.fill();
+    cx.beginPath(); cx.arc(0,-91,11,Math.PI,0); cx.fill();
+    cx.fillRect(-11,-92,22,5);
+    cx.beginPath(); cx.roundRect(-12,-22,11,48,3); cx.fill();
+    cx.beginPath(); cx.roundRect(1,-22,11,48,3); cx.fill();
+    cx.beginPath(); cx.ellipse(-6,26,10,5,-.1,0,Math.PI*2); cx.fill();
+    cx.beginPath(); cx.ellipse(7,26,10,5,.1,0,Math.PI*2); cx.fill();
+    /* arm raised with tablet */
+    cx.lineWidth=9;
+    cx.beginPath(); cx.moveTo(13,-58); cx.lineTo(38,-82); cx.stroke();
+    /* tablet */
+    cx.lineWidth=1.5;
+    cx.beginPath(); cx.roundRect(34,-98,22,16,2); cx.fill();
+    cx.fillStyle='rgba(8,8,8,.8)';
+    cx.beginPath(); cx.roundRect(36,-96,18,12,1); cx.fill();
+    cx.fillStyle='rgba(10,132,255,.7)';
+    cx.fillRect(37,-95,16,2); cx.fillRect(37,-92,10,2); cx.fillRect(37,-89,13,2);
+    /* other arm */
+    cx.fillStyle='rgba(245,240,232,1)';
+    cx.lineWidth=9; cx.strokeStyle='rgba(245,240,232,1)';
+    cx.beginPath(); cx.moveTo(-13,-55); cx.lineTo(-28,-35); cx.stroke();
+  }
+  cx.restore();
+}
+
+/* ══ SPARK SYSTEM ══ */
+var sparks = [];
+function emitSparks(x, y, count){
+  for(var i=0;i<count;i++){
+    var ang = Math.random()*Math.PI*2;
+    var spd = 1.5+Math.random()*4;
+    sparks.push({
+      x:x, y:y,
+      vx: Math.cos(ang)*spd,
+      vy: Math.sin(ang)*spd - 2,
+      life: .8+Math.random()*.6,
+      maxLife: 0,
+      size: 1.2+Math.random()*2.2,
+      col: Math.random()>.4 ? 'rgba(255,180,30,' : 'rgba(255,255,220,',
+    });
+    sparks[sparks.length-1].maxLife = sparks[sparks.length-1].life;
+  }
+}
+var sparkTimer = 0;
+/* spontaneous spark points (edges of screen, behind content) */
+var SPARK_POINTS = [
+  {x:.05,y:.4}, {x:.95,y:.55}, {x:.15,y:.8},
+  {x:.88,y:.25}, {x:.5,y:.92}, {x:.02,y:.65},
+];
+
+function updateSparks(){
+  for(var i=sparks.length-1;i>=0;i--){
+    var s=sparks[i];
+    s.x+=s.vx; s.y+=s.vy; s.vy+=.12;
+    s.vx*=.97;
+    s.life-=.025;
+    if(s.life<=0){sparks.splice(i,1);continue;}
+    var la=s.life/s.maxLife;
+    cx.save();
+    cx.globalAlpha=la*.85;
+    cx.shadowColor='rgba(255,160,20,.7)';
+    cx.shadowBlur=s.size*4;
+    cx.fillStyle=s.col+la+')';
+    cx.beginPath(); cx.arc(s.x,s.y,s.size*la,0,Math.PI*2); cx.fill();
+    /* spark trail */
+    cx.strokeStyle=s.col+la*.5+')';
+    cx.lineWidth=s.size*.5;
+    cx.beginPath(); cx.moveTo(s.x,s.y); cx.lineTo(s.x-s.vx*3,s.y-s.vy*3); cx.stroke();
+    cx.restore();
+  }
+}
+
+/* ══ OIL DRIPS ══ */
+var drips = [];
+for(var di=0;di<12;di++){
+  drips.push({
+    x:Math.random()*W, y:Math.random()*H*-.5,
+    vy:.3+Math.random()*.6, size:2+Math.random()*4,
+    alpha:.08+Math.random()*.12,
+    trail:[],
+  });
+}
+function updateDrips(){
+  drips.forEach(function(d){
+    d.trail.push({x:d.x,y:d.y});
+    if(d.trail.length>20) d.trail.shift();
+    d.y+=d.vy;
+    if(d.y>H+20){ d.y=-20; d.x=Math.random()*W; d.trail=[]; }
+    cx.save();
+    cx.globalAlpha=d.alpha;
+    /* trail */
+    if(d.trail.length>2){
+      var g=cx.createLinearGradient(d.x,d.y-d.trail.length*d.vy,d.x,d.y);
+      g.addColorStop(0,'transparent');
+      g.addColorStop(1,'rgba(180,120,20,.6)');
+      cx.strokeStyle=g; cx.lineWidth=d.size*.4;
+      cx.beginPath(); cx.moveTo(d.trail[0].x,d.trail[0].y);
+      d.trail.forEach(function(p){cx.lineTo(p.x,p.y);}); cx.stroke();
+    }
+    /* drop */
+    cx.fillStyle='rgba(160,100,10,.65)';
+    cx.beginPath();
+    cx.arc(d.x,d.y,d.size,0,Math.PI*2); cx.fill();
+    /* bottom teardrop */
+    cx.beginPath();
+    cx.moveTo(d.x-d.size*.6,d.y);
+    cx.bezierCurveTo(d.x-d.size,d.y+d.size*2, d.x+d.size,d.y+d.size*2, d.x+d.size*.6,d.y);
+    cx.fill();
+    cx.restore();
+  });
+}
+
+/* ══ SPOTLIGHT SWEEPS ══ */
+var spots = [
+  {angle:-.3, spd:.0003, x:.15, alpha:.018, width:.22},
+  {angle:.8,  spd:-.0004, x:.75, alpha:.015, width:.18},
+];
+function drawSpotlights(){
+  spots.forEach(function(sp){
+    sp.angle += sp.spd;
+    var ox=sp.x*W, oy=0;
+    var len=H*1.8;
+    var hw=len*Math.tan(sp.width);
+    cx.save();
+    cx.translate(ox,oy);
+    cx.rotate(sp.angle);
+    var g=cx.createLinearGradient(0,0,0,len);
+    g.addColorStop(0,'rgba(245,240,232,'+sp.alpha+')');
+    g.addColorStop(.5,'rgba(245,240,232,'+(sp.alpha*.3)+')');
+    g.addColorStop(1,'transparent');
+    cx.fillStyle=g;
+    cx.beginPath();
+    cx.moveTo(0,0);
+    cx.lineTo(-hw,len); cx.lineTo(hw,len);
+    cx.closePath(); cx.fill();
+    cx.restore();
+  });
+}
+
+/* ══ MAIN LOOP ══ */
+var gearAngles = GEARS.map(function(){ return 0; });
+
+function frame(ts){
+  requestAnimationFrame(frame);
+  dT = Math.min((ts-lastTime)/16.67, 3); lastTime=ts;
+  T += .016*dT;
+
+  cx.clearRect(0,0,W,H);
+
+  /* 1 — Atmosphere */
+  cx.drawImage(nb,0,0);
+
+  /* 2 — Spotlights */
+  drawSpotlights();
+
+  /* 3 — Large background gears */
+  GEARS.forEach(function(g,i){
+    gearAngles[i] += g.spd*dT;
+    drawGear(g, gearAngles[i]);
+  });
+
+  /* 4 — Oil drips */
+  updateDrips();
+
+  /* 5 — Tools (sorted by depth back→front) */
+  tools.sort(function(a,b){return a.z-b.z;});
+  tools.forEach(function(t){
+    t.x+=t.vx*dT; t.y+=t.vy*dT;
+    t.rot+=t.vrot*dT;
+    if(t.x<-120||t.x>W+120||t.y<-120||t.y>H+120){
+      var nt=makeTool(false); t.x=nt.x; t.y=nt.y; t.z=nt.z; t.scale=nt.scale;
+      t.alpha=nt.alpha; t.vx=nt.vx; t.vy=nt.vy; t.type=nt.type;
+    }
+    drawTool(t);
+  });
+
+  /* 6 — Silhouettes (depth sorted) */
+  silhouettes.sort(function(a,b){return a.scale-b.scale;});
+  silhouettes.forEach(function(sil){
+    sil.x+=sil.vx*dT;
+    if(sil.x<-250||sil.x>W+250){
+      var ns=makeSilhouette(false);
+      sil.x=ns.x; sil.y=ns.y; sil.vx=ns.vx; sil.alpha=ns.alpha;
+      sil.scale=ns.scale; sil.pose=ns.pose; sil.flipX=ns.flipX;
+    }
+    drawMechanicSilhouette(sil, T);
+  });
+
+  /* 7 — Cars (depth sorted) */
+  var sorted=cars.slice().sort(function(a,b){return a.depth-b.depth;});
+  sorted.forEach(function(c){
+    c.alpha=Math.min(c.alpha+.012,.75);
+    c.x+=c.speed*dT;
+    var fy=c.floatAmp*Math.sin(T*c.floatSpd+c.floatPh);
+    if(c.x>W+450*c.scale){
+      for(var j=0;j<cars.length;j++){if(cars[j]===c){spawnCar(j,false);break;}}
+    }
+    drawCar(c, fy);
+  });
+
+  /* 8 — Sparks */
+  sparkTimer-=dT;
+  if(sparkTimer<=0){
+    sparkTimer=60+Math.random()*120;
+    var sp=SPARK_POINTS[Math.floor(Math.random()*SPARK_POINTS.length)];
+    emitSparks(sp.x*W, sp.y*H, 18+Math.floor(Math.random()*22));
+  }
+  updateSparks();
+}
+
+requestAnimationFrame(frame);
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════
+     eGarage AI ASSISTANT — Floating Chatbot
+═══════════════════════════════════════════ -->
+<style>
+#chatBtn{
+  position:fixed;bottom:32px;right:32px;z-index:1000;
+  width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--red),#ff6b35);
+  box-shadow:0 6px 30px rgba(232,25,44,.5),0 0 0 0 rgba(232,25,44,.3);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .25s cubic-bezier(.34,1.56,.64,1);
+  animation:chatPulse 3s ease infinite;
+}
+@keyframes chatPulse{
+  0%,100%{box-shadow:0 6px 30px rgba(232,25,44,.5),0 0 0 0 rgba(232,25,44,.2);}
+  50%{box-shadow:0 6px 30px rgba(232,25,44,.5),0 0 0 14px rgba(232,25,44,0);}
+}
+#chatBtn:hover{transform:scale(1.12);}
+#chatBtn.open{animation:none;}
+.chat-icon,.chat-close{position:absolute;transition:all .3s;}
+.chat-close{opacity:0;transform:rotate(-90deg);}
+#chatBtn.open .chat-icon{opacity:0;transform:rotate(90deg);}
+#chatBtn.open .chat-close{opacity:1;transform:rotate(0);}
+#chatBadge{
+  position:absolute;top:-3px;right:-3px;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--gold);color:#000;
+  font-family:var(--dc);font-size:.58rem;font-weight:700;
+  display:none;align-items:center;justify-content:center;
+  border:2px solid var(--ink);
+  animation:badgePop .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes badgePop{from{transform:scale(0)}to{transform:scale(1)}}
+
+#chatWin{
+  position:fixed;bottom:108px;right:32px;z-index:999;
+  width:385px;height:590px;
+  border-radius:24px;
+  background:rgba(10,8,15,.9);
+  backdrop-filter:saturate(220%) blur(36px);
+  -webkit-backdrop-filter:saturate(220%) blur(36px);
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 40px 100px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.04),inset 0 1px 0 rgba(255,255,255,.15);
+  display:flex;flex-direction:column;overflow:hidden;
+  transform:scale(.88) translateY(24px);
+  opacity:0;pointer-events:none;
+  transition:all .35s cubic-bezier(.34,1.56,.64,1);
+}
+#chatWin::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.3) 35%,rgba(255,255,255,.42) 50%,rgba(255,255,255,.3) 65%,transparent);
+  z-index:10;pointer-events:none;
+}
+#chatWin.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all;}
+
+.ch-head{
+  padding:18px 20px 16px;
+  background:linear-gradient(to bottom,rgba(232,25,44,.13),rgba(232,25,44,.04));
+  border-bottom:1px solid rgba(255,255,255,.07);
+  display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+.ch-av{
+  width:42px;height:42px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--red),#ff6b35);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 18px rgba(232,25,44,.45);position:relative;
+}
+.ch-av::after{
+  content:'';position:absolute;bottom:1px;right:1px;
+  width:9px;height:9px;border-radius:50%;
+  background:#30d158;border:2px solid rgba(10,8,15,.95);
+}
+.ch-meta{flex:1;}
+.ch-name{font-family:var(--dc);font-size:.9rem;font-weight:700;letter-spacing:.5px;color:var(--cream);margin-bottom:2px;}
+.ch-status{font-size:.63rem;color:rgba(245,240,232,.38);display:flex;align-items:center;gap:5px;}
+.ch-dot{width:5px;height:5px;border-radius:50%;background:#30d158;flex-shrink:0;}
+.ch-x{width:28px;height:28px;border-radius:7px;border:none;cursor:pointer;background:rgba(255,255,255,.07);color:rgba(245,240,232,.5);display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.ch-x:hover{background:rgba(255,255,255,.15);color:var(--cream);}
+
+.ch-chips{padding:12px 14px 10px;display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.05);}
+.chip{padding:5px 12px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);font-family:var(--dc);font-size:.62rem;font-weight:600;letter-spacing:.5px;color:rgba(245,240,232,.6);cursor:pointer;transition:all .18s;white-space:nowrap;}
+.chip:hover{background:rgba(232,25,44,.22);border-color:rgba(232,25,44,.45);color:var(--cream);}
+
+.ch-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:11px;scroll-behavior:smooth;}
+.ch-msgs::-webkit-scrollbar{width:3px;}
+.ch-msgs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+.ch-msgs::-webkit-scrollbar-track{background:transparent;}
+
+.msg{display:flex;align-items:flex-end;gap:8px;animation:msgIn .3s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.msg.user{flex-direction:row-reverse;}
+.msg-av{width:26px;height:26px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--red),#ff6b35);display:flex;align-items:center;justify-content:center;font-size:.65rem;}
+.msg.user .msg-av{background:linear-gradient(135deg,#1d4ed8,#0e7490);}
+.msg-bubble{max-width:78%;padding:10px 14px;border-radius:17px;font-size:.78rem;line-height:1.62;color:rgba(245,240,232,.88);}
+.msg.bot .msg-bubble{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.09);border-bottom-left-radius:4px;backdrop-filter:blur(6px);}
+.msg.user .msg-bubble{background:linear-gradient(135deg,rgba(232,25,44,.6),rgba(255,107,53,.45));border:1px solid rgba(232,25,44,.3);border-bottom-right-radius:4px;color:#fff;}
+.msg-t{font-size:.57rem;color:rgba(245,240,232,.2);margin-top:3px;padding:0 3px;}
+.msg.user .msg-t{text-align:right;}
+
+.typing{display:flex;gap:4px;align-items:center;padding:3px 0;}
+.typing span{width:6px;height:6px;border-radius:50%;background:rgba(245,240,232,.38);animation:td 1.3s ease infinite;}
+.typing span:nth-child(2){animation-delay:.18s;}
+.typing span:nth-child(3){animation-delay:.36s;}
+@keyframes td{0%,60%,100%{transform:translateY(0);opacity:.38;}30%{transform:translateY(-7px);opacity:1;}}
+
+.ch-in-wrap{padding:11px 14px 14px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.018);}
+.ch-in-row{display:flex;align-items:flex-end;gap:9px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:9px 12px;transition:border-color .2s;}
+.ch-in-row:focus-within{border-color:rgba(232,25,44,.5);}
+#chatIn{flex:1;background:transparent;border:none;outline:none;font-family:var(--db);font-size:.8rem;color:var(--cream);resize:none;min-height:20px;max-height:80px;line-height:1.5;}
+#chatIn::placeholder{color:rgba(245,240,232,.22);}
+#chatSendBtn{width:32px;height:32px;border-radius:9px;border:none;cursor:pointer;background:var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;box-shadow:0 3px 12px rgba(232,25,44,.4);}
+#chatSendBtn:hover{background:#c41222;transform:scale(1.06);}
+#chatSendBtn:disabled{background:rgba(255,255,255,.1);box-shadow:none;cursor:not-allowed;transform:none;}
+.ch-hint{font-size:.58rem;color:rgba(245,240,232,.16);text-align:center;margin-top:7px;font-family:var(--dc);letter-spacing:.5px;}
+
+@media(max-width:480px){
+  #chatWin{width:calc(100vw - 28px);right:14px;bottom:88px;height:520px;}
+  #chatBtn{right:14px;bottom:22px;}
+}
+</style>
+
+<!-- Chat button -->
+<button id="chatBtn" onclick="toggleChat()" aria-label="eGarage AI Assistant">
+  <div id="chatBadge">1</div>
+  <span class="chat-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="23" height="23"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+  </span>
+  <span class="chat-close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="21" height="21"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </span>
+</button>
+
+<!-- Chat window -->
+<div id="chatWin">
+  <div class="ch-head">
+    <div class="ch-av">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+    </div>
+    <div class="ch-meta">
+      <div class="ch-name">eGarage Assistant</div>
+      <div class="ch-status"><span class="ch-dot"></span> Online · Instant replies</div>
+    </div>
+    <button class="ch-x" onclick="toggleChat()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+  </div>
+
+  <div class="ch-chips">
+    <div class="chip" onclick="askChip(this.dataset.q)" data-q="How do I book a service?">📅 How to book</div>
+    <div class="chip" onclick="askChip(this.dataset.q)" data-q="How do I join as a mechanic?">🔧 Join Mechanic</div>
+    <div class="chip" onclick="askChip(this.dataset.q)" data-q="What is the advance fee and how does pricing work?">💸 Pricing</div>
+    <div class="chip" onclick="askChip(this.dataset.q)" data-q="How does live tracking work?">📱 Live Tracking</div>
+    <div class="chip" onclick="askChip(this.dataset.q)" data-q="How do I list my garage on eGarage?">🏢 List Garage</div>
+  </div>
+
+  <div class="ch-msgs" id="chatMsgs">
+    <div class="msg bot">
+      <div class="msg-av">🚗</div>
+      <div>
+        <div class="msg-bubble">Hey! 👋 I am the <strong>eGarage AI Assistant</strong>.<br><br>I can help you book a service, join as a mechanic, list your garage, or answer anything about how eGarage works.<br><br>What can I help you with today?</div>
+        <div class="msg-t">Just now</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ch-in-wrap">
+    <div class="ch-in-row">
+      <textarea id="chatIn" placeholder="Ask anything about eGarage…" rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"
+        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      <button id="chatSendBtn" onclick="sendChat()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+    <div class="ch-hint">Powered by Claude AI · eGarage 2025</div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var isOpen=false, loading=false, msgHistory=[];
+
+window.toggleChat=function(){
+  isOpen=!isOpen;
+  document.getElementById('chatBtn').classList.toggle('open',isOpen);
+  document.getElementById('chatWin').classList.toggle('open',isOpen);
+  document.getElementById('chatBadge').style.display='none';
+  if(isOpen) setTimeout(function(){
+    var inp=document.getElementById('chatIn');
+    if(inp) inp.focus();
+    scrollMsgs();
+  },360);
+};
+
+function now(){
+  var d=new Date(),h=d.getHours(),m=d.getMinutes();
+  return (h%12||12)+':'+(m<10?'0':'')+m+(h>=12?' PM':' AM');
+}
+
+function addMsg(text,role){
+  var msgs=document.getElementById('chatMsgs');
+  var el=document.createElement('div');
+  el.className='msg '+role;
+  var av=role==='bot'?'<div class="msg-av">🚗</div>':'<div class="msg-av">👤</div>';
+  var html=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/
+/g,'<br>');
+  if(role==='bot'){
+    el.innerHTML=av+'<div><div class="msg-bubble">'+html+'</div><div class="msg-t">'+now()+'</div></div>';
+  } else {
+    el.innerHTML='<div><div class="msg-bubble">'+html+'</div><div class="msg-t">'+now()+'</div></div>'+av;
+  }
+  msgs.appendChild(el);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function showTyping(){
+  var msgs=document.getElementById('chatMsgs');
+  var el=document.createElement('div');
+  el.className='msg bot';el.id='typi';
+  el.innerHTML='<div class="msg-av">🚗</div><div><div class="msg-bubble" style="padding:10px 14px;"><div class="typing"><span></span><span></span><span></span></div></div></div>';
+  msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;
+}
+function hideTyping(){var t=document.getElementById('typi');if(t)t.remove();}
+
+window.askChip=function(q){
+  document.getElementById('chatIn').value=q;
+  sendChat();
+};
+
+/* ── SMART RESPONSES ── */
+var RESPONSES=[
+  {k:['book','booking','how','start','reserve','service'],r:"**How to book a service:**\n\n1️⃣ Sign up free → add your vehicle\n2️⃣ Choose service & garage\n3️⃣ Pick your date & time\n4️⃣ Pay advance (₹300–₹600)\n5️⃣ Mechanic assigned instantly!\n\nPay the **balance only after** the job is done. 🎉\n\n👉 [Book Now →]({% url 'booking' %})"},
+  {k:['mechanic','join','career','earn','income','apply','work'],r:"**Join as a Mechanic:**\n\n1️⃣ Sign up → choose **Mechanic** role\n2️⃣ Apply to a garage near you\n3️⃣ Submit documents → Manager approves\n4️⃣ Start accepting jobs & earning!\n\n💰 **40% commission** per job. Build your rating, grow your income.\n\n👉 [Join Now →]({% url 'signup' %})"},
+  {k:['garage','manager','list','business','own'],r:"**List Your Garage:**\n\n1️⃣ Sign up → **Garage Manager** role\n2️⃣ Submit garage details → Admin approves\n3️⃣ Set services, prices & advance fee\n4️⃣ Hire mechanics → receive bookings!\n\n📊 Full dashboard: revenue, team, bookings.\n\n👉 [List Your Garage →](/signup/)"},
+  {k:['price','cost','fee','advance','pay','charge','money','₹','rupee'],r:"**Pricing:**\n\n💳 **Advance:** ₹300–₹600 (per garage, shown before booking)\n✅ Pay advance to confirm slot\n✅ Parts added during service → bill updates live\n✅ Pay **balance only after** job is done\n✅ **Zero hidden charges** — full PDF invoice available"},
+  {k:['track','tracking','live','status','update','progress','where'],r:"**Live Tracking:**\n\n📱 Real-time status updates:\n• ⏳ Mechanic assigned\n• 🚗 Mechanic on the way\n• 🔧 Service in progress\n• 🔩 Parts added (bill updates live!)\n• ✅ Quality check\n• 🎉 Ready for pickup\n\nChat with your mechanic directly in the app!"},
+  {k:['oil','tyre','ac','brake','battery','dent','paint','wash','align','diagnosis','check','services','service list'],r:"**Services Available:**\n\n🔧 Oil Change · 🛞 Tyre Change\n❄️ AC Service · 🔍 Full Checkup\n📱 OBD-II Diagnosis · 🎨 Denting & Painting\n🔋 Battery · ⚙️ Brakes\n✨ Detailing & Wash · 🔩 Suspension\n\nPrices vary per garage → [Book Now →]({% url 'booking' %})"},
+  {k:['safe','trust','certified','verified','background','reliable'],r:"**Why Trust eGarage?**\n\n✅ Every mechanic **background-checked**\n✅ **120-hour certification** before first job\n✅ Real customer ratings every service\n✅ Full service history logged\n✅ Live bill updates — no surprises\n✅ In-app mechanic chat\n\nYour car is in safe hands. 🚗"},
+  {k:['signup','register','account','free','login','create'],r:"Creating an account is **completely free!** 🎉\n\nChoose your role at **/signup/**:\n\n🚗 **Vehicle Owner** — book services\n🔧 **Mechanic** — earn from jobs\n🏢 **Garage Manager** — grow your business\n\n👉 [Create Free Account →]({% url 'signup' %})"},
+  {k:['rajkot','city','location','gujarat','india','area'],r:"eGarage is **live in Rajkot, Gujarat** 🇮🇳\n\nExpanding to Ahmedabad, Surat, Vadodara & more cities soon!\n\nSign up now and we'll notify you when we launch in your city. 📍"},
+  {k:['hello','hi','hey','hii','helo','sup','yo','namaste','greet'],r:"Hey! 👋 Welcome to **eGarage**!\n\nI can help with:\n📅 How to **book** a service\n🔧 **Join** as a mechanic\n🏢 **List** your garage\n💸 **Pricing** info\n📱 **Live tracking** details\n\nWhat would you like to know? 😊"},
+  {k:['invoice','bill','receipt','pdf','download','document'],r:"📄 Every service generates a detailed **PDF invoice** showing:\n- Service charges\n- Parts added by mechanic\n- Advance paid & balance\n- Mechanic details\n\nDownload anytime from **My Bookings** after service completion. ✅"},
+];
+
+function getBotReply(text){
+  var t=text.toLowerCase();
+  for(var i=0;i<RESPONSES.length;i++){
+    var r=RESPONSES[i];
+    for(var j=0;j<r.k.length;j++){
+      if(t.indexOf(r.k[j])!==-1) return r.r;
+    }
+  }
+  return "Thanks for your question! 😊\n\nI may not have that specific answer yet. Try asking about:\n- **How to book** a service\n- **Join as mechanic**\n- **List your garage**\n- **Pricing & fees**\n\nOr visit [/signup/](/signup/) to get started! 🚗";
+}
+
+function scrollMsgs(){var m=document.getElementById('chatMsgs');if(m)setTimeout(function(){m.scrollTop=m.scrollHeight;},30);}
+
+window.sendChat=function(){
+  if(loading)return;
+  var inp=document.getElementById('chatIn');
+  var text=inp?inp.value.trim():'';
+  if(!text)return;
+  if(inp){inp.value='';inp.style.height='auto';}
+  var btn=document.getElementById('chatSendBtn');
+  if(btn)btn.disabled=true;
+  loading=true;
+  addMsg(text,'user');
+  showTyping();
+  setTimeout(function(){
+    var reply=getBotReply(text);
+    hideTyping();
+    addMsg(reply,'bot');
+    loading=false;
+    if(btn)btn.disabled=false;
+    var i2=document.getElementById('chatIn');
+    if(i2)i2.focus();
+  }, 500+Math.random()*400);
+};
+
+/* Show badge after 4s if not opened */
+setTimeout(function(){
+  if(!isOpen){
+    var b=document.getElementById('chatBadge');
+    b.style.display='flex';
+  }
+},4000);
+})();
+</script>
+
+</body>
+</html>

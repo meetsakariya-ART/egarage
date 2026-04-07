@@ -1,0 +1,269 @@
+{% extends 'core/base.html' %}
+{% block title %}Finance — {{ garage.name }} — eGarage{% endblock %}
+{% block extra_head %}
+<style>
+html,body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;}
+.page{max-width:1200px;margin:0 auto;padding:28px 24px 60px;}
+.pg-hdr{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:28px;}
+.pg-title{font-family:var(--fd);font-size:1.4rem;font-weight:900;color:var(--text);}
+.pg-sub{font-size:.76rem;color:var(--muted);margin-top:3px;}
+.hl{padding:8px 16px;border:1px solid var(--border);border-radius:9px;font-family:var(--fd);font-size:.72rem;font-weight:700;color:var(--muted);text-decoration:none;background:var(--surface2);transition:all .15s;}
+.hl:hover{border-color:var(--red);color:var(--red);}
+
+/* ── NOTICE ── */
+.revenue-notice{
+  background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.18);
+  border-radius:10px;padding:11px 16px;font-size:.74rem;color:var(--text2);
+  margin-bottom:20px;line-height:1.6;
+}
+.revenue-notice strong{color:var(--text);}
+
+/* ── KPI ROW ── */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px;}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:17px 20px;position:relative;overflow:hidden;box-shadow:var(--card-shadow);}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.kpi.green::before{background:var(--green);}
+.kpi.blue ::before{background:var(--blue);}
+.kpi.yellow::before{background:var(--yellow);}
+.kpi.red  ::before{background:var(--red);}
+.kpi.purple::before{background:var(--purple);}
+.kpi-lbl{font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;}
+.kpi-val{font-family:var(--fd);font-size:1.5rem;font-weight:900;color:var(--text);}
+.kpi-sub{font-size:.62rem;color:var(--muted);margin-top:3px;}
+
+/* ── LAYOUT ── */
+.grid2{display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start;}
+
+/* ── CARD ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;box-shadow:var(--card-shadow);}
+.cardh{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.cardh h3{font-family:var(--fd);font-size:.86rem;font-weight:800;color:var(--text);}
+.cardh-sub{font-size:.64rem;color:var(--muted);}
+
+/* ── MECHANIC TABLE ── */
+.mt{width:100%;border-collapse:collapse;}
+.mt th{padding:10px 16px;font-size:.6rem;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted2);text-align:left;border-bottom:1px solid var(--border);background:var(--surface2);}
+.mt td{padding:13px 16px;border-bottom:1px solid var(--border);font-size:.76rem;vertical-align:middle;color:var(--text2);}
+.mt tr:last-child td{border-bottom:none;}
+.mt tr:hover td{background:var(--surface2);}
+.mt td:first-child{color:var(--text);}
+.m-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.72rem;font-weight:900;color:#fff;flex-shrink:0;}
+.earn-today{font-family:var(--fd);font-size:.86rem;font-weight:900;color:var(--green);}
+.earn-month{font-family:var(--fd);font-size:.8rem;font-weight:800;color:var(--blue);}
+.earn-bar{height:5px;background:var(--surface3);border-radius:20px;overflow:hidden;margin-top:5px;}
+.earn-fill{height:100%;background:linear-gradient(90deg,var(--green),#00c853);border-radius:20px;transition:width .6s ease;}
+.rating-star{color:var(--yellow);}
+.duty-on {font-size:.66rem;font-weight:700;color:var(--green);}
+.duty-off{font-size:.66rem;font-weight:700;color:var(--muted2);}
+.empty-row td{text-align:center;padding:24px;color:var(--muted2);}
+
+/* ── TRANSACTIONS ── */
+.txn-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.txn-row:last-child{border-bottom:none;}
+.txn-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.9rem;}
+.txn-ico.credit{background:rgba(0,166,81,.12);}
+.txn-ico.debit {background:rgba(232,25,44,.08);}
+.txn-desc{font-size:.72rem;color:var(--text);font-weight:600;flex:1;}
+.txn-meta{font-size:.62rem;color:var(--muted);margin-top:2px;}
+.txn-amt.credit{font-family:var(--fd);font-size:.82rem;font-weight:900;color:var(--green);}
+.txn-amt.debit {font-family:var(--fd);font-size:.82rem;font-weight:900;color:var(--red);}
+
+/* ── WALLET CARD ── */
+.wallet-card{
+  background:linear-gradient(135deg,var(--bg2),var(--surface2));
+  border:1px solid var(--border2);
+  border-radius:16px;padding:22px;margin-bottom:16px;
+  box-shadow:var(--card-shadow);
+}
+.wc-lbl{font-size:.62rem;letter-spacing:.9px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;}
+.wc-val{font-family:var(--fd);font-size:2rem;font-weight:900;color:var(--text);}
+.wc-sub{font-size:.68rem;color:var(--muted);margin-top:6px;}
+.wc-row{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border);font-size:.72rem;margin-top:12px;}
+.wc-k{color:var(--muted);}
+.wc-v{font-weight:700;color:var(--text);}
+
+/* ── TODAY SUMMARY ── */
+.ts-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);}
+.ts-row:last-child{border-bottom:none;}
+.ts-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.64rem;font-weight:900;color:#fff;flex-shrink:0;}
+.ts-name{font-size:.74rem;font-weight:700;color:var(--text);}
+.ts-jobs{font-size:.62rem;color:var(--muted);}
+.ts-earn{font-family:var(--fd);font-size:.84rem;font-weight:900;color:var(--green);}
+.ts-total{display:flex;justify-content:space-between;padding:12px 0 0;font-family:var(--fd);font-size:.9rem;font-weight:900;border-top:2px solid var(--border);margin-top:6px;}
+
+@media(max-width:900px){.grid2{grid-template-columns:1fr;}.kpi-row{grid-template-columns:repeat(2,1fr);}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <div class="pg-hdr">
+    <div>
+      <div class="pg-title">💰 Finance — {{ garage.name }}</div>
+      <div class="pg-sub">{{ today|date:"l, d M Y" }} · Team earnings breakdown</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <a href="{% url 'dashboard' %}"  class="hl">Dashboard</a>
+      <a href="{% url 'reports' %}"    class="hl">Reports</a>
+      <a href="{% url 'team' %}"       class="hl">Team</a>
+    </div>
+  </div>
+
+  <!-- KPI ROW — all using same formula -->
+  <div class="kpi-row">
+    <div class="kpi green">
+      <div class="kpi-lbl">Today Revenue</div>
+      <div class="kpi-val">₹{{ today_rev|floatformat:0 }}</div>
+      <div class="kpi-sub">{{ today_jobs_done }} job{{ today_jobs_done|pluralize }} completed</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-lbl">This Week</div>
+      <div class="kpi-val">₹{{ week_rev|floatformat:0 }}</div>
+      <div class="kpi-sub">Delivered this week</div>
+    </div>
+    <div class="kpi yellow">
+      <div class="kpi-lbl">This Month</div>
+      <div class="kpi-val">₹{{ month_rev|floatformat:0 }}</div>
+      <div class="kpi-sub">{{ today_bookings }} bookings today</div>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-lbl">In Escrow</div>
+      <div class="kpi-val">₹{{ escrow_rev|floatformat:0 }}</div>
+      <div class="kpi-sub">Jobs currently in service</div>
+    </div>
+    <div class="kpi purple">
+      <div class="kpi-lbl">All-Time Revenue</div>
+      <div class="kpi-val">₹{{ total_rev|floatformat:0 }}</div>
+      <div class="kpi-sub">All delivered bookings</div>
+    </div>
+  </div>
+
+  <!-- CASH vs ONLINE BREAKDOWN -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;">
+    <div style="background:var(--surface);border:1px solid rgba(245,158,11,.22);border-radius:14px;padding:18px 22px;position:relative;overflow:hidden;box-shadow:var(--card-shadow);">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--yellow);"></div>
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;">💵 Cash Payments — This Month</div>
+      <div style="font-family:var(--fd);font-size:1.6rem;font-weight:900;color:var(--yellow);">₹{{ cash_month|floatformat:0 }}</div>
+      <div style="font-size:.68rem;color:var(--muted);margin-top:4px;">Paid at garage counter · counted in total</div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:.68rem;">
+        <span style="color:var(--muted);">All time cash</span>
+        <span style="font-family:var(--fd);font-weight:800;color:var(--text);">₹{{ cash_total|floatformat:0 }}</span>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid rgba(59,130,246,.22);border-radius:14px;padding:18px 22px;position:relative;overflow:hidden;box-shadow:var(--card-shadow);">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue);"></div>
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;">💳 Online Payments — This Month</div>
+      <div style="font-family:var(--fd);font-size:1.6rem;font-weight:900;color:var(--blue);">₹{{ online_month|floatformat:0 }}</div>
+      <div style="font-size:.68rem;color:var(--muted);margin-top:4px;">UPI · Card · Advance + balance paid online</div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:.68rem;">
+        <span style="color:var(--muted);">All time online</span>
+        <span style="font-family:var(--fd);font-weight:800;color:var(--text);">₹{{ online_total|floatformat:0 }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2">
+  <div>
+
+    <!-- MECHANIC PERFORMANCE -->
+    <div class="card">
+      <div class="cardh"><h3>👥 Team Performance</h3><span class="cardh-sub">{{ mech_data|length }} mechanic{{ mech_data|length|pluralize }}</span></div>
+      <div style="overflow-x:auto;">
+        <table class="mt">
+          <thead><tr><th>Mechanic</th><th>Today</th><th>This Month</th><th>Jobs</th><th>Rating</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for m in mech_data %}
+            <tr>
+              <td>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div class="m-av">{{ m.mechanic.name|first|upper }}</div>
+                  <div><div style="font-weight:700;color:var(--text);">{{ m.mechanic.name }}</div><div style="font-size:.62rem;color:var(--muted);">{{ m.profile.designation|default:"Mechanic" }}</div></div>
+                </div>
+              </td>
+              <td>
+                <div class="earn-today">₹{{ m.today_earning|floatformat:0 }}</div>
+                {% if m.today_earning > 0 %}<div class="earn-bar"><div class="earn-fill" style="width:{{ m.today_earning|floatformat:0 }}%;max-width:100%;"></div></div>{% endif %}
+              </td>
+              <td><div class="earn-month">₹{{ m.month_earning|floatformat:0 }}</div></td>
+              <td>
+                <div style="font-family:var(--fd);font-size:.8rem;font-weight:800;color:var(--text);">{{ m.today_jobs }}<span style="color:var(--muted);font-size:.6rem;font-weight:400;"> today</span></div>
+                <div style="font-size:.62rem;color:var(--muted);">{{ m.total_jobs }} total</div>
+              </td>
+              <td>
+                {% if m.avg_rating %}<span class="rating-star">★</span><strong>{{ m.avg_rating|floatformat:1 }}</strong>
+                {% else %}<span style="color:var(--muted2);font-size:.66rem;">No ratings</span>{% endif %}
+              </td>
+              <td>
+                {% if m.is_available %}<span class="duty-on">● On Duty</span>{% else %}<span class="duty-off">○ Off</span>{% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr class="empty-row"><td colspan="6">No mechanics yet. Add from Team page.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RECENT TRANSACTIONS -->
+    <div class="card">
+      <div class="cardh"><h3>🧾 Recent Transactions</h3></div>
+      <div style="padding:0 20px;">
+        {% for txn in recent_txns %}
+        <div class="txn-row">
+          <div class="txn-ico {{ txn.type }}">{% if txn.type == 'credit' %}💚{% else %}🔴{% endif %}</div>
+          <div style="flex:1;">
+            <div class="txn-desc">{{ txn.description|truncatechars:55 }}</div>
+            <div class="txn-meta">{{ txn.created_at|date:"d M Y, h:i A" }}</div>
+          </div>
+          <div class="txn-amt {{ txn.type }}">{% if txn.type == 'credit' %}+{% else %}−{% endif %}₹{{ txn.amount|floatformat:0 }}</div>
+        </div>
+        {% empty %}
+        <div style="text-align:center;padding:24px;font-size:.74rem;color:var(--muted2);">No transactions yet</div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div><!-- /left -->
+
+  <div><!-- right -->
+
+    <!-- WALLET CARD -->
+    <div class="wallet-card">
+      <div class="wc-lbl">Garage Wallet Balance</div>
+      <div class="wc-val">₹{{ wallet_balance|floatformat:0 }}</div>
+      <div class="wc-sub">Your garage ledger — cumulative released payments</div>
+      <div class="wc-row"><span class="wc-k">Today delivered</span><span class="wc-v" style="color:var(--green);">₹{{ today_rev|floatformat:0 }}</span></div>
+      <div class="wc-row"><span class="wc-k">In escrow now</span><span class="wc-v" style="color:var(--yellow);">₹{{ escrow_rev|floatformat:0 }}</span></div>
+      <div class="wc-row"><span class="wc-k">Month total</span><span class="wc-v">₹{{ month_rev|floatformat:0 }}</span></div>
+      <div class="wc-row"><span class="wc-k">All time</span><span class="wc-v">₹{{ total_rev|floatformat:0 }}</span></div>
+    </div>
+
+    <!-- TODAY SUMMARY -->
+    <div class="card">
+      <div class="cardh"><h3>📅 Today — Per Mechanic</h3></div>
+      <div style="padding:0 16px 8px;">
+        {% for m in mech_data %}
+        {% if m.today_jobs > 0 or m.is_available %}
+        <div class="ts-row">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <div class="ts-av">{{ m.mechanic.name|first|upper }}</div>
+            <div>
+              <div class="ts-name">{{ m.mechanic.name }}</div>
+              <div class="ts-jobs">{{ m.today_jobs }} job{{ m.today_jobs|pluralize }} today · {% if m.is_available %}On Duty{% else %}Off{% endif %}</div>
+            </div>
+          </div>
+          <div class="ts-earn">₹{{ m.today_earning|floatformat:0 }}</div>
+        </div>
+        {% endif %}
+        {% empty %}
+        <div style="padding:20px 0;text-align:center;font-size:.74rem;color:var(--muted2);">No active mechanics</div>
+        {% endfor %}
+        <div class="ts-total"><span>Total today</span><span style="color:var(--green);">₹{{ today_rev|floatformat:0 }}</span></div>
+      </div>
+    </div>
+
+  </div><!-- /right -->
+  </div><!-- /grid2 -->
+</div>
+{% endblock %}

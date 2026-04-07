@@ -1,0 +1,446 @@
+{% extends 'core/base.html' %}
+{% block title %}Vehicle Condition — {{ vehicle.brand }} {{ vehicle.model_name }} — eGarage{% endblock %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#e8192c;--red2:#c0111f;--green:#00c853;--blue:#2979ff;--yellow:#ffab00;
+  --fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;
+  --bg:#07070f;--card:rgba(255,255,255,.05);--bd:rgba(255,255,255,.1);
+  --t:#f0f4ff;--m:rgba(255,255,255,.5);--s:rgba(255,255,255,.03);
+}
+html,body{background:var(--bg);color:var(--t);font-family:var(--fb);min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 0%,rgba(232,25,44,.06),transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(41,121,255,.05),transparent 50%);pointer-events:none;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:rgba(7,7,15,.92);border-bottom:1px solid var(--bd);backdrop-filter:blur(20px);}
+.navi{display:flex;align-items:center;padding:0 24px;height:60px;max-width:900px;margin:0 auto;gap:14px;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-ico{width:32px;height:32px;border-radius:9px;background:var(--red);display:flex;align-items:center;justify-content:center;}
+.logo-ico svg{width:15px;height:15px;}
+.logo-name{font-family:var(--fd);font-size:1.1rem;font-weight:900;color:var(--red);}
+.logo-name span{color:rgba(255,255,255,.4);}
+.nav-r{margin-left:auto;display:flex;gap:8px;}
+.nb{padding:7px 15px;border-radius:8px;font-family:var(--fd);font-size:.72rem;font-weight:700;text-decoration:none;transition:all .15s;border:1px solid var(--bd);color:var(--m);}
+.nb:hover{background:var(--card);color:var(--t);}
+.nb.red{background:var(--red);color:#fff;border-color:var(--red);}
+.nb.red:hover{background:var(--red2);}
+
+/* PAGE */
+.wrap{max-width:900px;margin:0 auto;padding:32px 24px 60px;}
+
+/* HEADER */
+.page-hdr{margin-bottom:28px;}
+.page-hdr h1{font-family:var(--fd);font-size:1.4rem;font-weight:900;color:#fff;margin-bottom:6px;}
+.page-hdr p{font-size:.78rem;color:var(--m);line-height:1.6;max-width:560px;}
+
+/* VEHICLE BANNER */
+.vbanner{display:flex;align-items:center;gap:14px;padding:16px 20px;background:rgba(41,121,255,.08);border:1px solid rgba(41,121,255,.2);border-radius:14px;margin-bottom:28px;}
+.vb-ico{width:46px;height:46px;border-radius:11px;background:rgba(41,121,255,.15);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.vb-name{font-family:var(--fd);font-size:.96rem;font-weight:900;color:#fff;}
+.vb-detail{font-size:.7rem;color:var(--m);margin-top:3px;}
+.vb-badge{margin-left:auto;padding:4px 12px;border-radius:20px;font-family:var(--fd);font-size:.6rem;font-weight:800;}
+.vb-done{background:rgba(0,200,83,.12);color:#4ade80;border:1px solid rgba(0,200,83,.25);}
+.vb-pending{background:rgba(255,171,0,.12);color:#fbbf24;border:1px solid rgba(255,171,0,.25);}
+
+/* PROGRESS */
+.prog-wrap{margin-bottom:28px;}
+.prog-top{display:flex;justify-content:space-between;font-size:.66rem;color:var(--m);margin-bottom:7px;}
+.prog-bar{height:5px;background:rgba(255,255,255,.07);border-radius:20px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:20px;width:0%;transition:width .4s ease;}
+
+/* SECTION HEADS */
+.sec-head{display:flex;align-items:center;gap:8px;margin-bottom:14px;margin-top:4px;}
+.sec-title{font-family:var(--fd);font-size:.82rem;font-weight:800;color:#fff;}
+.badge{padding:2px 9px;border-radius:20px;font-size:.56rem;font-weight:800;font-family:var(--fd);}
+.badge-req{background:rgba(232,25,44,.15);color:var(--red);}
+.badge-opt{background:rgba(255,255,255,.07);color:var(--m);}
+
+/* PHOTO GRID */
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px;}
+.pzone{border:1.5px dashed rgba(255,255,255,.15);border-radius:13px;aspect-ratio:4/3;position:relative;cursor:pointer;overflow:hidden;transition:all .2s;background:rgba(255,255,255,.03);}
+.pzone:hover{border-color:rgba(41,121,255,.5);background:rgba(41,121,255,.04);}
+.pzone.req{border-color:rgba(232,25,44,.35);}
+.pzone.done{border-color:rgba(0,200,83,.5);border-style:solid;}
+.pzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;}
+.pz-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;pointer-events:none;padding:8px;}
+.pz-emoji{font-size:1.6rem;opacity:.5;}
+.pz-label{font-family:var(--fd);font-size:.62rem;font-weight:800;color:var(--m);text-align:center;line-height:1.35;}
+.pz-req-tag{font-size:.53rem;font-weight:700;color:var(--red);margin-top:2px;}
+.pz-preview{position:absolute;inset:0;background-size:cover;background-position:center;display:none;}
+.pz-preview.on{display:block;}
+.pz-tick{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:var(--green);display:none;align-items:center;justify-content:center;font-size:11px;z-index:3;box-shadow:0 2px 8px rgba(0,200,83,.4);}
+.pz-tick.on{display:flex;}
+.pz-existing{position:absolute;bottom:6px;left:6px;padding:2px 7px;border-radius:20px;font-size:.54rem;font-weight:700;background:rgba(0,200,83,.2);color:#4ade80;border:1px solid rgba(0,200,83,.3);z-index:3;}
+
+/* CONDITION CHECKS */
+.cond-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;}
+.cond-card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;}
+.cond-lbl{font-size:.58rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--m);margin-bottom:8px;}
+.cond-opts{display:flex;gap:5px;flex-wrap:wrap;}
+.copt{padding:4px 9px;border-radius:6px;font-size:.62rem;font-weight:700;border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--m);cursor:pointer;transition:all .15s;font-family:var(--fd);}
+.copt:hover{border-color:rgba(255,255,255,.25);color:var(--t);}
+.copt.on-good{border-color:rgba(0,200,83,.5);background:rgba(0,200,83,.1);color:#4ade80;}
+.copt.on-avg{border-color:rgba(255,171,0,.5);background:rgba(255,171,0,.1);color:#fbbf24;}
+.copt.on-bad{border-color:rgba(232,25,44,.5);background:rgba(232,25,44,.1);color:#f87171;}
+
+/* ISSUES CHECKLIST */
+.issue-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:24px;}
+.issue-item{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--card);border:1px solid var(--bd);border-radius:9px;cursor:pointer;transition:all .15s;}
+.issue-item:hover{border-color:rgba(255,255,255,.2);}
+.issue-item input{accent-color:var(--red);width:14px;height:14px;flex-shrink:0;}
+.issue-item label{font-size:.7rem;color:var(--m);cursor:pointer;line-height:1.3;}
+
+/* FORM FIELDS */
+.ff{margin-bottom:16px;}
+.ff label{display:block;font-size:.6rem;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:8px;}
+.ff input,.ff textarea{width:100%;padding:11px 14px;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:10px;font-family:var(--fb);font-size:.84rem;color:#fff;outline:none;transition:border-color .15s;}
+.ff input:focus,.ff textarea:focus{border-color:rgba(41,121,255,.5);background:rgba(41,121,255,.04);}
+.ff textarea{resize:vertical;min-height:90px;}
+.ff input::placeholder,.ff textarea::placeholder{color:rgba(255,255,255,.2);}
+.ff-hint{font-size:.62rem;color:rgba(255,255,255,.25);margin-top:5px;}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--bd);margin:24px 0;}
+
+/* SUBMIT */
+.submit-area{text-align:center;margin-top:8px;}
+.submit-btn{width:100%;padding:15px;background:linear-gradient(135deg,#1a56db,#2979ff);color:#fff;border:none;border-radius:12px;font-family:var(--fd);font-size:.9rem;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(41,121,255,.25);display:flex;align-items:center;justify-content:center;gap:8px;}
+.submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 28px rgba(41,121,255,.35);}
+.submit-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.submit-btn svg{width:16px;height:16px;}
+.skip-link{display:block;text-align:center;margin-top:12px;font-size:.72rem;color:var(--m);cursor:pointer;text-decoration:underline;}
+.skip-link:hover{color:var(--t);}
+.submit-note{font-size:.66rem;color:rgba(255,255,255,.25);text-align:center;margin-top:8px;line-height:1.5;}
+
+@media(max-width:680px){
+  .photo-grid{grid-template-columns:repeat(2,1fr);}
+  .cond-grid{grid-template-columns:repeat(2,1fr);}
+  .issue-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<nav>
+  <div class="navi">
+    <a href="{% url 'home' %}" class="logo">
+      <div class="logo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+      <span class="logo-name">e<span>Garage</span></span>
+    </a>
+    <div class="nav-r">
+      <a href="{% url 'vehicles' %}" class="nb">← My Vehicles</a>
+      {% if next_url and next_url != 'vehicles' %}
+      <a href="{{ next_url }}" class="nb red">Skip →</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <div class="page-hdr">
+    <h1>📷 Vehicle Condition Report</h1>
+    <p>Upload photos before your service begins. This protects you from any false damage claims — your mechanic will review these before starting work.</p>
+  </div>
+
+  <!-- VEHICLE INFO -->
+  <div class="vbanner">
+    <div class="vb-ico">{% if vehicle.type == 'bike' %}🏍️{% else %}🚗{% endif %}</div>
+    <div>
+      <div class="vb-name">{{ vehicle.brand }} {{ vehicle.model_name }}{% if vehicle.variant %} {{ vehicle.variant }}{% endif %}</div>
+      <div class="vb-detail">
+        {{ vehicle.get_fuel_type_display }} ·
+        {% if vehicle.year %}{{ vehicle.year }} · {% endif %}
+        {{ vehicle.registration_number|default:"Reg not added" }}
+        {% if vehicle.colour %} · {{ vehicle.colour }}{% endif %}
+      </div>
+    </div>
+    <span class="vb-badge {% if vehicle.condition_submitted %}vb-done{% else %}vb-pending{% endif %}">
+      {% if vehicle.condition_submitted %}✓ Condition on file{% else %}⏳ Pending{% endif %}
+    </span>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="prog-wrap">
+    <div class="prog-top">
+      <span>Upload progress</span>
+      <span id="progPct">0% — Upload required photos to continue</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" id="condForm"
+        action="{% url 'vehicle_condition' vehicle.pk %}?next={{ next_url|urlencode }}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next_url }}">
+
+    <!-- ═══ REQUIRED PHOTOS ═══ -->
+    <div class="sec-head">
+      <div class="sec-title">Required Photos</div>
+      <span class="badge badge-req">REQUIRED — 3 minimum</span>
+    </div>
+    <div class="photo-grid">
+
+      <div class="pzone req" id="zone-plate">
+        <input type="file" name="photo_plate" accept="image/*" capture="environment" onchange="previewPhoto(this,'plate',true)">
+        <div class="pz-inner">
+          <div class="pz-emoji">🔢</div>
+          <div class="pz-label">Number Plate</div>
+          <div class="pz-req-tag">★ Required</div>
+        </div>
+        <div class="pz-preview" id="prev-plate"
+          {% if existing.plate %}style="background-image:url('{{ existing.plate }}');display:block;"{% endif %}></div>
+        <div class="pz-tick {% if existing.plate %}on{% endif %}" id="tick-plate">✓</div>
+        {% if existing.plate %}<div class="pz-existing">On file</div>{% endif %}
+      </div>
+
+      <div class="pzone req" id="zone-front">
+        <input type="file" name="photo_front" accept="image/*" capture="environment" onchange="previewPhoto(this,'front',true)">
+        <div class="pz-inner">
+          <div class="pz-emoji">🚗</div>
+          <div class="pz-label">Front View</div>
+          <div class="pz-req-tag">★ Required</div>
+        </div>
+        <div class="pz-preview" id="prev-front"
+          {% if existing.front %}style="background-image:url('{{ existing.front }}');display:block;"{% endif %}></div>
+        <div class="pz-tick {% if existing.front %}on{% endif %}" id="tick-front">✓</div>
+        {% if existing.front %}<div class="pz-existing">On file</div>{% endif %}
+      </div>
+
+      <div class="pzone req" id="zone-rear">
+        <input type="file" name="photo_rear" accept="image/*" capture="environment" onchange="previewPhoto(this,'rear',true)">
+        <div class="pz-inner">
+          <div class="pz-emoji">🔙</div>
+          <div class="pz-label">Rear View</div>
+          <div class="pz-req-tag">★ Required</div>
+        </div>
+        <div class="pz-preview" id="prev-rear"
+          {% if existing.rear %}style="background-image:url('{{ existing.rear }}');display:block;"{% endif %}></div>
+        <div class="pz-tick {% if existing.rear %}on{% endif %}" id="tick-rear">✓</div>
+        {% if existing.rear %}<div class="pz-existing">On file</div>{% endif %}
+      </div>
+
+      <div class="pzone" id="zone-left">
+        <input type="file" name="photo_left" accept="image/*" capture="environment" onchange="previewPhoto(this,'left',false)">
+        <div class="pz-inner">
+          <div class="pz-emoji">◀️</div>
+          <div class="pz-label">Left Side</div>
+        </div>
+        <div class="pz-preview" id="prev-left"
+          {% if existing.left %}style="background-image:url('{{ existing.left }}');display:block;"{% endif %}></div>
+        <div class="pz-tick {% if existing.left %}on{% endif %}" id="tick-left">✓</div>
+        {% if existing.left %}<div class="pz-existing">On file</div>{% endif %}
+      </div>
+
+      <div class="pzone" id="zone-right">
+        <input type="file" name="photo_right" accept="image/*" capture="environment" onchange="previewPhoto(this,'right',false)">
+        <div class="pz-inner">
+          <div class="pz-emoji">▶️</div>
+          <div class="pz-label">Right Side</div>
+        </div>
+        <div class="pz-preview" id="prev-right"
+          {% if existing.right %}style="background-image:url('{{ existing.right }}');display:block;"{% endif %}></div>
+        <div class="pz-tick {% if existing.right %}on{% endif %}" id="tick-right">✓</div>
+        {% if existing.right %}<div class="pz-existing">On file</div>{% endif %}
+      </div>
+
+      <div class="pzone" id="zone-dashboard">
+        <input type="file" name="photo_dashboard" accept="image/*" capture="environment" onchange="previewPhoto(this,'dashboard',false)">
+        <div class="pz-inner">
+          <div class="pz-emoji">🎛️</div>
+          <div class="pz-label">Dashboard /<br>Odometer</div>
+        </div>
+        <div class="pz-preview" id="prev-dashboard"
+          {% if existing.dashboard %}style="background-image:url('{{ existing.dashboard }}');display:block;"{% endif %}></div>
+        <div class="pz-tick {% if existing.dashboard %}on{% endif %}" id="tick-dashboard">✓</div>
+        {% if existing.dashboard %}<div class="pz-existing">On file</div>{% endif %}
+      </div>
+
+    </div>
+
+    <!-- ═══ OPTIONAL PHOTOS ═══ -->
+    <div class="sec-head">
+      <div class="sec-title">Additional Photos</div>
+      <span class="badge badge-opt">Optional</span>
+    </div>
+    <div class="photo-grid">
+
+      <div class="pzone" id="zone-damage">
+        <input type="file" name="photo_damage" accept="image/*" capture="environment" onchange="previewPhoto(this,'damage',false)">
+        <div class="pz-inner">
+          <div class="pz-emoji">🔴</div>
+          <div class="pz-label">Existing Damage /<br>Scratches</div>
+        </div>
+        <div class="pz-preview" id="prev-damage"
+          {% if existing.damage %}style="background-image:url('{{ existing.damage }}');display:block;"{% endif %}></div>
+        <div class="pz-tick {% if existing.damage %}on{% endif %}" id="tick-damage">✓</div>
+      </div>
+
+      <div class="pzone" id="zone-tyres">
+        <input type="file" name="photo_tyres" accept="image/*" capture="environment" onchange="previewPhoto(this,'tyres',false)">
+        <div class="pz-inner">
+          <div class="pz-emoji">🔵</div>
+          <div class="pz-label">Tyres /<br>Wheels</div>
+        </div>
+        <div class="pz-preview" id="prev-tyres"
+          {% if existing.tyres %}style="background-image:url('{{ existing.tyres }}');display:block;"{% endif %}></div>
+        <div class="pz-tick {% if existing.tyres %}on{% endif %}" id="tick-tyres">✓</div>
+      </div>
+
+      <div class="pzone" id="zone-extra">
+        <input type="file" name="photo_extra" accept="image/*" capture="environment" onchange="previewPhoto(this,'extra',false)">
+        <div class="pz-inner">
+          <div class="pz-emoji">📷</div>
+          <div class="pz-label">Any Other<br>Photo</div>
+        </div>
+        <div class="pz-preview" id="prev-extra"></div>
+        <div class="pz-tick" id="tick-extra">✓</div>
+      </div>
+
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══ CONDITION CHECK ═══ -->
+    <div class="sec-head">
+      <div class="sec-title">Condition Check</div>
+      <span class="badge badge-opt">Select for each part</span>
+    </div>
+    <div class="cond-grid">
+      {% for part, label in condition_parts %}
+      <div class="cond-card">
+        <div class="cond-lbl">{{ label }}</div>
+        <div class="cond-opts">
+          <button type="button" class="copt" onclick="setCond('{{ part }}','good',this)">✅ Good</button>
+          <button type="button" class="copt" onclick="setCond('{{ part }}','avg',this)">⚠️ Avg</button>
+          <button type="button" class="copt" onclick="setCond('{{ part }}','bad',this)">❌ Poor</button>
+        </div>
+        <input type="hidden" name="check_{{ part }}" id="cond-{{ part }}" value="">
+      </div>
+      {% empty %}
+      {% for part, label in default_parts %}
+      <div class="cond-card">
+        <div class="cond-lbl">{{ label }}</div>
+        <div class="cond-opts">
+          <button type="button" class="copt" onclick="setCond('{{ part }}','good',this)">✅ Good</button>
+          <button type="button" class="copt" onclick="setCond('{{ part }}','avg',this)">⚠️ Avg</button>
+          <button type="button" class="copt" onclick="setCond('{{ part }}','bad',this)">❌ Poor</button>
+        </div>
+        <input type="hidden" name="check_{{ part }}" id="cond-{{ part }}" value="">
+      </div>
+      {% endfor %}
+      {% endfor %}
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══ KNOWN ISSUES ═══ -->
+    <div class="sec-head">
+      <div class="sec-title">⚠️ Known Issues</div>
+      <span class="badge badge-opt">Tick all that apply</span>
+    </div>
+    <div class="issue-grid">
+      <div class="issue-item"><input type="checkbox" name="issues" value="scratch" id="i1"><label for="i1">🔴 Scratches / Dents</label></div>
+      <div class="issue-item"><input type="checkbox" name="issues" value="brake_noise" id="i2"><label for="i2">🛑 Brake Noise</label></div>
+      <div class="issue-item"><input type="checkbox" name="issues" value="engine_noise" id="i3"><label for="i3">🔊 Engine Noise</label></div>
+      <div class="issue-item"><input type="checkbox" name="issues" value="ac" id="i4"><label for="i4">❄️ AC Not Working</label></div>
+      <div class="issue-item"><input type="checkbox" name="issues" value="oil_leak" id="i5"><label for="i5">🛢️ Oil Leak</label></div>
+      <div class="issue-item"><input type="checkbox" name="issues" value="flat_tyre" id="i6"><label for="i6">🔵 Tyre Issue</label></div>
+      <div class="issue-item"><input type="checkbox" name="issues" value="battery" id="i7"><label for="i7">🔋 Battery Weak</label></div>
+      <div class="issue-item"><input type="checkbox" name="issues" value="lights" id="i8"><label for="i8">💡 Lights Issue</label></div>
+      <div class="issue-item"><input type="checkbox" name="issues" value="suspension" id="i9"><label for="i9">🛞 Suspension</label></div>
+      <div class="issue-item"><input type="checkbox" name="issues" value="overheating" id="i10"><label for="i10">🌡️ Overheating</label></div>
+      <div class="issue-item"><input type="checkbox" name="issues" value="gearbox" id="i11"><label for="i11">⚙️ Gearbox Issue</label></div>
+      <div class="issue-item"><input type="checkbox" name="issues" value="other" id="i12"><label for="i12">❓ Other</label></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══ ODOMETER + NOTES ═══ -->
+    <div class="ff">
+      <label>Current Odometer Reading (km)</label>
+      <input type="number" name="odometer" placeholder="e.g. 45,000" min="0" value="{{ vehicle.odometer|default:'' }}">
+    </div>
+
+    <div class="ff">
+      <label>Damage Notes & Service Instructions <span style="color:var(--red);font-weight:700;">★</span></label>
+      <textarea name="damage_notes" rows="4"
+        placeholder="e.g. Scratch on front bumper (passenger side). Brake noise when stopping hard. AC not cooling below 22°C. Small oil stain under engine. Please check rear-left tyre for slow puncture…"></textarea>
+      <div class="ff-hint">Tell the mechanic exactly what you've noticed — the more detail the better</div>
+    </div>
+
+    <!-- ═══ SUBMIT ═══ -->
+    <div class="submit-area">
+      <button type="submit" class="submit-btn" id="submitBtn" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Submit Condition Report
+      </button>
+      {% if next_url and next_url != 'vehicles' %}
+      <a href="{{ next_url }}" class="skip-link">Skip for now and go to payment →</a>
+      {% endif %}
+      <p class="submit-note">Upload plate, front & rear photos to enable submit. Photos are encrypted and only visible to your assigned mechanic.</p>
+    </div>
+
+  </form>
+</div>
+
+<script>
+var uploaded   = {};
+var required   = ['plate','front','rear'];
+// Mark existing photos as already uploaded
+{% if existing.plate %}uploaded['plate'] = true;{% endif %}
+{% if existing.front %}uploaded['front'] = true;{% endif %}
+{% if existing.rear  %}uploaded['rear']  = true;{% endif %}
+{% if existing.left  %}uploaded['left']  = true;{% endif %}
+{% if existing.right %}uploaded['right'] = true;{% endif %}
+{% if existing.dashboard %}uploaded['dashboard'] = true;{% endif %}
+{% if existing.damage %}uploaded['damage'] = true;{% endif %}
+{% if existing.tyres  %}uploaded['tyres']  = true;{% endif %}
+
+var totalZones = 9;
+
+function previewPhoto(input, key, isReq) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var prev = document.getElementById('prev-' + key);
+    if (prev) {
+      prev.style.backgroundImage = 'url(' + e.target.result + ')';
+      prev.classList.add('on');
+    }
+    var tick = document.getElementById('tick-' + key);
+    if (tick) tick.classList.add('on');
+    var zone = document.getElementById('zone-' + key);
+    if (zone) { zone.classList.add('done'); zone.classList.remove('req'); }
+    uploaded[key] = true;
+    updateProgress();
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function updateProgress() {
+  var done = Object.keys(uploaded).length;
+  var pct  = Math.min(Math.round(done / totalZones * 100), 100);
+  document.getElementById('progFill').style.width = pct + '%';
+  var reqDone = required.every(function(k){ return uploaded[k]; });
+  document.getElementById('progPct').textContent = pct + '% — ' +
+    (reqDone ? '✓ Required photos done! Ready to submit.' : 'Upload Plate, Front & Rear to continue');
+  document.getElementById('submitBtn').disabled = !reqDone;
+}
+
+function setCond(part, val, btn) {
+  btn.closest('.cond-opts').querySelectorAll('.copt').forEach(function(b){
+    b.className = 'copt';
+  });
+  btn.classList.add('on-' + val);
+  var inp = document.getElementById('cond-' + part);
+  if (inp) inp.value = val;
+}
+
+// Init progress with existing photos
+updateProgress();
+</script>
+{% endblock %}

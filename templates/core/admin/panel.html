@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+  <script>
+  (function(){
+    var t=localStorage.getItem('eg_theme');
+    if(!t) t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+    document.documentElement.setAttribute('data-theme',t);
+  })();
+  </script>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Admin Panel — eGarage</title>
+<!-- Flash prevention -->
+<script>(function(){var t=localStorage.getItem('eg_theme');if(!t)t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══ DESIGN SYSTEM — same tokens as base.html ══ */
+:root{
+  --red:#e8192c;--red2:#c0111f;--green:#00a651;--blue:#3b82f6;--yellow:#f59e0b;--purple:#7c3aed;
+  --fd:'Syne',sans-serif;--fs:'Space Grotesk',sans-serif;
+  /* dark (default) */
+  --bg:#0f172a;--bg2:#1e293b;--bg3:#334155;
+  --surface:#1e293b;--surface2:#263347;--surface3:#2d3d52;
+  --border:rgba(148,163,184,.12);--border2:rgba(148,163,184,.22);
+  --text:#f1f5f9;--text2:#cbd5e1;--muted:#94a3b8;--muted2:#64748b;
+  --card-shadow:0 4px 24px rgba(0,0,0,.28);
+  --input-bg:rgba(255,255,255,.05);--input-border:rgba(148,163,184,.15);--input-text:#f1f5f9;
+}
+[data-theme="light"]{
+  --bg:#f8fafc;--bg2:#ffffff;--bg3:#f1f5f9;
+  --surface:#ffffff;--surface2:#f8fafc;--surface3:#f1f5f9;
+  --border:#e2e8f0;--border2:#cbd5e1;
+  --text:#0f172a;--text2:#334155;--muted:#64748b;--muted2:#94a3b8;
+  --card-shadow:0 2px 16px rgba(15,23,42,.06);
+  --input-bg:#f8fafc;--input-border:#e2e8f0;--input-text:#0f172a;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;transition:background-color .25s ease,border-color .25s ease,color .2s ease !important;}
+body{font-family:var(--fs);background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 15% 10%,rgba(232,25,44,.05),transparent 50%),radial-gradient(ellipse at 85% 85%,rgba(59,130,246,.03),transparent 50%);pointer-events:none;z-index:0;}
+
+/* ══ SIDEBAR ══ */
+.sidebar{width:248px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;overflow-y:auto;}
+.sb-logo{padding:20px 18px 14px;border-bottom:1px solid var(--border);}
+.sb-logo-text{font-family:var(--fd);font-size:.78rem;font-weight:900;letter-spacing:2px;color:var(--red);}
+.sb-logo-text em{color:var(--muted);font-style:normal;}
+.sb-badge{display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:3px 9px;border-radius:20px;font-size:.57rem;font-weight:800;letter-spacing:1px;}
+.b-admin{background:rgba(232,25,44,.1);border:1px solid rgba(232,25,44,.2);color:var(--red);}
+.b-super{background:rgba(124,77,255,.12);border:1px solid rgba(124,77,255,.25);color:var(--purple);}
+.sb-nav{padding:12px 10px;flex:1;}
+.sb-sec{font-size:.54rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);padding:10px 8px 5px;}
+.sb-link{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;font-size:.74rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;margin-bottom:1px;border:1px solid transparent;}
+.sb-link:hover{background:var(--surface3);color:var(--text);}
+.sb-link.on{background:rgba(232,25,44,.1);border-color:rgba(232,25,44,.18);color:var(--red);}
+.sb-link svg{width:14px;height:14px;flex-shrink:0;}
+.sbn{margin-left:auto;min-width:18px;height:18px;border-radius:9px;color:#fff;font-size:.57rem;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px;}
+.sbn-r{background:var(--red);}.sbn-y{background:var(--yellow);color:#000;}.sbn-g{background:var(--green);color:#000;}.sbn-b{background:var(--blue);}
+.sb-bottom{padding:12px 10px;border-top:1px solid var(--border);}
+.sb-user{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;background:var(--surface2);}
+.sb-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--red2));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.7rem;font-weight:900;color:#fff;flex-shrink:0;}
+.sb-un{font-size:.72rem;font-weight:700;color:var(--text);}
+.sb-ur{font-size:.57rem;color:var(--muted);}
+
+/* Theme toggle in sidebar */
+.sb-theme-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;font-size:.72rem;font-weight:600;color:var(--muted);cursor:pointer;border:1px solid var(--border);background:var(--surface2);margin-bottom:8px;transition:all .15s;}
+.sb-theme-btn:hover{border-color:var(--red);color:var(--red);}
+.sb-theme-btn svg{width:14px;height:14px;flex-shrink:0;}
+.toggle-track{width:28px;height:16px;border-radius:8px;background:var(--border2);position:relative;flex-shrink:0;transition:background .3s !important;}
+[data-theme="dark"] .toggle-track{background:var(--red);}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);font-size:7px;display:flex;align-items:center;justify-content:center;transition:transform .3s cubic-bezier(.34,1.56,.64,1) !important;}
+[data-theme="dark"] .toggle-thumb{transform:translateX(12px);}
+
+/* ══ MAIN ══ */
+.main{margin-left:248px;flex:1;padding:26px 28px 48px;position:relative;z-index:1;}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap;}
+.tb-title{font-family:var(--fd);font-size:1rem;font-weight:900;color:var(--text);}
+.tb-r{display:flex;gap:7px;flex-wrap:wrap;}
+.tb-btn{display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-family:var(--fd);font-size:.67rem;font-weight:700;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:var(--surface2);color:var(--muted);}
+.tb-btn:hover{background:var(--surface3);color:var(--text);}
+.tb-btn.r{background:rgba(232,25,44,.1);border-color:rgba(232,25,44,.22);color:var(--red);}
+.tb-btn.g{background:rgba(0,166,81,.1);border-color:rgba(0,166,81,.22);color:var(--green);}
+.tb-btn.y{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.22);color:var(--yellow);}
+.tb-btn.b{background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.22);color:var(--blue);}
+
+/* ══ ALERTS ══ */
+.alert{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;margin-bottom:14px;}
+.alert-r{background:rgba(232,25,44,.06);border:1px solid rgba(232,25,44,.18);}
+.alert-y{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.18);}
+.alert-g{background:rgba(0,166,81,.06);border:1px solid rgba(0,166,81,.18);}
+.alert-b{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.18);}
+.al-icon{font-size:18px;flex-shrink:0;}
+.al-body{flex:1;}
+.al-title{font-family:var(--fd);font-size:.74rem;font-weight:800;}
+.al-sub{font-size:.66rem;color:var(--muted);margin-top:2px;}
+.alert-r .al-title{color:var(--red);}.alert-y .al-title{color:var(--yellow);}.alert-g .al-title{color:var(--green);}.alert-b .al-title{color:var(--blue);}
+.al-btn{padding:7px 13px;border-radius:7px;font-family:var(--fd);font-size:.64rem;font-weight:700;cursor:pointer;flex-shrink:0;border:none;}
+.alert-r .al-btn{background:rgba(232,25,44,.12);border:1px solid rgba(232,25,44,.25);color:var(--red);}
+.alert-y .al-btn{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:var(--yellow);}
+.alert-g .al-btn{background:rgba(0,166,81,.12);border:1px solid rgba(0,166,81,.25);color:var(--green);}
+.alert-b .al-btn{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);color:var(--blue);}
+
+/* ══ BENTO STATS ══ */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:16px 18px;position:relative;overflow:hidden;transition:all .2s;box-shadow:var(--card-shadow);}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--ac,var(--red)),transparent);}
+.sc:hover{background:var(--surface2);}
+.sc-n{font-family:var(--fd);font-size:1.55rem;font-weight:900;color:var(--text);line-height:1;}
+.sc-l{font-size:.57rem;color:var(--muted2);text-transform:uppercase;letter-spacing:1px;margin-top:3px;font-weight:700;}
+.sc-i{position:absolute;top:14px;right:14px;font-size:20px;opacity:.25;}
+.sc-s{font-size:.62rem;color:var(--green);margin-top:5px;}
+
+/* ══ PANELS ══ */
+.panel{display:none;}.panel.on{display:block;}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sec-t{font-family:var(--fd);font-size:.78rem;font-weight:900;color:var(--text);}
+.badge{padding:2px 8px;border-radius:20px;font-size:.58rem;font-weight:800;}
+.badge-r{background:rgba(232,25,44,.12);color:var(--red);}
+.badge-y{background:rgba(245,158,11,.12);color:var(--yellow);}
+.badge-g{background:rgba(0,166,81,.12);color:var(--green);}
+.badge-b{background:rgba(59,130,246,.12);color:var(--blue);}
+.badge-p{background:rgba(124,77,255,.12);color:var(--purple);}
+
+/* ══ REQUEST CARDS ══ */
+.rcard{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:flex-start;gap:12px;transition:all .2s;box-shadow:var(--card-shadow);}
+.rcard:hover{background:var(--surface2);border-color:var(--border2);}
+.rav{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.82rem;font-weight:900;color:#fff;flex-shrink:0;}
+.rav-admin{background:linear-gradient(135deg,rgba(232,25,44,.4),rgba(124,77,255,.4));}
+.rav-mgr{background:linear-gradient(135deg,rgba(0,166,81,.3),rgba(59,130,246,.3));}
+.rav-garage{background:linear-gradient(135deg,rgba(59,130,246,.3),rgba(0,166,81,.3));}
+.rav-mech{background:linear-gradient(135deg,rgba(245,158,11,.3),rgba(255,109,0,.3));}
+.rbody{flex:1;min-width:0;}
+.rname{font-size:.84rem;font-weight:700;color:var(--text);margin-bottom:2px;}
+.rmeta{font-size:.64rem;color:var(--muted2);margin-bottom:7px;}
+.rreason{font-size:.72rem;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 11px;line-height:1.5;margin-bottom:8px;}
+.rdetail{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:7px;}
+.rd{font-size:.64rem;color:var(--muted2);}
+.rd strong{color:var(--text2);}
+.rtime{font-size:.61rem;color:var(--muted2);}
+.rbtns{display:flex;gap:6px;flex-shrink:0;flex-direction:column;}
+.b-ok{padding:7px 13px;background:rgba(0,166,81,.12);border:1px solid rgba(0,166,81,.25);border-radius:7px;color:var(--green);font-family:var(--fd);font-size:.64rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.b-ok:hover{background:rgba(0,166,81,.22);}
+.b-no{padding:7px 13px;background:rgba(232,25,44,.08);border:1px solid rgba(232,25,44,.18);border-radius:7px;color:var(--red);font-family:var(--fd);font-size:.64rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.b-no:hover{background:rgba(232,25,44,.18);}
+
+/* ══ TABLES ══ */
+.tw{background:var(--surface);border:1px solid var(--border);border-radius:13px;overflow:hidden;box-shadow:var(--card-shadow);}
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);font-size:.57rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2);background:var(--surface2);}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:.73rem;color:var(--text2);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:var(--surface2);}
+.tbl td:first-child{color:var(--text);font-weight:600;}
+.pill{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:.57rem;font-weight:800;font-family:var(--fd);}
+.p-owner{background:rgba(59,130,246,.1);color:var(--blue);}
+.p-mech{background:rgba(0,166,81,.1);color:var(--green);}
+.p-mgr{background:rgba(245,158,11,.1);color:var(--yellow);}
+.p-admin{background:rgba(232,25,44,.1);color:var(--red);}
+.p-super{background:rgba(124,77,255,.12);color:var(--purple);}
+.p-active{background:rgba(0,166,81,.1);color:var(--green);}
+.p-inactive{background:var(--surface3);color:var(--muted);}
+.p-pending{background:rgba(245,158,11,.1);color:var(--yellow);}
+.p-rejected{background:rgba(232,25,44,.1);color:var(--red);}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:4px;}
+.dot-g{background:var(--green);}
+.dot-d{background:var(--muted2);}
+.tbl-btn{padding:4px 10px;border-radius:6px;font-size:.6rem;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:var(--fd);transition:all .15s;}
+.tbl-btn:hover{border-color:var(--red);color:var(--red);}
+
+/* ══ GARAGE GRID (bento) ══ */
+.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:11px;}
+.gc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;transition:all .2s;box-shadow:var(--card-shadow);}
+.gc:hover{background:var(--surface2);border-color:var(--border2);}
+.gc-name{font-family:var(--fd);font-size:.76rem;font-weight:800;color:var(--text);margin-bottom:3px;}
+.gc-addr{font-size:.64rem;color:var(--muted2);margin-bottom:9px;}
+.gc-foot{display:flex;align-items:center;justify-content:space-between;}
+
+/* ══ EMPTY ══ */
+.empty{text-align:center;padding:36px;color:var(--muted2);}
+.empty-ico{font-size:2rem;margin-bottom:8px;opacity:.3;}
+.empty-t{font-family:var(--fd);font-size:.76rem;font-weight:700;color:var(--muted);}
+
+/* ══ INFO ══ */
+.info{font-size:.72rem;color:var(--text2);padding:10px 13px;border-radius:9px;margin-bottom:14px;}
+.info-y{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);}
+.info-g{background:rgba(0,166,81,.06);border:1px solid rgba(0,166,81,.15);}
+.info-b{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);}
+
+/* ══ MODAL ══ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
+.overlay.on{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:420px;overflow:hidden;animation:mIn .28s cubic-bezier(.34,1.4,.64,1);box-shadow:var(--card-shadow);}
+.modal::before{content:'';display:block;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);}
+@keyframes mIn{from{opacity:0;transform:scale(.9) translateY(12px);}to{opacity:1;transform:none;}}
+.mhd{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--surface2);}
+.mhd h3{font-family:var(--fd);font-size:.78rem;font-weight:800;color:var(--text);}
+.mclose{background:transparent;border:1px solid var(--border);color:var(--muted);width:26px;height:26px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.mclose:hover{border-color:var(--red);color:var(--red);}
+.mclose svg{width:11px;height:11px;}
+.mbody{padding:18px 20px;}
+.mff label{font-size:.57rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);display:block;margin-bottom:7px;}
+.mff textarea{width:100%;padding:10px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:9px;color:var(--input-text);font-family:var(--fs);font-size:.79rem;outline:none;resize:none;min-height:80px;transition:border-color .15s;}
+.mff textarea:focus{border-color:rgba(232,25,44,.4);}
+.mfoot{padding:11px 20px;border-top:1px solid var(--border);display:flex;gap:7px;justify-content:flex-end;background:var(--surface2);}
+.mbtn{padding:8px 17px;border-radius:8px;font-family:var(--fd);font-size:.7rem;font-weight:700;cursor:pointer;transition:all .15s;border:none;}
+.mbtn.ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.mbtn.ghost:hover{border-color:var(--border2);color:var(--text);}
+.mbtn.red{background:var(--red);color:#fff;}
+.mbtn.red:hover{background:var(--red2);}
+
+/* ══ ADMIN FORM ══ */
+.admin-form-card{background:rgba(232,25,44,.05);border:1px solid rgba(232,25,44,.15);border-radius:13px;padding:18px 20px;margin-bottom:16px;}
+.ff-admin{margin-bottom:12px;}
+.ff-admin label{font-size:.6rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2);display:block;margin-bottom:5px;}
+.ff-admin input{width:100%;padding:9px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:8px;color:var(--input-text);font-family:var(--fs);font-size:.82rem;outline:none;}
+.ff-admin input:focus{border-color:rgba(232,25,44,.4);background:var(--surface);}
+.pass-wrap{position:relative;}
+.gen-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--surface3);border:none;border-radius:5px;color:var(--muted);font-size:.6rem;padding:3px 7px;cursor:pointer;font-family:var(--fs);}
+.gen-btn:hover{color:var(--text);}
+
+/* ══ TOAST ══ */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px 16px;border-radius:10px;font-size:.73rem;font-weight:700;z-index:2000;display:none;align-items:center;gap:7px;box-shadow:var(--card-shadow);}
+.toast.on{display:flex;animation:tf .2s ease;}
+@keyframes tf{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+
+/* ═══════════════════════════════════════════
+   ADMIN PANEL — THEME SYSTEM
+   Dark(Navy) + Light(Off-white)
+═══════════════════════════════════════════ */
+:root {
+  --theme-bg: #0f172a;
+  --theme-surface: #1e293b;
+  --theme-surface2: rgba(255,255,255,.05);
+  --theme-border: rgba(148,163,184,.15);
+  --theme-text: #f1f5f9;
+  --theme-muted: #94a3b8;
+  --theme-dim: rgba(148,163,184,.35);
+}
+
+/* DARK (default for admin) */
+[data-theme="dark"] {
+  --theme-bg: #0f172a;
+  --theme-surface: #1e293b;
+  --theme-surface2: rgba(255,255,255,.05);
+  --theme-border: rgba(148,163,184,.15);
+  --theme-text: #f1f5f9;
+  --theme-muted: #94a3b8;
+  --theme-dim: rgba(148,163,184,.35);
+}
+
+/* LIGHT MODE for admin panel */
+[data-theme="light"] {
+  --theme-bg: #f8fafc;
+  --theme-surface: #ffffff;
+  --theme-surface2: #f1f5f9;
+  --theme-border: #e2e8f0;
+  --theme-text: #0f172a;
+  --theme-muted: #475569;
+  --theme-dim: #94a3b8;
+}
+[data-theme="light"] body {
+  background: #f8fafc !important; color: #0f172a !important;
+}
+[data-theme="light"] body::before {
+  background:
+    radial-gradient(ellipse at 15% 10%, rgba(232,25,44,.04), transparent 50%),
+    radial-gradient(ellipse at 85% 85%, rgba(41,121,255,.03), transparent 50%) !important;
+}
+[data-theme="light"] .sidebar {
+  background: rgba(255,255,255,.96) !important;
+  border-color: #e2e8f0 !important;
+}
+[data-theme="light"] .sb-logo-text { color: #e8192c !important; }
+[data-theme="light"] .sb-logo-text em { color: #94a3b8 !important; }
+[data-theme="light"] .sb-sec { color: #94a3b8 !important; }
+[data-theme="light"] .sb-link { color: #64748b !important; }
+[data-theme="light"] .sb-link:hover { background: #f1f5f9 !important; color: #0f172a !important; }
+[data-theme="light"] .sb-link.on { background: rgba(232,25,44,.07) !important; border-color: rgba(232,25,44,.15) !important; color: #e8192c !important; }
+[data-theme="light"] .sb-bottom { border-color: #e2e8f0 !important; }
+[data-theme="light"] .sb-user { background: #f1f5f9 !important; }
+[data-theme="light"] .sb-un { color: #0f172a !important; }
+[data-theme="light"] .sb-ur { color: #64748b !important; }
+
+[data-theme="light"] .main { background: #f8fafc !important; }
+[data-theme="light"] .topbar { background: #f8fafc !important; }
+[data-theme="light"] .tb-title { color: #0f172a !important; }
+[data-theme="light"] .tb-btn { border-color: #e2e8f0 !important; color: #475569 !important; background: #ffffff !important; }
+[data-theme="light"] .tb-btn:hover { background: #f1f5f9 !important; color: #0f172a !important; }
+
+[data-theme="light"] .alert-r { background: rgba(232,25,44,.05) !important; border-color: rgba(232,25,44,.15) !important; }
+[data-theme="light"] .alert-g { background: rgba(0,200,83,.05) !important; border-color: rgba(0,200,83,.15) !important; }
+[data-theme="light"] .alert-y { background: rgba(255,171,0,.05) !important; border-color: rgba(255,171,0,.15) !important; }
+[data-theme="light"] .alert-b { background: rgba(41,121,255,.05) !important; border-color: rgba(41,121,255,.15) !important; }
+[data-theme="light"] .al-sub { color: #475569 !important; }
+
+[data-theme="light"] .sc {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 6px rgba(0,0,0,.06) !important;
+}
+[data-theme="light"] .sc:hover { background: #f8fafc !important; }
+[data-theme="light"] .sc-n { color: #0f172a !important; }
+[data-theme="light"] .sc-l { color: #94a3b8 !important; }
+
+[data-theme="light"] .sec-t { color: #0f172a !important; }
+[data-theme="light"] .rcard {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+[data-theme="light"] .rcard:hover { background: #f8fafc !important; border-color: #cbd5e1 !important; }
+[data-theme="light"] .rname { color: #0f172a !important; }
+[data-theme="light"] .rmeta { color: #94a3b8 !important; }
+[data-theme="light"] .rreason { background: #f8fafc !important; border-color: #e2e8f0 !important; color: #475569 !important; }
+[data-theme="light"] .rd { color: #94a3b8 !important; }
+[data-theme="light"] .rd strong { color: #475569 !important; }
+[data-theme="light"] .rtime { color: #94a3b8 !important; }
+
+[data-theme="light"] .tw { background: #ffffff !important; border-color: #e2e8f0 !important; }
+[data-theme="light"] .tbl th { border-color: #f1f5f9 !important; color: #94a3b8 !important; }
+[data-theme="light"] .tbl td { border-color: rgba(0,0,0,.04) !important; color: #475569 !important; }
+[data-theme="light"] .tbl td:first-child { color: #0f172a !important; }
+[data-theme="light"] .tbl tr:hover td { background: #f8fafc !important; }
+[data-theme="light"] .tbl-btn { border-color: #e2e8f0 !important; color: #64748b !important; background: #f8fafc !important; }
+[data-theme="light"] .tbl-btn:hover { border-color: #e8192c !important; color: #e8192c !important; }
+
+[data-theme="light"] .gc { background: #ffffff !important; border-color: #e2e8f0 !important; }
+[data-theme="light"] .gc:hover { background: #f8fafc !important; }
+[data-theme="light"] .gc-name { color: #0f172a !important; }
+[data-theme="light"] .gc-addr { color: #94a3b8 !important; }
+
+[data-theme="light"] .info-y { background: rgba(255,171,0,.05) !important; border-color: rgba(255,171,0,.15) !important; }
+[data-theme="light"] .info-g { background: rgba(0,200,83,.05) !important; border-color: rgba(0,200,83,.15) !important; }
+[data-theme="light"] .info-b { background: rgba(41,121,255,.05) !important; border-color: rgba(41,121,255,.15) !important; }
+
+[data-theme="light"] .modal { background: #ffffff !important; border-color: #e2e8f0 !important; }
+[data-theme="light"] .mhd { border-color: #f1f5f9 !important; }
+[data-theme="light"] .mhd h3 { color: #0f172a !important; }
+[data-theme="light"] .mclose { background: #f1f5f9 !important; border-color: #e2e8f0 !important; color: #475569 !important; }
+[data-theme="light"] .mff label { color: #64748b !important; }
+[data-theme="light"] .mff textarea {
+  background: #f8fafc !important; border-color: #e2e8f0 !important; color: #0f172a !important;
+}
+[data-theme="light"] .mfoot { border-color: #f1f5f9 !important; }
+[data-theme="light"] .mbtn.ghost { border-color: #e2e8f0 !important; color: #475569 !important; }
+[data-theme="light"] .overlay { background: rgba(15,23,42,.35) !important; }
+[data-theme="light"] .empty { color: #94a3b8 !important; }
+[data-theme="light"] .empty-t { color: #94a3b8 !important; }
+[data-theme="light"] .toast { background: #0f172a !important; color: #f1f5f9 !important; }
+
+/* admin form inputs light mode */
+[data-theme="light"] #addAdminForm input {
+  background: #f8fafc !important; border-color: #e2e8f0 !important; color: #0f172a !important;
+}
+[data-theme="light"] #addAdminForm input::placeholder { color: #94a3b8 !important; }
+[data-theme="light"] #adminPassInput { color: #b45309 !important; }
+
+@media(max-width:920px){.sidebar{width:56px;}.sidebar .sb-link span,.sb-un,.sb-ur,.sb-sec,.sb-logo-text em,.sb-badge,.sb-theme-btn span{display:none;}.main{margin-left:56px;}.stats{grid-template-columns:repeat(2,1fr);}.gg{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-text">e<em>GARAGE</em></div>
+    <div class="sb-badge {% if is_super %}b-super{% else %}b-admin{% endif %}">{% if is_super %}⭐ Super Admin{% else %}🛡️ Sub-Admin{% endif %}</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <a class="sb-link on" onclick="go('overview',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+    {% if is_super or request.user.admin_approved %}
+    <div class="sb-sec">Approvals Queue</div>
+    {% if is_super %}
+    <a class="sb-link" onclick="go('admins-q',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Admin Requests</span>{% if pending_count > 0 %}<span class="sbn sbn-r">{{ pending_count }}</span>{% endif %}</a>
+    {% endif %}
+    <a class="sb-link" onclick="go('managers-q',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Manager Requests</span>{% if pending_managers_count > 0 %}<span class="sbn sbn-g">{{ pending_managers_count }}</span>{% endif %}</a>
+    {% if is_super %}<a class="sb-link" onclick="go('garages-q',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg><span>Garage Requests</span>{% if pending_garages_count > 0 %}<span class="sbn sbn-y">{{ pending_garages_count }}</span>{% endif %}</a>{% endif %}
+    <a class="sb-link" onclick="go('mechs-q',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg><span>Ind. Mechanic Apps</span>{% if pending_mechs_count > 0 %}<span class="sbn sbn-b">{{ pending_mechs_count }}</span>{% endif %}</a>
+    {% endif %}
+    <div class="sb-sec">Manage</div>
+    <a class="sb-link" onclick="go('users',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span>All Users</span></a>
+    <a class="sb-link" onclick="go('bookings',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg><span>All Bookings</span></a>
+    <a class="sb-link" onclick="go('garages',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg><span>All Garages</span></a>
+    <a class="sb-link" onclick="go('admin-team',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Admin Team</span></a>
+    <div class="sb-sec">Links</div>
+    <a class="sb-link" href="{% url 'home' %}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span>Main Site</span></a>
+    <a class="sb-link" href="/admin/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.68 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span>Django Admin</span></a>
+    <a class="sb-link" href="{% url 'logout' %}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Logout</span></a>
+  </nav>
+  <div class="sb-bottom">
+    <!-- Theme toggle -->
+    <div class="sb-theme-btn" onclick="adminToggleTheme()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+      <span id="themeLabel">Night Mode</span>
+      <div class="toggle-track" style="margin-left:auto;"><div class="toggle-thumb" id="sidebarThumb">🌙</div></div>
+    </div>
+    <div class="sb-user">
+      <div class="sb-av">{{ request.user.name|first|upper }}</div>
+      <div><div class="sb-un">{{ request.user.name }}</div><div class="sb-ur">{% if is_super %}Super Admin{% else %}Admin{% endif %}</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="tb-title" id="ptitle">📊 Dashboard Overview</div>
+  
+    <!-- THEME TOGGLE -->
+    <div class="tb-r">
+      <button onclick="toggleAdminTheme()" id="adminThemeBtn"
+        style="display:flex;align-items:center;gap:6px;padding:6px 13px;
+               border-radius:18px;border:1px solid var(--bd);background:var(--s1);
+               cursor:pointer;font-family:var(--fd);font-size:.65rem;font-weight:700;
+               letter-spacing:.3px;color:var(--m);transition:all .2s;white-space:nowrap;"
+        onmouseover="this.style.borderColor='var(--r)';this.style.color='var(--r)'"
+        onmouseout="this.style.borderColor='var(--bd)';this.style.color='var(--m)'">
+        <span id="adminThumbEl" style="font-size:.8rem;">🌙</span>
+        <span id="adminLabelEl">Night</span>
+      </button>
+      {% if pending_count > 0 %}<button class="tb-btn r" onclick="go('admins-q',null)">🛡️ {{ pending_count }} Admin</button>{% endif %}
+      {% if pending_managers_count > 0 %}<button class="tb-btn g" onclick="go('managers-q',null)">👤 {{ pending_managers_count }} Manager</button>{% endif %}
+      {% if pending_garages_count > 0 %}<button class="tb-btn y" onclick="go('garages-q',null)">🏢 {{ pending_garages_count }} Garage</button>{% endif %}
+      {% if pending_mechs_count > 0 %}<button class="tb-btn b" onclick="go('mechs-q',null)">🔧 {{ pending_mechs_count }} Mechanic</button>{% endif %}
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="panel on" id="p-overview">
+    {% if pending_count > 0 %}<div class="alert alert-r"><div class="al-icon">🛡️</div><div class="al-body"><div class="al-title">{{ pending_count }} Admin Request{{ pending_count|pluralize }} Pending</div><div class="al-sub">Review and approve admin access requests.</div></div><button class="al-btn" onclick="go('admins-q',null)">Review →</button></div>{% endif %}
+    {% if pending_managers_count > 0 %}<div class="alert alert-g"><div class="al-icon">👤</div><div class="al-body"><div class="al-title">{{ pending_managers_count }} Manager{{ pending_managers_count|pluralize }} Waiting</div><div class="al-sub">Managers cannot login until you approve them.</div></div><button class="al-btn" onclick="go('managers-q',null)">Approve →</button></div>{% endif %}
+    {% if pending_garages_count > 0 %}<div class="alert alert-y"><div class="al-icon">🏢</div><div class="al-body"><div class="al-title">{{ pending_garages_count }} Garage{{ pending_garages_count|pluralize }} Awaiting Approval</div><div class="al-sub">Hidden from users until approved.</div></div><button class="al-btn" onclick="go('garages-q',null)">Approve →</button></div>{% endif %}
+    {% if pending_mechs_count > 0 %}<div class="alert alert-b"><div class="al-icon">🔧</div><div class="al-body"><div class="al-title">{{ pending_mechs_count }} Individual Mechanic{{ pending_mechs_count|pluralize }} Pending</div></div><button class="al-btn" onclick="go('mechs-q',null)">Review →</button></div>{% endif %}
+    <div class="stats">
+      <div class="sc" style="--ac:var(--red);"><div class="sc-i">👥</div><div class="sc-n">{{ total_users }}</div><div class="sc-l">Total Users</div></div>
+      <div class="sc" style="--ac:var(--blue);"><div class="sc-i">📋</div><div class="sc-n">{{ total_bookings }}</div><div class="sc-l">Total Bookings</div></div>
+      <div class="sc" style="--ac:var(--green);"><div class="sc-i">💰</div><div class="sc-n">₹{{ month_revenue|floatformat:0 }}</div><div class="sc-l">Month Revenue</div></div>
+      <div class="sc" style="--ac:var(--yellow);"><div class="sc-i">🔧</div><div class="sc-n">{{ active_jobs }}</div><div class="sc-l">Active Jobs</div></div>
+      <div class="sc" style="--ac:var(--purple);"><div class="sc-i">🏢</div><div class="sc-n">{{ total_garages }}</div><div class="sc-l">Active Garages</div></div>
+      <div class="sc" style="--ac:var(--green);"><div class="sc-i">👨‍🔧</div><div class="sc-n">{{ total_mechanics }}</div><div class="sc-l">Mechanics</div></div>
+      <div class="sc" style="--ac:var(--red);"><div class="sc-i">⏳</div><div class="sc-n" style="color:var(--red);">{{ pending_count|add:pending_garages_count|add:pending_mechs_count|add:pending_managers_count }}</div><div class="sc-l">Pending Approvals</div></div>
+      <div class="sc" style="--ac:var(--blue);"><div class="sc-i">📅</div><div class="sc-n">{{ pending_bookings }}</div><div class="sc-l">Pending Bookings</div></div>
+    </div>
+    <div class="sec-hd"><div class="sec-t">Recent Bookings <span class="badge badge-b">{{ total_bookings }} total</span></div><button class="tb-btn" onclick="go('bookings',null)">View All</button></div>
+    <div class="tw"><table class="tbl"><thead><tr><th>Ref</th><th>Customer</th><th>Service</th><th>Garage</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody>
+      {% for b in recent_bookings %}<tr><td style="font-family:var(--fd);font-size:.62rem;color:var(--red);">{{ b.reference }}</td><td>{{ b.customer_name }}</td><td style="font-size:.68rem;">{{ b.service.name|default:"—" }}</td><td style="font-size:.66rem;">{{ b.garage.name|default:"—" }}</td><td style="font-size:.64rem;">{{ b.scheduled_date|date:"d M Y" }}</td><td style="font-family:var(--fd);">₹{{ b.final_price|floatformat:0 }}</td><td><span class="pill {% if b.status == 'delivered' %}p-active{% elif b.status == 'cancelled' %}p-rejected{% elif b.status == 'in_progress' %}p-pending{% else %}p-owner{% endif %}">{{ b.get_status_display }}</span></td></tr>
+      {% empty %}<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted2);">No bookings yet</td></tr>{% endfor %}
+    </tbody></table></div>
+  </div>
+
+  <!-- ADMIN REQUESTS -->
+  {% if is_super %}
+  <div class="panel" id="p-admins-q"><div class="sec-hd"><div class="sec-t">Admin Access Requests <span class="badge badge-r">{{ pending_count }} pending</span></div></div>
+    {% if pending_admin_requests %}{% for req in pending_admin_requests %}
+    <div class="rcard" id="ar-{{ req.pk }}"><div class="rav rav-admin">{{ req.user.name|first|upper }}</div><div class="rbody"><div class="rname">{{ req.user.name }}</div><div class="rmeta">{{ req.user.email }} · {{ req.user.get_role_display }} · {{ req.user.city }}</div><div class="rreason">"{{ req.reason }}"</div><div class="rtime">Requested {{ req.created_at|date:"d M Y, h:i A" }}</div></div><div class="rbtns"><button class="b-ok" onclick="approveAdmin({{ req.pk }},'{{ req.user.name|escapejs }}')">✓ Approve</button><button class="b-no" onclick="openReject('admin',{{ req.pk }},'{{ req.user.name|escapejs }}')">✕ Reject</button></div></div>
+    {% endfor %}{% else %}<div class="empty"><div class="empty-ico">🎉</div><div class="empty-t">No pending admin requests</div></div>{% endif %}
+  </div>
+  {% endif %}
+
+  <!-- MANAGER REQUESTS -->
+  <div class="panel" id="p-managers-q"><div class="sec-hd"><div class="sec-t">Manager Approval Queue <span class="badge badge-g">{{ pending_managers_count }} pending</span></div></div>
+    <div class="info info-g">ℹ️ <strong style="color:var(--text);">Managers cannot login</strong> until you approve them.</div>
+    {% if pending_managers %}{% for m in pending_managers %}
+    <div class="rcard" id="mgr-{{ m.pk }}"><div class="rav rav-mgr">{{ m.name|first|upper }}</div><div class="rbody"><div class="rname">{{ m.name }}</div><div class="rmeta">{{ m.email }} · {{ m.phone|default:"No phone" }} · {{ m.city|default:"No city" }}</div><div class="rdetail"><div class="rd">Role: <strong>Garage Manager</strong></div><div class="rd">City: <strong>{{ m.city|default:"—" }}</strong></div><div class="rd">Joined: <strong>{{ m.date_joined|date:"d M Y" }}</strong></div></div></div><div class="rbtns"><button class="b-ok" onclick="approveMgr({{ m.pk }},'{{ m.name|escapejs }}')">✓ Approve</button><button class="b-no" onclick="openReject('manager',{{ m.pk }},'{{ m.name|escapejs }}')">✕ Reject</button></div></div>
+    {% endfor %}{% else %}<div class="empty"><div class="empty-ico">👤</div><div class="empty-t">No pending manager requests</div></div>{% endif %}
+  </div>
+
+  <!-- GARAGE REQUESTS -->
+  {% if is_super %}
+  <div class="panel" id="p-garages-q"><div class="sec-hd"><div class="sec-t">Garage Approval Queue <span class="badge badge-y">{{ pending_garages_count }} pending</span></div></div>
+    <div class="info info-y">⚠️ Garages are <strong style="color:var(--text);">NOT visible to users</strong> until approved.</div>
+    {% if pending_garages %}{% for g in pending_garages %}
+    <div class="rcard" id="gr-{{ g.pk }}"><div class="rav rav-garage">🏢</div><div class="rbody"><div class="rname">{{ g.name }}</div><div class="rmeta">{{ g.address }}, {{ g.city }}, {{ g.state }}</div><div class="rdetail"><div class="rd">Manager: <strong>{{ g.manager.name|default:"—" }}</strong></div><div class="rd">Phone: <strong>{{ g.phone|default:"—" }}</strong></div></div></div><div class="rbtns"><button class="b-ok" onclick="approveGarage({{ g.pk }},'{{ g.name|escapejs }}')">✓ Approve</button><button class="b-no" onclick="openReject('garage',{{ g.pk }},'{{ g.name|escapejs }}')">✕ Reject</button></div></div>
+    {% endfor %}{% else %}<div class="empty"><div class="empty-ico">🏢</div><div class="empty-t">No pending garage requests</div></div>{% endif %}
+  </div>
+
+  <!-- MECHANIC REQUESTS -->
+  <div class="panel" id="p-mechs-q"><div class="sec-hd"><div class="sec-t">Individual Mechanic Applications <span class="badge badge-b">{{ pending_mechs_count }} pending</span></div></div>
+    <div class="info info-b">ℹ️ Independent mechanics appear in garage finder after approval.</div>
+    {% if pending_individual_mechs %}{% for mp in pending_individual_mechs %}
+    <div class="rcard" id="mr-{{ mp.pk }}"><div class="rav rav-mech">{{ mp.mechanic.name|first|upper }}</div><div class="rbody"><div class="rname">{{ mp.mechanic.name }}</div><div class="rmeta">{{ mp.mechanic.email }} · {{ mp.mechanic.phone }} · {{ mp.mechanic.city }}</div><div class="rdetail"><div class="rd">Experience: <strong>{{ mp.experience_years }} yrs</strong></div><div class="rd">Rate: <strong>₹{{ mp.hourly_rate }}/hr</strong></div></div>{% if mp.apply_reason %}<div class="rreason">"{{ mp.apply_reason }}"</div>{% endif %}</div><div class="rbtns"><button class="b-ok" onclick="approveMech({{ mp.pk }},'{{ mp.mechanic.name|escapejs }}')">✓ Approve</button><button class="b-no" onclick="openReject('mech',{{ mp.pk }},'{{ mp.mechanic.name|escapejs }}')">✕ Reject</button></div></div>
+    {% endfor %}{% else %}<div class="empty"><div class="empty-ico">🔧</div><div class="empty-t">No pending mechanic applications</div></div>{% endif %}
+  </div>
+  {% endif %}
+
+  <!-- ALL USERS -->
+  <div class="panel" id="p-users"><div class="sec-hd"><div class="sec-t">All Users <span class="badge badge-b">{{ total_users }}</span></div></div>
+    <div class="tw"><table class="tbl"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>City</th><th>Joined</th><th>Status</th>{% if is_super %}<th>Actions</th>{% endif %}</tr></thead><tbody>
+      {% for u in recent_users %}<tr><td>{{ u.name }}</td><td style="font-size:.65rem;color:var(--muted2);">{{ u.email }}</td><td>{% if u.is_super_admin %}<span class="pill p-super">⭐ Super</span>{% elif u.role == 'admin' %}<span class="pill p-admin">Admin</span>{% elif u.role == 'mechanic' %}<span class="pill p-mech">Mechanic</span>{% elif u.role == 'manager' %}<span class="pill p-mgr">Manager</span>{% else %}<span class="pill p-owner">Owner</span>{% endif %}</td><td style="font-size:.66rem;">{{ u.city|default:"—" }}</td><td style="font-size:.64rem;color:var(--muted2);">{{ u.date_joined|date:"d M Y" }}</td><td><span class="dot {% if u.is_active %}dot-g{% else %}dot-d{% endif %}"></span>{{ u.is_active|yesno:"Active,Inactive" }}</td>{% if is_super %}<td><button class="tbl-btn" onclick="toggleUser({{ u.pk }},'{{ u.name|escapejs }}',{{ u.is_active|yesno:'true,false' }})">{{ u.is_active|yesno:"Deactivate,Activate" }}</button></td>{% endif %}</tr>{% endfor %}
+    </tbody></table></div>
+  </div>
+
+  <!-- ALL BOOKINGS -->
+  <div class="panel" id="p-bookings"><div class="sec-hd"><div class="sec-t">All Bookings <span class="badge badge-b">{{ total_bookings }}</span></div></div>
+    <div class="tw"><table class="tbl"><thead><tr><th>Ref</th><th>Customer</th><th>Service</th><th>Date</th><th>Amount</th><th>Status</th><th>Payment</th></tr></thead><tbody>
+      {% for b in recent_bookings %}<tr><td style="font-family:var(--fd);font-size:.62rem;color:var(--red);">{{ b.reference }}</td><td>{{ b.customer_name }}</td><td style="font-size:.67rem;">{{ b.service.name|default:"—" }}</td><td style="font-size:.64rem;color:var(--muted2);">{{ b.scheduled_date|date:"d M Y" }}</td><td style="font-family:var(--fd);">₹{{ b.final_price|floatformat:0 }}</td><td><span class="pill {% if b.status == 'delivered' %}p-active{% elif b.status == 'cancelled' %}p-rejected{% else %}p-pending{% endif %}">{{ b.get_status_display }}</span></td><td style="font-size:.64rem;color:{% if b.payment_status == 'paid' %}var(--green){% else %}var(--yellow){% endif %};">{{ b.payment_status|capfirst }}</td></tr>
+      {% empty %}<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted2);">No bookings</td></tr>{% endfor %}
+    </tbody></table></div>
+  </div>
+
+  <!-- ALL GARAGES -->
+  <div class="panel" id="p-garages"><div class="sec-hd"><div class="sec-t">All Garages <span class="badge badge-g">{{ total_garages }} active</span></div></div>
+    <div class="gg">{% for g in garages %}<div class="gc"><div class="gc-name">{{ g.name }}</div><div class="gc-addr">📍 {{ g.address }}, {{ g.city }}</div><div class="gc-foot"><span style="font-size:.62rem;color:var(--muted2);">{{ g.manager.name|default:"No manager" }}</span><span class="pill {% if g.is_active %}p-active{% elif g.approval_status == 'pending' %}p-pending{% else %}p-rejected{% endif %}">{% if g.is_active %}● Active{% elif g.approval_status == 'pending' %}⏳ Pending{% else %}✕ Rejected{% endif %}</span></div></div>{% empty %}<div class="empty"><div class="empty-ico">🏢</div><div class="empty-t">No garages yet</div></div>{% endfor %}</div>
+  </div>
+
+  <!-- ADMIN TEAM -->
+  <div class="panel" id="p-admin-team">
+    <div class="sec-hd"><div class="sec-t">Admin Team</div>{% if is_super %}<button class="b-ok" style="padding:8px 16px;font-size:.72rem;">+ Add Sub-Admin</button>{% endif %}</div>
+    {% if is_super %}
+    <div class="admin-form-card">
+      <div style="font-family:var(--fd);font-size:.8rem;font-weight:800;color:var(--red);margin-bottom:4px;">➕ Add a Sub-Admin</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:10px;">Create an admin account. They'll receive a welcome email with login credentials.</div>
+      <form method="POST" action="{% url 'add_sub_admin' %}" id="addAdminForm">
+        {% csrf_token %}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div class="ff-admin"><label>Full Name *</label><input type="text" name="name" placeholder="e.g. Raj Patel" required></div>
+          <div class="ff-admin"><label>Email Address *</label><input type="email" name="email" placeholder="admin@email.com" required></div>
+          <div class="ff-admin"><label>Phone</label><input type="tel" name="phone" placeholder="+91 98765 43210"></div>
+          <div class="ff-admin"><label>Password *</label><div class="pass-wrap"><input type="text" name="password" id="adminPassInput" placeholder="e.g. Admin@2026" required minlength="6" style="color:var(--yellow);font-family:monospace;font-weight:700;"><button type="button" onclick="genPass()" class="gen-btn">🎲 Generate</button></div></div>
+        </div>
+        <button type="submit" class="b-ok" style="padding:10px 22px;font-size:.76rem;">✅ Create Sub-Admin &amp; Send Email</button>
+      </form>
+    </div>
+    {% endif %}
+    <div class="tw"><table class="tbl"><thead><tr><th>Name</th><th>Email</th><th>Level</th><th>Approved</th><th>City</th>{% if is_super %}<th>Actions</th>{% endif %}</tr></thead><tbody>
+      {% for a in all_admins %}<tr><td>{{ a.name }}</td><td style="font-size:.64rem;color:var(--muted2);">{{ a.email }}</td><td>{% if a.is_super_admin %}<span class="pill p-super">⭐ Super</span>{% else %}<span class="pill p-admin">🛡️ Sub-Admin</span>{% endif %}</td><td style="color:{% if a.is_super_admin or a.admin_approved %}var(--green){% else %}var(--yellow){% endif %};">{% if a.is_super_admin %}✓ Super{% elif a.admin_approved %}✓ Active{% else %}⏳ Pending{% endif %}</td><td style="font-size:.66rem;">{{ a.city|default:"—" }}</td>{% if is_super %}<td>{% if not a.is_super_admin %}<button class="tbl-btn" onclick="makeSuperAdmin({{ a.pk }},'{{ a.name|escapejs }}')">Make Super</button>{% else %}<span style="font-size:.62rem;color:var(--muted2);">—</span>{% endif %}</td>{% endif %}</tr>
+      {% empty %}<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted2);">No admins yet</td></tr>{% endfor %}
+    </tbody></table></div>
+  </div>
+</div>
+
+<!-- REJECT MODAL -->
+<div class="overlay" id="rejectModal">
+  <div class="modal"><div class="mhd"><h3>REJECT — <span id="rejectLabel"></span></h3><button class="mclose" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+  <div class="mbody"><p style="font-size:.72rem;color:var(--muted);margin-bottom:12px;">This reason will be sent to the user as a notification.</p><div class="mff"><label>Reason</label><textarea id="rejectReason" placeholder="e.g. Please provide more details and reapply."></textarea></div></div>
+  <div class="mfoot"><button class="mbtn ghost" onclick="closeModal()">Cancel</button><button class="mbtn red" onclick="confirmReject()">Confirm Reject</button></div></div>
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+/* ── THEME ── */
+(function(){
+  var KEY='eg_theme',DARK='dark',LIGHT='light';
+  function getT(){var s=localStorage.getItem(KEY);if(s)return s;return window.matchMedia('(prefers-color-scheme: dark)').matches?DARK:LIGHT;}
+  function applyT(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem(KEY,t);updateUI(t);}
+  function updateUI(t){var dark=t===DARK;var lbl=document.getElementById('themeLabel');var thumb=document.getElementById('sidebarThumb');if(lbl)lbl.textContent=dark?'Night Mode':'Day Mode';if(thumb)thumb.textContent=dark?'🌙':'☀️';}
+  window.adminToggleTheme=function(){var cur=document.documentElement.getAttribute('data-theme')||DARK;applyT(cur===DARK?LIGHT:DARK);};
+  applyT(getT());
+})();
+
+/* ── NAVIGATION ── */
+var CSRF='{{ csrf_token }}';
+var rejectType=null,rejectPk=null;
+var PTITLES={'overview':'📊 Dashboard Overview','admins-q':'🛡️ Admin Requests','managers-q':'👤 Manager Approval Queue','garages-q':'🏢 Garage Approval Queue','mechs-q':'🔧 Individual Mechanic Applications','users':'👥 All Users','bookings':'📋 All Bookings','garages':'🏢 All Garages','admin-team':'🛡️ Admin Team'};
+function go(name,el){
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.sb-link').forEach(function(l){l.classList.remove('on');});
+  var p=document.getElementById('p-'+name);if(p)p.classList.add('on');
+  if(el)el.classList.add('on');
+  document.getElementById('ptitle').textContent=PTITLES[name]||name;
+}
+function approveAdmin(pk,name){if(!confirm('Approve admin access for '+name+'?'))return;api('/api/admin/approve-admin/'+pk+'/',{},function(d){if(d.ok){remove('ar-'+pk);toast('✅ '+name+' approved!');}else toast('Error: '+(d.error||'Failed'));});}
+function approveMgr(pk,name){if(!confirm('Approve manager '+name+'?'))return;api('/api/admin/approve-manager/'+pk+'/',{},function(d){if(d.ok){remove('mgr-'+pk);toast('✅ '+name+' approved!');}else toast('Error: '+(d.error||'Failed'));});}
+function approveGarage(pk,name){if(!confirm('Approve garage "'+name+'"?'))return;api('/api/admin/approve-garage/'+pk+'/',{},function(d){if(d.ok){remove('gr-'+pk);toast('🏢 "'+name+'" is now LIVE!');}else toast('Error: '+(d.error||'Failed'));});}
+function approveMech(pk,name){if(!confirm('Approve mechanic '+name+'?'))return;api('/api/admin/approve-mechanic/'+pk+'/',{},function(d){if(d.ok){remove('mr-'+pk);toast('🔧 '+name+' approved!');}else toast('Error: '+(d.error||'Failed'));});}
+function openReject(type,pk,name){rejectType=type;rejectPk=pk;document.getElementById('rejectLabel').textContent=name;document.getElementById('rejectReason').value='';document.getElementById('rejectModal').classList.add('on');document.body.style.overflow='hidden';}
+function confirmReject(){var reason=document.getElementById('rejectReason').value.trim();if(!reason){toast('Please enter a rejection reason');return;}var urls={admin:'/api/admin/reject-admin/',manager:'/api/admin/reject-manager/',garage:'/api/admin/reject-garage/',mech:'/api/admin/reject-mechanic/'};var prefixes={admin:'ar-',manager:'mgr-',garage:'gr-',mech:'mr-'};api(urls[rejectType]+rejectPk+'/',{reason:reason},function(d){if(d.ok){remove(prefixes[rejectType]+rejectPk);closeModal();toast('❌ Rejected. User notified.');}else toast('Error: '+(d.error||'Failed'));});}
+function toggleUser(pk,name,isActive){if(!confirm((isActive?'Deactivate':'Activate')+' '+name+'?'))return;api('/api/admin/toggle-user/'+pk+'/',{},function(d){if(d.ok){toast(d.name+' is now '+(d.is_active?'Active':'Inactive'));setTimeout(function(){location.reload();},1200);}else toast('Error: '+(d.error||'Failed'));});}
+function makeSuperAdmin(pk,name){if(!confirm('Make '+name+' a Super Admin? This gives FULL platform control.'))return;api('/api/admin/make-super/'+pk+'/',{},function(d){if(d.ok){toast('⭐ '+d.name+' is now Super Admin!');setTimeout(function(){location.reload();},1200);}else toast('Error: '+(d.error||'Failed'));});}
+function genPass(){var chars='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';var pass='';for(var i=0;i<10;i++)pass+=chars[Math.floor(Math.random()*chars.length)];document.getElementById('adminPassInput').value=pass;toast('Password generated — copy it before submitting!');}
+function api(url,body,cb){fetch(url,{method:'POST',headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},body:Object.keys(body).length?JSON.stringify(body):undefined}).then(function(r){return r.json();}).then(cb).catch(function(){toast('Network error.');});}
+function remove(id){var el=document.getElementById(id);if(el)el.remove();}
+function closeModal(){document.getElementById('rejectModal').classList.remove('on');document.body.style.overflow='';}
+document.getElementById('rejectModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+function toast(msg){var el=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;el.classList.add('on');setTimeout(function(){el.classList.remove('on');},3500);}
+{% if messages %}{% for m in messages %}setTimeout(function(){toast('{{ m|escapejs }}');},400);{% endfor %}{% endif %}
+
+/* ── ADMIN THEME SYSTEM ── */
+(function(){
+  function applyT(t){
+    document.documentElement.setAttribute('data-theme',t);
+    localStorage.setItem('eg_theme',t);
+    var dark=t==='dark';
+    var lbl=document.getElementById('adminLabelEl');
+    var thumb=document.getElementById('adminThumbEl');
+    if(lbl) lbl.textContent=dark?'Night':'Day';
+    if(thumb) thumb.textContent=dark?'🌙':'☀️';
+  }
+  window.toggleAdminTheme=function(){
+    var cur=document.documentElement.getAttribute('data-theme')||'dark';
+    applyT(cur==='dark'?'light':'dark');
+  };
+  var saved=localStorage.getItem('eg_theme');
+  if(!saved) saved=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  applyT(saved);
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Rate Your Service — eGarage</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--red:#e8192c;--yellow:#f59e0b;--green:#00a651;--fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;}
+html,body{min-height:100vh;background:#06060c;font-family:var(--fb);color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(245,158,11,.08),transparent 55%);pointer-events:none;}
+
+.card{
+  background:rgba(255,255,255,.05);backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.1);border-radius:24px;
+  width:100%;max-width:480px;overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,.5);
+  position:relative;z-index:1;
+}
+.card::before{content:'';display:block;height:3px;background:linear-gradient(90deg,var(--yellow),var(--red),var(--yellow));}
+
+/* HEADER */
+.ch{padding:28px 32px 20px;text-align:center;border-bottom:1px solid rgba(255,255,255,.07);}
+.mechanic-av{
+  width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,#1a1a2e,#0d1117);
+  border:3px solid rgba(245,158,11,.3);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 12px;font-size:1.6rem;
+}
+.ch-name{font-family:var(--fd);font-size:1rem;font-weight:900;color:#fff;margin-bottom:4px;}
+.ch-service{font-size:.76rem;color:rgba(255,255,255,.45);}
+.ch-ref{display:inline-block;margin-top:8px;padding:3px 10px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:20px;font-size:.64rem;font-weight:700;color:var(--yellow);}
+
+.body{padding:28px 32px;}
+
+/* STARS */
+.stars-section{text-align:center;margin-bottom:24px;}
+.stars-label{font-size:.68rem;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;}
+.stars{display:flex;justify-content:center;gap:8px;}
+.star{
+  font-size:2.2rem;cursor:pointer;
+  filter:grayscale(1) opacity(.3);
+  transition:all .2s cubic-bezier(.34,1.56,.64,1);
+  user-select:none;
+}
+.star:hover,.star.on{filter:none;transform:scale(1.2);}
+.star.on{animation:starPop .25s cubic-bezier(.34,1.56,.64,1);}
+@keyframes starPop{0%{transform:scale(1.5);}100%{transform:scale(1.2);}}
+.rating-label{font-family:var(--fd);font-size:.9rem;font-weight:900;margin-top:10px;min-height:24px;transition:all .2s;}
+
+/* ASPECTS */
+.aspects{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;}
+.aspect{
+  border:1.5px solid rgba(255,255,255,.1);border-radius:11px;padding:10px 12px;
+  cursor:pointer;transition:all .2s;user-select:none;
+  display:flex;align-items:center;gap:8px;
+}
+.aspect:hover{background:rgba(255,255,255,.05);}
+.aspect.on{border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.08);}
+.aspect-ico{font-size:16px;flex-shrink:0;}
+.aspect-lbl{font-family:var(--fd);font-size:.7rem;font-weight:700;color:rgba(255,255,255,.7);}
+.aspect.on .aspect-lbl{color:var(--yellow);}
+
+/* REVIEW TEXT */
+.review-label{font-size:.65rem;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;}
+.review-ta{
+  width:100%;padding:12px 14px;
+  background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);
+  border-radius:11px;font-family:var(--fb);font-size:.82rem;color:#fff;
+  outline:none;resize:none;min-height:90px;transition:all .15s;margin-bottom:20px;
+}
+.review-ta:focus{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.04);}
+.review-ta::placeholder{color:rgba(255,255,255,.2);}
+
+/* SUBMIT */
+.submit-btn{
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,var(--yellow),#e67e00);
+  color:#000;border:none;border-radius:12px;
+  font-family:var(--fd);font-size:.88rem;font-weight:900;letter-spacing:.5px;
+  cursor:pointer;transition:all .2s;
+  box-shadow:0 4px 20px rgba(245,158,11,.35);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.submit-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(245,158,11,.45);}
+.submit-btn:disabled{background:rgba(255,255,255,.1);color:rgba(255,255,255,.3);cursor:not-allowed;transform:none;box-shadow:none;}
+.submit-btn svg{width:16px;height:16px;}
+.skip-link{display:block;text-align:center;margin-top:14px;font-size:.72rem;color:rgba(255,255,255,.25);text-decoration:none;transition:color .15s;}
+.skip-link:hover{color:rgba(255,255,255,.5);}
+
+/* SUCCESS */
+.success-state{display:none;text-align:center;padding:40px 32px;}
+.success-state.show{display:block;}
+.success-ico{font-size:3.5rem;margin-bottom:14px;animation:popIn .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{transform:scale(0);}to{transform:scale(1);}}
+.success-title{font-family:var(--fd);font-size:1.2rem;font-weight:900;color:var(--yellow);margin-bottom:6px;}
+.success-sub{font-size:.8rem;color:rgba(255,255,255,.45);margin-bottom:20px;line-height:1.6;}
+.go-btn{display:inline-flex;align-items:center;gap:7px;padding:12px 24px;background:var(--green);color:#fff;border-radius:11px;font-family:var(--fd);font-size:.8rem;font-weight:700;text-decoration:none;transition:all .2s;}
+.go-btn:hover{background:#008a43;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="ch">
+    <div class="mechanic-av">🔧</div>
+    <div class="ch-name">How was your service?</div>
+    <div class="ch-service">{{ booking.service.name|default:"Car Service" }} — {{ booking.garage.name|default:"eGarage" }}</div>
+    <div class="ch-ref">{{ booking.reference }}</div>
+  </div>
+
+  <div class="body" id="rateBody">
+    <form method="POST" action="{% url 'rate_service' booking.reference %}" id="rateForm">
+      {% csrf_token %}
+
+      <!-- STARS -->
+      <div class="stars-section">
+        <div class="stars-label">Overall Rating</div>
+        <div class="stars" id="starRow">
+          <span class="star" data-val="1" onclick="setRating(1)">⭐</span>
+          <span class="star" data-val="2" onclick="setRating(2)">⭐</span>
+          <span class="star" data-val="3" onclick="setRating(3)">⭐</span>
+          <span class="star" data-val="4" onclick="setRating(4)">⭐</span>
+          <span class="star" data-val="5" onclick="setRating(5)">⭐</span>
+        </div>
+        <div class="rating-label" id="ratingLabel" style="color:rgba(255,255,255,.3);">Tap a star to rate</div>
+        <input type="hidden" name="rating" id="ratingInput" value="">
+      </div>
+
+      <!-- ASPECTS -->
+      <div class="aspects">
+        <div class="aspect" onclick="toggleAspect(this,'quality')"><div class="aspect-ico">✅</div><div class="aspect-lbl">Quality Work</div><input type="checkbox" name="aspect_quality" style="display:none;"></div>
+        <div class="aspect" onclick="toggleAspect(this,'time')"><div class="aspect-ico">⏱️</div><div class="aspect-lbl">On Time</div><input type="checkbox" name="aspect_time" style="display:none;"></div>
+        <div class="aspect" onclick="toggleAspect(this,'clean')"><div class="aspect-ico">🧼</div><div class="aspect-lbl">Clean & Tidy</div><input type="checkbox" name="aspect_clean" style="display:none;"></div>
+        <div class="aspect" onclick="toggleAspect(this,'polite')"><div class="aspect-ico">😊</div><div class="aspect-lbl">Polite Staff</div><input type="checkbox" name="aspect_polite" style="display:none;"></div>
+        <div class="aspect" onclick="toggleAspect(this,'price')"><div class="aspect-ico">💰</div><div class="aspect-lbl">Fair Price</div><input type="checkbox" name="aspect_price" style="display:none;"></div>
+        <div class="aspect" onclick="toggleAspect(this,'recommend')"><div class="aspect-ico">👍</div><div class="aspect-lbl">Would Recommend</div><input type="checkbox" name="aspect_recommend" style="display:none;"></div>
+      </div>
+
+      <!-- TEXT REVIEW -->
+      <div class="review-label">Write a Review (optional)</div>
+      <textarea class="review-ta" name="text" placeholder="Tell others about your experience…&#10;Was the mechanic professional? Was the service done well?"></textarea>
+
+      <button type="submit" class="submit-btn" id="submitBtn" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Submit Rating
+      </button>
+    </form>
+    <a href="{% url 'bookings' %}" class="skip-link">Skip for now</a>
+  </div>
+
+  <!-- SUCCESS STATE -->
+  <div class="success-state" id="successState">
+    <div class="success-ico">🏆</div>
+    <div class="success-title">Thank You!</div>
+    <div class="success-sub">Your review helps other customers and motivates our mechanics to keep delivering excellent service.</div>
+    <a href="{% url 'bookings' %}" class="go-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Back to Bookings
+    </a>
+  </div>
+</div>
+
+<script>
+var currentRating = 0;
+var labels = {1:'😕 Poor',2:'😐 Fair',3:'🙂 Good',4:'😊 Great!',5:'🤩 Excellent!'};
+var colors = {1:'#ef4444',2:'#f97316',3:'#eab308',4:'#22c55e',5:'#00a651'};
+
+function setRating(val) {
+  currentRating = val;
+  document.getElementById('ratingInput').value = val;
+  document.querySelectorAll('.star').forEach(function(s,i){
+    s.classList.toggle('on', i < val);
+  });
+  var lbl = document.getElementById('ratingLabel');
+  lbl.textContent = labels[val];
+  lbl.style.color = colors[val];
+  document.getElementById('submitBtn').disabled = false;
+}
+
+function toggleAspect(el, key) {
+  el.classList.toggle('on');
+  el.querySelector('input').checked = el.classList.contains('on');
+}
+
+document.getElementById('rateForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  if(!currentRating) return;
+  var btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+  var form = this;
+  fetch(form.action, {
+    method:'POST',
+    body: new FormData(form),
+    headers:{'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value}
+  }).then(function(){
+    document.getElementById('rateBody').style.display = 'none';
+    document.getElementById('successState').classList.add('show');
+  }).catch(function(){
+    form.submit(); // fallback
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Payment Failed — eGarage</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--red:#e8192c;--fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;}
+html,body{min-height:100vh;background:#06060c;font-family:var(--fb);color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(232,25,44,.08),transparent 55%);pointer-events:none;}
+.card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:24px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);position:relative;z-index:1;}
+.card::before{content:'';display:block;height:3px;background:linear-gradient(90deg,var(--red),#ff6b6b,var(--red));}
+.top{padding:32px;text-align:center;border-bottom:1px solid rgba(255,255,255,.07);}
+.fail-ico{
+  width:72px;height:72px;border-radius:50%;
+  background:rgba(232,25,44,.15);border:3px solid rgba(232,25,44,.3);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;
+  animation:shake .5s ease .3s;
+}
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-5px);}80%{transform:translateX(5px);}}
+.fail-ico svg{width:32px;height:32px;color:var(--red);}
+.fail-title{font-family:var(--fd);font-size:1.3rem;font-weight:900;color:#fff;margin-bottom:5px;}
+.fail-sub{font-size:.8rem;color:rgba(255,255,255,.45);line-height:1.6;}
+.body{padding:24px 32px;}
+.reason-box{background:rgba(232,25,44,.08);border:1px solid rgba(232,25,44,.2);border-radius:11px;padding:14px 16px;margin-bottom:20px;}
+.rb-label{font-size:.62rem;font-weight:700;color:rgba(232,25,44,.7);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.rb-text{font-size:.8rem;color:rgba(255,255,255,.6);line-height:1.5;}
+.tips{margin-bottom:22px;}
+.tip{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:.76rem;color:rgba(255,255,255,.5);line-height:1.5;}
+.tip:last-child{border-bottom:none;}
+.tip-num{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;flex-shrink:0;margin-top:1px;}
+.actions{display:flex;gap:10px;}
+.act{flex:1;padding:13px;border-radius:11px;font-family:var(--fd);font-size:.78rem;font-weight:700;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;border:none;transition:all .2s;}
+.act svg{width:13px;height:13px;}
+.act-retry{background:var(--red);color:#fff;box-shadow:0 4px 18px rgba(232,25,44,.3);}
+.act-retry:hover{background:#c0111f;transform:translateY(-1px);}
+.act-cash{background:rgba(255,255,255,.07);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.act-cash:hover{background:rgba(255,255,255,.12);color:#fff;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <div class="fail-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    <div class="fail-title">Payment Failed</div>
+    <div class="fail-sub">Don't worry — your booking was not cancelled.<br>Try again or pay at the garage.</div>
+  </div>
+  <div class="body">
+    <div class="reason-box">
+      <div class="rb-label">What happened</div>
+      <div class="rb-text">{{ error|default:"Your payment could not be processed. This could be due to insufficient funds, an expired card, or a network issue." }}</div>
+    </div>
+    <div class="tips">
+      <div class="tip"><div class="tip-num">1</div>Check your card details and available balance</div>
+      <div class="tip"><div class="tip-num">2</div>Make sure your bank has not blocked online transactions</div>
+      <div class="tip"><div class="tip-num">3</div>Try a different card or UPI method</div>
+      <div class="tip"><div class="tip-num">4</div>Or simply pay cash at the garage — your slot is still reserved</div>
+    </div>
+    <div class="actions">
+      <a href="{% url 'booking' %}" class="act act-retry">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        Try Again
+      </a>
+      <a href="{% url 'bookings' %}" class="act act-cash">
+        Pay at Garage
+      </a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

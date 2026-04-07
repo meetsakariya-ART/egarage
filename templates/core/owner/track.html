@@ -1,0 +1,579 @@
+{% extends 'core/base.html' %}
+{% block title %}{% if booking %}Track {{ booking.reference }}{% else %}Live Tracking{% endif %} — eGarage{% endblock %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#e8192c;--red2:#c0111f;--green:#00a651;--blue:#1a56db;
+  --yellow:#f59e0b;--orange:#ea580c;
+  --fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;
+  --border:#e0e0e0;--muted:#777;--bg:#f0f2f5;
+}
+html,body{background:var(--bg);color:#111;font-family:var(--fb);min-height:100vh;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.navi{display:flex;align-items:center;padding:0 24px;height:60px;max-width:1280px;margin:0 auto;gap:14px;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-ico{width:32px;height:32px;border-radius:9px;background:var(--red);display:flex;align-items:center;justify-content:center;}
+.logo-ico svg{width:15px;height:15px;}
+.logo-name{font-family:var(--fd);font-size:1.15rem;font-weight:900;color:var(--red);}
+.logo-name span{color:#111;}
+.bc{display:flex;align-items:center;gap:5px;font-size:.74rem;color:var(--muted);}
+.bc a{color:var(--muted);text-decoration:none;}
+.bc a:hover{color:var(--red);}
+.nav-r{margin-left:auto;display:flex;gap:8px;}
+.nb{padding:7px 15px;border-radius:8px;font-family:var(--fd);font-size:.75rem;font-weight:700;text-decoration:none;transition:all .15s;border:1.5px solid var(--border);color:#333;background:#fff;}
+.nb:hover{border-color:var(--red);color:var(--red);}
+
+/* PAGE */
+.wrap{max-width:1000px;margin:24px auto;padding:0 24px;}
+
+/* NO BOOKING STATE */
+.no-booking{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:48px 24px;text-align:center;}
+.no-booking svg{width:56px;height:56px;color:#ddd;display:block;margin:0 auto 16px;}
+.no-booking h2{font-family:var(--fd);font-size:1.1rem;font-weight:800;color:#111;margin-bottom:8px;}
+.no-booking p{font-size:.8rem;color:var(--muted);line-height:1.6;margin-bottom:20px;}
+.btn-red{display:inline-flex;padding:10px 22px;background:var(--red);color:#fff;border-radius:9px;font-family:var(--fd);font-size:.76rem;font-weight:700;text-decoration:none;transition:all .15s;}
+.btn-red:hover{background:var(--red2);}
+
+/* BOOKING HEADER */
+.bk-head{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.bk-ref{font-family:var(--fd);font-size:1rem;font-weight:900;color:#111;}
+.bk-sub{font-size:.72rem;color:var(--muted);margin-top:2px;}
+.status-pill{padding:6px 14px;border-radius:20px;font-family:var(--fd);font-size:.68rem;font-weight:800;}
+.sp-confirmed   {background:rgba(26,86,219,.1);color:var(--blue);}
+.sp-picked_up   {background:rgba(245,158,11,.1);color:var(--orange);}
+.sp-at_garage   {background:rgba(124,58,237,.1);color:#7c3aed;}
+.sp-in_progress {background:rgba(245,158,11,.1);color:var(--yellow);}
+.sp-quality_check{background:rgba(8,145,178,.1);color:#0891b2;}
+.sp-delivered   {background:rgba(0,166,81,.1);color:var(--green);}
+.sp-cancelled   {background:rgba(232,25,44,.1);color:var(--red);}
+
+/* PROGRESS STEPS */
+.progress-bar{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:16px;overflow-x:auto;}
+.steps{display:flex;align-items:center;min-width:600px;}
+.step{display:flex;flex-direction:column;align-items:center;flex:1;position:relative;}
+.step::before{content:'';position:absolute;top:16px;right:50%;width:100%;height:2px;background:var(--border);z-index:0;}
+.step:first-child::before{display:none;}
+.step-circle{width:33px;height:33px;border-radius:50%;border:2px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;z-index:1;transition:all .3s;flex-shrink:0;}
+.step.done .step-circle{background:var(--green);border-color:var(--green);color:#fff;}
+.step.done::before{background:var(--green);}
+.step.current .step-circle{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 0 0 4px rgba(232,25,44,.15);}
+.step.cancelled .step-circle{background:#f5f5f5;border-color:#ddd;color:#aaa;}
+.step-label{font-size:.6rem;font-weight:700;color:var(--muted);margin-top:6px;text-align:center;font-family:var(--fd);}
+.step.done .step-label,.step.current .step-label{color:#111;}
+
+/* TWO-COLUMN LAYOUT */
+.grid2{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start;}
+
+/* CARDS */
+.card{background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;}
+.cardh{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.cardh h3{font-family:var(--fd);font-size:.86rem;font-weight:800;color:#111;}
+.cardh-badge{font-size:.62rem;font-weight:700;padding:3px 9px;border-radius:20px;}
+.cardb{padding:20px;}
+
+/* TIMELINE */
+.tl{display:flex;flex-direction:column;gap:0;}
+.tl-item{display:flex;gap:14px;padding-bottom:20px;position:relative;}
+.tl-item:last-child{padding-bottom:0;}
+.tl-item::before{content:'';position:absolute;left:11px;top:24px;bottom:0;width:2px;background:var(--border);}
+.tl-item:last-child::before{display:none;}
+.tl-dot{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.7rem;z-index:1;}
+.tl-dot.done{background:var(--green);border-color:var(--green);color:#fff;}
+.tl-dot.current{background:var(--red);border-color:var(--red);color:#fff;animation:pulse 1.5s infinite;}
+.tl-dot.pending{background:#f5f5f5;color:#ccc;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,25,44,.3);}50%{box-shadow:0 0 0 6px rgba(232,25,44,.0);}}
+.tl-content{flex:1;padding-top:2px;}
+.tl-title{font-family:var(--fd);font-size:.82rem;font-weight:800;color:#111;}
+.tl-title.pending{color:#aaa;}
+.tl-time{font-size:.66rem;color:var(--muted);margin-top:2px;}
+.tl-desc{font-size:.74rem;color:#555;margin-top:5px;line-height:1.6;}
+.tl-live{display:inline-flex;align-items:center;gap:4px;font-size:.62rem;font-weight:700;color:var(--red);font-family:var(--fd);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1s infinite;}
+
+/* VEHICLE CARD */
+.vc-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f8f8f8;font-size:.76rem;}
+.vc-row:last-child{border-bottom:none;}
+.vc-k{color:var(--muted);}
+.vc-v{font-weight:700;color:#111;text-align:right;}
+
+/* TAGS */
+.tag{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.62rem;font-weight:700;background:#f5f5f5;color:#555;margin:2px;}
+
+/* BOOKING SUMMARY */
+.sum-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f8f8f8;font-size:.76rem;}
+.sum-row:last-child{border-bottom:none;}
+.sum-k{color:var(--muted);}
+.sum-v{font-weight:700;color:#111;}
+.sum-total{display:flex;justify-content:space-between;padding:12px 0 0;font-size:.88rem;font-weight:800;font-family:var(--fd);}
+
+/* MECHANIC CARD */
+.mech-row{display:flex;align-items:center;gap:12px;}
+.mech-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--blue),#7c3aed);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.9rem;font-weight:900;color:#fff;flex-shrink:0;overflow:hidden;}
+.mech-av img{width:100%;height:100%;object-fit:cover;}
+.mech-name{font-family:var(--fd);font-size:.86rem;font-weight:800;color:#111;}
+.mech-role{font-size:.66rem;color:var(--muted);margin-top:2px;}
+.mech-contact{display:flex;gap:8px;margin-top:10px;}
+.mc-btn{flex:1;padding:8px;text-align:center;border:1.5px solid var(--border);border-radius:8px;font-family:var(--fd);font-size:.64rem;font-weight:700;text-decoration:none;color:#111;transition:all .15s;}
+.mc-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+/* ACTION BUTTONS */
+.action-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+.ab{flex:1;padding:10px;text-align:center;border-radius:9px;font-family:var(--fd);font-size:.72rem;font-weight:700;text-decoration:none;transition:all .15s;}
+.ab-primary{background:var(--red);color:#fff;}
+.ab-primary:hover{background:var(--red2);}
+.ab-ghost{border:1.5px solid var(--border);color:#333;background:#fff;}
+.ab-ghost:hover{border-color:var(--red);color:var(--red);}
+
+/* REFRESH INDICATOR */
+.refresh-bar{display:flex;align-items:center;gap:8px;font-size:.68rem;color:var(--muted);margin-top:6px;}
+.refresh-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.2s infinite;}
+
+@media(max-width:800px){.grid2{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<nav>
+  <div class="navi">
+    <a href="{% url 'home' %}" class="logo">
+      <div class="logo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+      <span class="logo-name">e<span>Garage</span></span>
+    </a>
+    <div class="bc">
+      <a href="{% url 'home' %}">Home</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><polyline points="9 18 15 12 9 6"/></svg>
+      <a href="{% url 'bookings' %}">My Bookings</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><polyline points="9 18 15 12 9 6"/></svg>
+      <span style="color:#111;font-weight:600;">{% if booking %}{{ booking.reference }}{% else %}Live Track{% endif %}</span>
+    </div>
+    <div class="nav-r">
+      <a href="{% url 'bookings' %}" class="nb">All Bookings</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+{% if not booking %}
+<!-- NO ACTIVE BOOKING -->
+<div class="no-booking">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/>
+    <circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+  </svg>
+  <h2>No active booking to track</h2>
+  <p>You don't have any booking currently in progress.<br>Track is available for bookings that are confirmed or in service.</p>
+  <a href="{% url 'bookings' %}" class="btn-red">View All Bookings →</a>
+</div>
+
+{% else %}
+
+<!-- BOOKING HEADER -->
+<div class="bk-head">
+  <div>
+    <div class="bk-ref">Booking #{{ booking.reference }}</div>
+    <div class="bk-sub">
+      {{ booking.service.name|default:"Car Service" }} · {{ booking.get_package_display }}
+      · {{ booking.scheduled_date|date:"d M Y" }} at {{ booking.scheduled_slot|time:"h:i A" }}
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span class="status-pill sp-{{ booking.status }}">{{ booking.get_status_display }}</span>
+    {% if booking.status not in 'delivered,cancelled' %}
+    <div class="refresh-bar">
+      <div class="refresh-dot"></div>
+      Live · Auto-refreshes
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- PROGRESS STEPS -->
+<div class="progress-bar">
+  <div class="steps">
+    {% for step_key, step_label, step_icon in status_steps %}
+    {% with step_num=forloop.counter0 %}
+    <div class="step {% if step_num < current_step %}done{% elif step_num == current_step %}current{% elif booking.status == 'cancelled' %}cancelled{% endif %}">
+      <div class="step-circle">
+        {% if step_num < current_step %}✓
+        {% elif step_num == current_step %}{{ step_icon }}
+        {% else %}{{ forloop.counter }}{% endif %}
+      </div>
+      <div class="step-label">{{ step_label }}</div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+  </div>
+</div>
+
+<div class="grid2">
+<div>
+
+  <!-- JOB TIMELINE -->
+  <div class="card">
+    <div class="cardh">
+      <h3>Job Timeline</h3>
+      {% if booking.status not in 'delivered,cancelled' %}
+      <span class="cardh-badge" style="background:rgba(232,25,44,.1);color:var(--red);">
+        <span class="tl-live"><span class="live-dot"></span>Live Updates</span>
+      </span>
+      {% endif %}
+    </div>
+    <div class="cardb">
+      <div class="tl">
+
+        <!-- 1. BOOKING CONFIRMED -->
+        <div class="tl-item">
+          <div class="tl-dot done">✓</div>
+          <div class="tl-content">
+            <div class="tl-title">Booking Confirmed</div>
+            <div class="tl-time">{{ booking.created_at|date:"d M Y, h:i A" }}</div>
+            <div class="tl-desc">
+              Your booking for {{ booking.service.name|default:"car service" }} has been confirmed.
+              Payment method: {{ booking.get_payment_method_display }}.
+              Amount: ₹{{ booking.final_price|floatformat:0 }}.
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. VEHICLE PICKED UP -->
+        {% if booking.pickup_required %}
+        <div class="tl-item">
+          <div class="tl-dot {% if booking.status in 'picked_up,at_garage,in_progress,quality_check,delivered' %}done{% elif booking.status == 'confirmed' %}current{% else %}pending{% endif %}">
+            {% if booking.status in 'picked_up,at_garage,in_progress,quality_check,delivered' %}✓{% elif booking.status == 'confirmed' %}🚗{% else %}2{% endif %}
+          </div>
+          <div class="tl-content">
+            <div class="tl-title {% if booking.status == 'confirmed' %}pending{% endif %}">
+              {% if booking.status in 'picked_up,at_garage,in_progress,quality_check,delivered' %}Vehicle Picked Up{% else %}Pickup Scheduled{% endif %}
+            </div>
+            {% if booking.pickup_address %}
+            <div class="tl-time">📍 {{ booking.pickup_address }}</div>
+            {% endif %}
+            <div class="tl-desc">
+              {% if booking.status in 'picked_up,at_garage,in_progress,quality_check,delivered' %}
+                Driver picked up your vehicle. OTP verified, condition documented.
+              {% else %}
+                Driver will pick up your vehicle from your address before the scheduled time.
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- 3. AT GARAGE -->
+        <div class="tl-item">
+          <div class="tl-dot {% if booking.status in 'at_garage,in_progress,quality_check,delivered' %}done{% elif booking.status == 'picked_up' or not booking.pickup_required and booking.status == 'confirmed' %}current{% else %}pending{% endif %}">
+            {% if booking.status in 'at_garage,in_progress,quality_check,delivered' %}✓
+            {% elif booking.status == 'picked_up' or not booking.pickup_required and booking.status == 'confirmed' %}🏢
+            {% else %}—{% endif %}
+          </div>
+          <div class="tl-content">
+            <div class="tl-title {% if booking.status in 'confirmed,picked_up' and booking.pickup_required %}pending{% endif %}">
+              {% if booking.status in 'at_garage,in_progress,quality_check,delivered' %}Vehicle at Garage{% else %}Vehicle Arrival{% endif %}
+            </div>
+            {% if booking.garage %}
+            <div class="tl-time">📍 {{ booking.garage.name }}{% if booking.garage.address %} · {{ booking.garage.address }}{% endif %}</div>
+            {% endif %}
+            <div class="tl-desc">
+              {% if booking.status in 'at_garage,in_progress,quality_check,delivered' %}
+                Your vehicle has arrived at {{ booking.garage.name|default:"the garage" }}.
+                {% if booking.mechanic %}{{ booking.mechanic.name }} is doing the initial inspection.{% endif %}
+              {% else %}
+                Your vehicle will be taken to {{ booking.garage.name|default:"our garage" }} for service.
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. SERVICE IN PROGRESS -->
+        <div class="tl-item">
+          <div class="tl-dot {% if booking.status in 'in_progress,quality_check,delivered' %}done{% elif booking.status == 'at_garage' %}current{% else %}pending{% endif %}">
+            {% if booking.status in 'in_progress,quality_check,delivered' %}✓
+            {% elif booking.status == 'at_garage' %}🔧
+            {% else %}—{% endif %}
+          </div>
+          <div class="tl-content">
+            <div class="tl-title {% if booking.status not in 'in_progress,quality_check,delivered' and booking.status != 'at_garage' %}pending{% endif %}">
+              Service In Progress
+            </div>
+            {% if booking.scheduled_slot %}
+            <div class="tl-time">
+              {% if booking.status in 'in_progress,quality_check,delivered' %}Started at{% else %}Scheduled:{% endif %}
+              {{ booking.scheduled_slot|time:"h:i A" }}
+            </div>
+            {% endif %}
+            <div class="tl-desc">
+              {{ booking.service.description|default:"Service in progress. Our certified mechanic is working on your vehicle." }}
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. QUALITY CHECK -->
+        <div class="tl-item">
+          <div class="tl-dot {% if booking.status in 'quality_check,delivered' %}{% if booking.status == 'quality_check' %}current{% else %}done{% endif %}{% else %}pending{% endif %}">
+            {% if booking.status == 'delivered' %}✓
+            {% elif booking.status == 'quality_check' %}🔍
+            {% else %}—{% endif %}
+          </div>
+          <div class="tl-content">
+            <div class="tl-title {% if booking.status not in 'quality_check,delivered' %}pending{% endif %}">Quality Check</div>
+            <div class="tl-desc">
+              {% if booking.status == 'delivered' %}All checks passed. Service report signed off.
+              {% elif booking.status == 'quality_check' %}Senior technician is reviewing all completed tasks.
+              {% else %}Senior technician will review all completed work and sign off the service report.{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. DELIVERED -->
+        <div class="tl-item">
+          <div class="tl-dot {% if booking.status == 'delivered' %}done{% else %}pending{% endif %}">
+            {% if booking.status == 'delivered' %}✓{% else %}—{% endif %}
+          </div>
+          <div class="tl-content">
+            <div class="tl-title {% if booking.status != 'delivered' %}pending{% endif %}">
+              {% if booking.pickup_required %}Vehicle Delivered to Your Home{% else %}Vehicle Ready for Pickup{% endif %}
+            </div>
+            {% if booking.status == 'delivered' %}
+            <div class="tl-time">✅ Completed</div>
+            {% endif %}
+            <div class="tl-desc">
+              {% if booking.status == 'delivered' %}
+                Service complete! Your vehicle has been {% if booking.pickup_required %}delivered back to you{% else %}returned{% endif %}. Invoice and warranty details sent to {{ booking.customer_email }}.
+                {% if booking.status == 'delivered' %}
+                <div style="margin-top:8px;">
+                  <a href="{% url 'rate_service' booking.reference %}" style="color:var(--red);font-weight:700;font-size:.72rem;">⭐ Rate this service →</a>
+                </div>
+                {% endif %}
+              {% elif booking.pickup_required %}
+                Driver will return your vehicle to {{ booking.pickup_address|default:"your address" }} after service.
+              {% else %}
+                Your vehicle will be ready for pickup at {{ booking.garage.name|default:"the garage" }}.
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- CANCELLED -->
+        {% if booking.status == 'cancelled' %}
+        <div class="tl-item">
+          <div class="tl-dot" style="background:#f5f5f5;color:#aaa;">✕</div>
+          <div class="tl-content">
+            <div class="tl-title" style="color:var(--red);">Booking Cancelled</div>
+            <div class="tl-time">{{ booking.updated_at|date:"d M Y, h:i A" }}</div>
+            <div class="tl-desc">This booking was cancelled. Contact support for refund queries.</div>
+          </div>
+        </div>
+        {% endif %}
+
+      </div><!-- /tl -->
+    </div>
+  </div><!-- /timeline card -->
+
+  <!-- MECHANIC INFO — only show if assigned -->
+  {% if booking.mechanic %}
+  <div class="card">
+    <div class="cardh"><h3>Your Mechanic</h3></div>
+    <div class="cardb">
+      <div class="mech-row">
+        <div class="mech-av">
+          {% if booking.mechanic.profile_photo %}<img src="{{ booking.mechanic.profile_photo.url }}" alt="">
+          {% else %}{{ booking.mechanic.name|first|upper }}{% endif %}
+        </div>
+        <div>
+          <div class="mech-name">{{ booking.mechanic.name }}</div>
+          <div class="mech-role">
+            {% if booking.mechanic.mechanic_profile %}{{ booking.mechanic.mechanic_profile.designation|default:"Mechanic" }}{% else %}Mechanic{% endif %}
+          </div>
+        </div>
+      </div>
+      {% if booking.mechanic.phone %}
+      <div class="mech-contact">
+        <a href="tel:{{ booking.mechanic.phone }}" class="mc-btn">📞 Call</a>
+        <a href="https://wa.me/{{ booking.mechanic.phone|cut:' '|cut:'+' }}" target="_blank" class="mc-btn">💬 WhatsApp</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+</div><!-- /left col -->
+
+<div><!-- right col -->
+
+  <!-- BOOKING SUMMARY -->
+  <div class="card">
+    <div class="cardh"><h3>Booking Summary</h3></div>
+    <div class="cardb">
+      <div class="sum-row"><span class="sum-k">Reference</span><span class="sum-v" style="color:var(--blue);font-family:var(--fd);">{{ booking.reference }}</span></div>
+      <div class="sum-row"><span class="sum-k">Service</span><span class="sum-v">{{ booking.service.name|default:"Car Service" }}</span></div>
+      <div class="sum-row"><span class="sum-k">Package</span><span class="sum-v">{{ booking.get_package_display }}</span></div>
+      <div class="sum-row"><span class="sum-k">Date</span><span class="sum-v">{{ booking.scheduled_date|date:"d M Y" }}</span></div>
+      <div class="sum-row"><span class="sum-k">Time</span><span class="sum-v">{{ booking.scheduled_slot|time:"h:i A" }}</span></div>
+      <div class="sum-row"><span class="sum-k">Garage</span><span class="sum-v">{{ booking.garage.name|default:"—" }}</span></div>
+      {% if booking.pickup_required %}
+      <div class="sum-row"><span class="sum-k">Pickup from</span><span class="sum-v" style="font-size:.68rem;max-width:160px;text-align:right;">{{ booking.pickup_address|default:"—" }}</span></div>
+      {% endif %}
+      <div class="sum-row"><span class="sum-k">Payment</span><span class="sum-v">{{ booking.get_payment_method_display }}</span></div>
+      <div class="sum-row">
+        <span class="sum-k">Advance Paid</span>
+        <span class="sum-v" style="color:var(--green);">
+          {% if booking.advance_paid %}✓ ₹{{ booking.advance_amount|floatformat:0 }}{% else %}Pending{% endif %}
+        </span>
+      </div>
+      {% if booking.discount_amount %}
+      <div class="sum-row"><span class="sum-k">Discount</span><span class="sum-v" style="color:var(--green);">−₹{{ booking.discount_amount|floatformat:0 }}</span></div>
+      {% endif %}
+
+      <!-- LIVE PARTS — updated by JS poll -->
+      <div id="liveParts"></div>
+
+      <div class="sum-total" id="liveTotalRow">
+        <span>Balance Due</span>
+        <span style="color:var(--red);" id="liveBalance">₹{{ booking.balance_due|floatformat:0 }}</span>
+      </div>
+      <div style="font-size:.62rem;color:#aaa;text-align:right;margin-top:4px;" id="liveUpdatedAt">
+        {% if booking.status == 'in_progress' or booking.status == 'quality_check' %}
+        <span id="liveIndicator">🔄 Live — updates as mechanic works</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- VEHICLE INFO -->
+  {% if booking.vehicle %}
+  <div class="card">
+    <div class="cardh"><h3>Your Vehicle</h3></div>
+    <div class="cardb">
+      <div class="vc-row"><span class="vc-k">Vehicle</span><span class="vc-v">{{ booking.vehicle.brand }} {{ booking.vehicle.model_name }}</span></div>
+      <div class="vc-row"><span class="vc-k">Reg No.</span><span class="vc-v" style="font-family:var(--fd);">{{ booking.vehicle.registration_number|default:"—" }}</span></div>
+      <div class="vc-row"><span class="vc-k">Year</span><span class="vc-v">{{ booking.vehicle.year|default:"—" }}</span></div>
+      <div class="vc-row"><span class="vc-k">Fuel</span><span class="vc-v">{{ booking.vehicle.get_fuel_type_display|default:"—" }}</span></div>
+      {% if booking.vehicle.color %}<div class="vc-row"><span class="vc-k">Colour</span><span class="vc-v">{{ booking.vehicle.color }}</span></div>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- GARAGE INFO -->
+  {% if booking.garage %}
+  <div class="card">
+    <div class="cardh"><h3>Service Garage</h3></div>
+    <div class="cardb">
+      <div style="font-family:var(--fd);font-size:.9rem;font-weight:800;color:#111;margin-bottom:8px;">{{ booking.garage.name }}</div>
+      {% if booking.garage.address %}<div style="font-size:.74rem;color:var(--muted);margin-bottom:6px;">📍 {{ booking.garage.address }}{% if booking.garage.landmark %} · {{ booking.garage.landmark }}{% endif %}</div>{% endif %}
+      {% if booking.garage.phone %}<div style="font-size:.74rem;color:var(--muted);margin-bottom:10px;">📞 {{ booking.garage.phone }}</div>{% endif %}
+      <div style="display:flex;gap:8px;">
+        {% if booking.garage.phone %}<a href="tel:{{ booking.garage.phone }}" class="mc-btn" style="text-align:center;">📞 Call Garage</a>{% endif %}
+        {% if booking.garage.maps_link %}<a href="{{ booking.garage.maps_link }}" target="_blank" class="mc-btn" style="text-align:center;">📍 Maps</a>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ACTION BUTTONS -->
+  <div class="action-btns">
+    <a href="{% url 'bookings' %}" class="ab ab-ghost">← All Bookings</a>
+    {% if booking.status == 'delivered' %}
+    <a href="{% url 'rate_service' booking.reference %}" class="ab ab-primary">⭐ Rate Service</a>
+    {% endif %}
+  </div>
+
+</div><!-- /right col -->
+</div><!-- /grid2 -->
+
+{% endif %}<!-- /if booking -->
+
+</div><!-- /wrap -->
+
+{% if booking and booking.status not in 'delivered,cancelled' %}
+<script>
+/* ── LIVE INVOICE POLLING ── */
+var BOOKING_REF = '{{ booking.reference }}';
+var IS_ACTIVE   = '{{ booking.status }}' === 'in_progress' || '{{ booking.status }}' === 'quality_check' || '{{ booking.status }}' === 'at_garage';
+var lastPartCount = 0;
+
+function fetchLiveInvoice() {
+  fetch('/api/booking/' + BOOKING_REF + '/invoice/')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d.ok) return;
+
+      /* Update parts list */
+      var partsEl = document.getElementById('liveParts');
+      if(partsEl && d.parts && d.parts.length) {
+        var html = '';
+        d.parts.forEach(function(p) {
+          html += '<div class="sum-row" style="background:rgba(0,166,81,.04);border-left:2px solid rgba(0,166,81,.3);padding-left:8px;margin:2px 0;">'
+            + '<span class="sum-k" style="font-size:.68rem;">🔧 ' + p.name + ' ×' + p.quantity + '</span>'
+            + '<span class="sum-v" style="color:var(--green);font-size:.68rem;">+₹' + parseFloat(p.cost).toFixed(0) + '</span>'
+            + '</div>';
+        });
+        /* Show parts total if >0 */
+        if(d.parts_total > 0) {
+          html += '<div class="sum-row" style="border-top:1px dashed #eee;margin-top:4px;padding-top:4px;">'
+            + '<span class="sum-k" style="font-size:.7rem;font-weight:700;">Parts subtotal</span>'
+            + '<span class="sum-v" style="font-size:.7rem;font-weight:700;">₹' + parseFloat(d.parts_total).toFixed(0) + '</span>'
+            + '</div>';
+        }
+        partsEl.innerHTML = html;
+
+        /* Flash notification if new parts added */
+        if(d.parts.length > lastPartCount) {
+          lastPartCount = d.parts.length;
+          showInvoiceAlert('🔧 Mechanic added parts — your bill updated');
+        }
+      }
+
+      /* Update balance */
+      var balEl = document.getElementById('liveBalance');
+      if(balEl) balEl.textContent = '₹' + parseFloat(d.balance_due).toFixed(0);
+
+      /* Update timestamp */
+      var updEl = document.getElementById('liveUpdatedAt');
+      if(updEl && IS_ACTIVE) {
+        var now = new Date();
+        var t   = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+        document.getElementById('liveIndicator') && (document.getElementById('liveIndicator').textContent = '🔄 Updated at ' + t);
+      }
+
+      /* If job completed or delivered — show pay balance button */
+      if(d.job_status === 'completed' || d.job_status === 'verified' || d.status === 'quality_check') {
+        var actBar = document.querySelector('.action-bar');
+        if(actBar && !document.getElementById('payBalanceBtn') && !d.final_paid) {
+          var btn = document.createElement('a');
+          btn.id   = 'payBalanceBtn';
+          btn.href = '/booking/' + BOOKING_REF + '/pay-balance/';
+          btn.className = 'ab ab-primary';
+          btn.style.cssText = 'background:var(--green);animation:pulse 1.5s ease-in-out infinite;';
+          btn.textContent = '💳 Pay Balance ₹' + parseFloat(d.balance_due).toFixed(0);
+          actBar.prepend(btn);
+        }
+      }
+    })
+    .catch(function(){});
+}
+
+function showInvoiceAlert(msg) {
+  var el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 20px;border-radius:10px;font-size:.76rem;font-weight:600;z-index:3000;box-shadow:0 4px 20px rgba(0,0,0,.3);';
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 4000);
+}
+
+/* Poll every 15 seconds if job is active */
+fetchLiveInvoice();
+if(IS_ACTIVE) {
+  setInterval(fetchLiveInvoice, 15000);
+} else {
+  /* Non-active: just refresh page every 30s for status updates */
+  setInterval(function(){ window.location.reload(); }, 30000);
+}
+</script>
+{% endif %}
+{% endblock %}

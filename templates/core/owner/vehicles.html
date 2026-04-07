@@ -1,0 +1,325 @@
+{% extends 'core/base.html' %}
+{% block title %}My Vehicles — eGarage{% endblock %}
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* All colors use base.html CSS variables */
+html,body { background:var(--bg); color:var(--text); font-family:var(--fb); }
+
+/* ── PAGE ── */
+.page { max-width:1000px; margin:28px auto; padding:0 24px 60px; }
+.page-hdr { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:24px; }
+.page-title { font-family:var(--fd); font-size:1.4rem; font-weight:900; color:var(--text); }
+.page-sub { font-size:.76rem; color:var(--muted); margin-top:3px; }
+
+.btn-add {
+  padding:10px 20px; background:var(--red); color:#fff; border:none; border-radius:10px;
+  font-family:var(--fd); font-size:.76rem; font-weight:700; cursor:pointer; transition:all .15s;
+  display:inline-flex; align-items:center; gap:7px;
+}
+.btn-add svg { width:13px; height:13px; }
+.btn-add:hover { background:var(--red2); }
+
+/* ── MESSAGES ── */
+.msg { border-radius:10px; padding:11px 16px; margin-bottom:16px; font-size:.78rem; font-weight:600; }
+.msg-s { background:rgba(0,166,81,.12); border:1px solid rgba(0,166,81,.25); color:var(--green); }
+.msg-e { background:rgba(232,25,44,.1); border:1px solid rgba(232,25,44,.22); color:var(--red); }
+
+/* ── VEHICLE GRID (Bento) ── */
+.vgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; margin-bottom:28px; }
+
+.vcard {
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+  overflow:hidden; transition:all .2s;
+  box-shadow:var(--card-shadow);
+}
+.vcard:hover { border-color:rgba(232,25,44,.3); transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,.2); }
+
+.vc-head {
+  padding:18px 18px 14px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:13px; position:relative;
+}
+.vc-av {
+  width:50px; height:50px; border-radius:12px;
+  background:linear-gradient(135deg,var(--red),var(--red2));
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--fd); font-size:.96rem; font-weight:900; color:#fff; flex-shrink:0;
+}
+.vc-name { font-family:var(--fd); font-size:.92rem; font-weight:800; color:var(--text); }
+.vc-reg { font-size:.66rem; color:var(--muted); margin-top:3px; font-family:var(--fd); letter-spacing:.5px; }
+.primary-badge {
+  position:absolute; top:14px; right:14px;
+  background:rgba(232,25,44,.12); color:var(--red);
+  font-family:var(--fd); font-size:.58rem; font-weight:800; padding:3px 9px; border-radius:20px;
+  border:1px solid rgba(232,25,44,.2);
+}
+
+.vc-tags { display:flex; flex-wrap:wrap; gap:5px; padding:12px 18px; border-bottom:1px solid var(--border); }
+.vtag {
+  display:inline-flex; align-items:center; gap:3px; padding:3px 9px; border-radius:20px;
+  background:var(--surface3); border:1px solid var(--border); font-size:.64rem; font-weight:600; color:var(--text2);
+}
+
+.vc-stats { display:grid; grid-template-columns:1fr 1fr; padding:12px 18px; border-bottom:1px solid var(--border); gap:8px; }
+.vs-item { text-align:center; }
+.vs-n { font-family:var(--fd); font-size:1rem; font-weight:900; color:var(--text); }
+.vs-l { font-size:.58rem; color:var(--muted); margin-top:1px; }
+
+.vc-recent { padding:12px 18px; border-bottom:1px solid var(--border); }
+.vcr-title { font-size:.62rem; font-weight:700; color:var(--muted2); letter-spacing:.6px; text-transform:uppercase; margin-bottom:8px; }
+.vcr-row { display:flex; justify-content:space-between; font-size:.72rem; padding:4px 0; }
+.vcr-svc { color:var(--text); font-weight:600; }
+.vcr-date { color:var(--muted); }
+
+.vc-actions { display:flex; gap:8px; padding:14px 18px; flex-wrap:wrap; }
+.va {
+  flex:1; min-width:80px; padding:8px 12px; text-align:center; border-radius:8px;
+  font-family:var(--fd); font-size:.64rem; font-weight:700; cursor:pointer; border:none; transition:all .15s;
+}
+.va-red   { background:var(--red); color:#fff; }
+.va-red:hover { background:var(--red2); }
+.va-ghost { border:1.5px solid var(--border); color:var(--text2); background:var(--surface2); }
+.va-ghost:hover { border-color:var(--red); color:var(--red); }
+.va-green { background:rgba(0,166,81,.12); color:var(--green); border:1.5px solid rgba(0,166,81,.2); }
+.va-green:hover { background:rgba(0,166,81,.2); }
+.va-danger { background:rgba(232,25,44,.08); color:var(--red); border:1.5px solid rgba(232,25,44,.18); }
+.va-danger:hover { background:rgba(232,25,44,.16); }
+
+/* ── EMPTY ── */
+.empty-box {
+  background:var(--surface); border:1.5px dashed var(--border); border-radius:var(--radius-lg);
+  padding:48px 24px; text-align:center; margin-bottom:24px;
+}
+.empty-box svg { width:56px; height:56px; color:var(--muted2); display:block; margin:0 auto 16px; }
+.empty-box h3 { font-family:var(--fd); font-size:1rem; font-weight:800; color:var(--text); margin-bottom:8px; }
+.empty-box p { font-size:.78rem; color:var(--muted); line-height:1.6; margin-bottom:20px; }
+
+/* ── MODAL ── */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1000; display:none; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(8px); }
+.overlay.on { display:flex; }
+.modal {
+  background:var(--surface); border:1px solid var(--border2); border-radius:18px;
+  width:100%; max-width:500px; overflow:hidden; animation:mup .22s ease;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);
+}
+@keyframes mup { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+.mhdr {
+  padding:16px 20px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--surface2);
+}
+.mhdr h3 { font-family:var(--fd); font-size:.9rem; font-weight:800; color:var(--text); }
+.mclose {
+  width:27px; height:27px; border-radius:50%; border:1.5px solid var(--border);
+  background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--muted);
+}
+.mclose:hover { border-color:var(--red); color:var(--red); }
+.mclose svg { width:12px; height:12px; }
+.mbody { padding:20px; max-height:72vh; overflow-y:auto; }
+.mfoot { padding:12px 20px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:flex-end; background:var(--surface2); }
+.mbtn { padding:9px 20px; border-radius:8px; font-family:var(--fd); font-size:.76rem; font-weight:700; cursor:pointer; transition:all .15s; border:none; }
+.mbtn-cancel { border:1.5px solid var(--border); background:var(--surface); color:var(--text2); }
+.mbtn-cancel:hover { border-color:var(--border2); }
+.mbtn-red { background:var(--red); color:#fff; }
+.mbtn-red:hover { background:var(--red2); }
+
+/* ── FORM ── */
+.ff { margin-bottom:13px; }
+.ff label { display:block; font-size:.64rem; font-weight:700; color:var(--muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px; }
+.ff input,.ff select {
+  width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:9px;
+  font-family:var(--fb); font-size:.84rem; color:var(--input-text); outline:none;
+  background:var(--input-bg); transition:border-color .18s;
+}
+.ff input:focus,.ff select:focus { border-color:var(--red); background:var(--surface); }
+.ff select option { background:var(--bg2); color:var(--text); }
+.ff-row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+/* ── TOAST ── */
+.toast { position:fixed; bottom:24px; right:24px; background:var(--toast-bg); color:var(--text); padding:11px 18px; border-radius:10px; font-size:.76rem; font-weight:600; z-index:3000; display:none; align-items:center; gap:7px; border:1px solid var(--border); box-shadow:var(--card-shadow); }
+.toast.on { display:flex; animation:tf .2s ease; }
+@keyframes tf { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+@media(max-width:700px) { .vgrid{grid-template-columns:1fr;} .ff-row2{grid-template-columns:1fr;} }
+
+/* ═══════════════════════════════
+   VEHICLES — DARK MODE (Navy/Slate)
+═══════════════════════════════ */
+[data-theme="dark"] html, [data-theme="dark"] body {
+  background: #0f172a !important; color: #f1f5f9 !important;
+}
+[data-theme="dark"] nav {
+  background: rgba(15,23,42,.92) !important;
+  border-color: rgba(148,163,184,.12) !important;
+}
+[data-theme="dark"] .logo-name span { color: #f1f5f9 !important; }
+[data-theme="dark"] .bc a { color: #64748b !important; }
+[data-theme="dark"] .nb {
+  background: #1e293b !important; border-color: rgba(148,163,184,.18) !important; color: #cbd5e1 !important;
+}
+[data-theme="dark"] .nb:hover { border-color: #e8192c !important; color: #e8192c !important; }
+[data-theme="dark"] .nb.solid { background: #e8192c !important; color: #fff !important; }
+
+[data-theme="dark"] .page-title { color: #f1f5f9 !important; }
+[data-theme="dark"] .page-sub { color: #94a3b8 !important; }
+
+[data-theme="dark"] .vcard {
+  background: #1e293b !important;
+  border-color: rgba(148,163,184,.15) !important;
+}
+[data-theme="dark"] .vcard:hover { border-color: rgba(232,25,44,.3) !important; box-shadow: 0 4px 20px rgba(0,0,0,.3) !important; }
+[data-theme="dark"] .vc-name { color: #f1f5f9 !important; }
+[data-theme="dark"] .vc-reg { color: #64748b !important; }
+[data-theme="dark"] .vc-head { border-color: rgba(148,163,184,.08) !important; }
+[data-theme="dark"] .vc-tags { border-color: rgba(148,163,184,.08) !important; }
+[data-theme="dark"] .vtag { background: rgba(148,163,184,.1) !important; color: #94a3b8 !important; }
+[data-theme="dark"] .vc-stats { border-color: rgba(148,163,184,.08) !important; }
+[data-theme="dark"] .vs-n { color: #f1f5f9 !important; }
+[data-theme="dark"] .vs-l { color: #64748b !important; }
+[data-theme="dark"] .vc-recent { border-color: rgba(148,163,184,.08) !important; }
+[data-theme="dark"] .vcr-title { color: #475569 !important; }
+[data-theme="dark"] .vcr-svc { color: #f1f5f9 !important; }
+[data-theme="dark"] .vcr-date { color: #64748b !important; }
+[data-theme="dark"] .vc-actions { border-color: rgba(148,163,184,.08) !important; }
+[data-theme="dark"] .va-ghost {
+  background: rgba(148,163,184,.08) !important;
+  border-color: rgba(148,163,184,.18) !important;
+  color: #cbd5e1 !important;
+}
+[data-theme="dark"] .va-ghost:hover { border-color: #e8192c !important; color: #e8192c !important; }
+
+[data-theme="dark"] .empty-box {
+  background: #1e293b !important;
+  border-color: rgba(148,163,184,.2) !important;
+}
+[data-theme="dark"] .empty-box h3 { color: #f1f5f9 !important; }
+[data-theme="dark"] .empty-box p { color: #64748b !important; }
+
+[data-theme="dark"] .modal { background: #1e293b !important; border-color: rgba(148,163,184,.2) !important; }
+[data-theme="dark"] .mhdr { border-color: rgba(148,163,184,.1) !important; }
+[data-theme="dark"] .mhdr h3 { color: #f1f5f9 !important; }
+[data-theme="dark"] .mclose { background: #334155 !important; border-color: rgba(148,163,184,.2) !important; }
+[data-theme="dark"] .ff label { color: #64748b !important; }
+[data-theme="dark"] .ff input, [data-theme="dark"] .ff select {
+  background: rgba(255,255,255,.06) !important;
+  border-color: rgba(148,163,184,.2) !important;
+  color: #f1f5f9 !important;
+}
+[data-theme="dark"] .ff input::placeholder { color: #475569 !important; }
+[data-theme="dark"] .ff select option { background: #1e293b !important; color: #f1f5f9 !important; }
+[data-theme="dark"] .hint { color: #475569 !important; }
+[data-theme="dark"] .mfoot { border-color: rgba(148,163,184,.1) !important; }
+[data-theme="dark"] .mbtn-cancel { background: transparent !important; border-color: rgba(148,163,184,.2) !important; color: #64748b !important; }
+[data-theme="dark"] .overlay { background: rgba(0,0,0,.7) !important; }
+[data-theme="dark"] .msg-s { background: rgba(0,166,81,.12) !important; }
+[data-theme="dark"] .msg-e { background: rgba(232,25,44,.1) !important; }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  {% if messages %}{% for m in messages %}
+  <div class="msg {% if '✅' in m.message or 'success' in m.tags %}msg-s{% else %}msg-e{% endif %}">{{ m }}</div>
+  {% endfor %}{% endif %}
+
+  <div class="page-hdr">
+    <div>
+      <div class="page-title">My Vehicles</div>
+      <div class="page-sub">{{ vehicles|length }} vehicle{{ vehicles|length|pluralize }} registered</div>
+    </div>
+    <button class="btn-add" onclick="openModal('addModal')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Vehicle
+    </button>
+  </div>
+
+  {% if not vehicles %}
+  <div class="empty-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+    <h3>No vehicles yet</h3>
+    <p>Add your car or bike to get personalised service recommendations and book faster.</p>
+    <button class="btn-add" onclick="openModal('addModal')">+ Add Your First Vehicle</button>
+  </div>
+  {% else %}
+  <div class="vgrid">
+    {% for v in vehicles %}
+    <div class="vcard" id="vcard-{{ v.pk }}">
+      <div class="vc-head">
+        <div class="vc-av">{{ v.brand|first|upper }}{{ v.model_name|first|upper }}</div>
+        <div>
+          <div class="vc-name">{{ v.brand }} {{ v.model_name }}{% if v.variant %} {{ v.variant }}{% endif %}</div>
+          <div class="vc-reg">{% if v.registration_number %}{{ v.registration_number }} · {% endif %}{% if v.year %}{{ v.year }} · {% endif %}{% if v.odometer %}{{ v.odometer|floatformat:0 }} km{% endif %}</div>
+        </div>
+        {% if v.is_primary %}<span class="primary-badge">⭐ Primary</span>{% endif %}
+      </div>
+      <div class="vc-tags">
+        <span class="vtag">⛽ {{ v.get_fuel_type_display }}</span>
+        <span class="vtag">🚗 {{ v.get_type_display }}</span>
+        {% if v.colour %}<span class="vtag">🎨 {{ v.colour }}</span>{% endif %}
+        {% if v.insurance_expiry %}<span class="vtag">🛡 Ins: {{ v.insurance_expiry|date:"M Y" }}</span>{% endif %}
+      </div>
+      {% with service_count=v.bookings.count %}
+      <div class="vc-stats">
+        <div class="vs-item"><div class="vs-n">{{ service_count }}</div><div class="vs-l">Services done</div></div>
+        <div class="vs-item"><div class="vs-n" style="color:var(--green);">{% if v.condition_submitted %}✓{% else %}—{% endif %}</div><div class="vs-l">Condition submitted</div></div>
+      </div>
+      {% with recent=v.bookings.all|slice:":3" %}{% if recent %}
+      <div class="vc-recent">
+        <div class="vcr-title">Recent Services</div>
+        {% for b in recent %}<div class="vcr-row"><span class="vcr-svc">{{ b.service.name|default:"Service" }}</span><span class="vcr-date">{{ b.scheduled_date|date:"d M Y" }}</span></div>{% endfor %}
+      </div>
+      {% endif %}{% endwith %}
+      {% endwith %}
+      <div class="vc-actions">
+        <a href="{% url 'booking' %}?vehicle={{ v.pk }}" class="va va-red">Book Service</a>
+        <a href="{% url 'vehicle_condition' v.pk %}" class="va va-green">📷 Condition</a>
+        {% if not v.is_primary %}
+        <form method="POST" action="{% url 'set_primary_vehicle' v.pk %}" style="display:contents;">{% csrf_token %}<button type="submit" class="va va-ghost">Set Primary</button></form>
+        {% endif %}
+        <form method="POST" action="{% url 'delete_vehicle' v.pk %}" style="display:contents;" onsubmit="return confirm('Remove {{ v.brand }} {{ v.model_name|escapejs }}?');">{% csrf_token %}<button type="submit" class="va va-danger">Remove</button></form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- ADD VEHICLE MODAL -->
+<div class="overlay" id="addModal">
+  <div class="modal">
+    <div class="mhdr"><h3>Add Vehicle</h3><div class="mclose" onclick="closeModal('addModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>
+    <form method="POST" action="{% url 'add_vehicle' %}">
+      {% csrf_token %}
+      <div class="mbody">
+        <div class="ff-row2">
+          <div class="ff"><label>Type</label><select name="type"><option value="car">Car</option><option value="bike">Bike / Scooter</option></select></div>
+          <div class="ff"><label>Brand *</label><input type="text" name="brand" placeholder="e.g. Maruti Suzuki" required></div>
+        </div>
+        <div class="ff-row2">
+          <div class="ff"><label>Model *</label><input type="text" name="model" placeholder="e.g. Swift" required></div>
+          <div class="ff"><label>Variant</label><input type="text" name="variant" placeholder="e.g. VXI"></div>
+        </div>
+        <div class="ff-row2">
+          <div class="ff"><label>Registration No.</label><input type="text" name="reg" placeholder="GJ-03-AB-1234" style="text-transform:uppercase;"></div>
+          <div class="ff"><label>Year</label><input type="number" name="year" placeholder="2021" min="1990" max="2030"></div>
+        </div>
+        <div class="ff-row2">
+          <div class="ff"><label>Fuel Type</label><select name="fuel"><option value="petrol">Petrol</option><option value="diesel">Diesel</option><option value="cng">CNG</option><option value="electric">Electric</option><option value="hybrid">Hybrid</option></select></div>
+          <div class="ff"><label>Colour</label><input type="text" name="colour" placeholder="e.g. Pearl White"></div>
+        </div>
+        <div class="ff"><label>Current Odometer (km)</label><input type="number" name="odometer" placeholder="28000" min="0"></div>
+      </div>
+      <div class="mfoot"><button type="button" class="mbtn mbtn-cancel" onclick="closeModal('addModal')">Cancel</button><button type="submit" class="mbtn mbtn-red">Add Vehicle</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+{% if messages %}<script>{% for m in messages %}setTimeout(function(){var t=document.getElementById('toast');document.getElementById('toastMsg').textContent='{{ m|escapejs }}';t.classList.add('on');setTimeout(function(){t.classList.remove('on');},3500);},400);{% endfor %}</script>{% endif %}
+<script>
+function openModal(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('on');document.body.style.overflow='';}
+document.querySelectorAll('.overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)closeModal(o.id);});});
+</script>
+{% endblock %}

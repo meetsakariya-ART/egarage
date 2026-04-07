@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mechanic Dashboard — eGarage</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --acc:#30d158;--acc-glow:rgba(48,209,88,.3);
+  --red:#ff3b30;--blue:#0a84ff;--yellow:#ffd60a;
+  --purple:#bf5af2;--orange:#ff9f0a;--teal:#5ac8fa;
+  --bg:#06060c;--glass:rgba(255,255,255,.06);
+  --glass2:rgba(255,255,255,.10);
+  --border:rgba(255,255,255,.09);--border2:rgba(255,255,255,.14);
+  --muted:rgba(255,255,255,.45);--dim:rgba(255,255,255,.22);
+  --blur:saturate(180%) blur(20px);
+  --fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;
+  --r:16px;--r-sm:11px;
+}
+html,body{height:100%;overflow:hidden;font-family:var(--fb);background:var(--bg);color:#fff;}
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none;}
+.o1{width:600px;height:600px;background:rgba(48,209,88,.09);top:-180px;left:-120px;animation:of1 13s ease-in-out infinite alternate;}
+.o2{width:500px;height:500px;background:rgba(10,132,255,.07);bottom:-120px;right:-80px;animation:of2 10s ease-in-out infinite alternate;}
+.o3{width:350px;height:350px;background:rgba(255,214,10,.05);top:40%;left:45%;animation:of3 8s ease-in-out infinite alternate;}
+@keyframes of1{0%{transform:translate(0,0)}100%{transform:translate(35px,-45px)}}
+@keyframes of2{0%{transform:translate(0,0)}100%{transform:translate(-40px,25px)}}
+@keyframes of3{0%{transform:scale(1)}100%{transform:translate(15px,15px) scale(1.1)}}
+.wrap{display:flex;height:100vh;position:relative;z-index:5;}
+
+/* SIDEBAR */
+.sidebar{width:220px;flex-shrink:0;height:100vh;display:flex;flex-direction:column;background:rgba(8,8,16,.82);backdrop-filter:var(--blur);border-right:1px solid var(--border);}
+.sl{padding:20px 16px 16px;border-bottom:1px solid var(--border);}
+.sl-brand{display:flex;align-items:center;gap:9px;}
+.sl-ico{width:32px;height:32px;border-radius:9px;background:var(--acc);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px var(--acc-glow);}
+.sl-ico svg{width:15px;height:15px;}
+.sl-name{font-family:var(--fd);font-size:1.05rem;font-weight:900;color:#fff;}
+.sl-tag{font-size:.52rem;color:var(--dim);letter-spacing:1.8px;text-transform:uppercase;margin-top:2px;}
+.nav{flex:1;padding:10px 8px;overflow-y:auto;display:flex;flex-direction:column;gap:1px;}
+.nav::-webkit-scrollbar{display:none;}
+.nlbl{font-size:.52rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);padding:10px 10px 4px;}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:9px;cursor:pointer;text-decoration:none;color:var(--muted);font-size:.78rem;font-weight:500;transition:all .18s;}
+.ni:hover{background:var(--glass2);color:rgba(255,255,255,.85);}
+.ni.on{background:rgba(48,209,88,.14);color:#fff;border:1px solid rgba(48,209,88,.22);}
+.ni svg{width:14px;height:14px;flex-shrink:0;opacity:.6;transition:opacity .18s;}
+.ni:hover svg,.ni.on svg{opacity:1;}
+.nbadge{margin-left:auto;background:var(--red);color:#fff;font-size:.55rem;font-weight:700;padding:2px 6px;border-radius:20px;font-family:var(--fd);}
+.sb-footer{padding:10px 10px 14px;border-top:1px solid var(--border);}
+.sb-user{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:10px;background:var(--glass);border:1px solid var(--border);cursor:pointer;transition:background .18s;}
+.sb-user:hover{background:var(--glass2);}
+.sb-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--teal));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.7rem;font-weight:900;color:#fff;flex-shrink:0;}
+.sb-info{flex:1;min-width:0;}
+.sb-nm{font-size:.74rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-rl{font-size:.58rem;color:var(--dim);}
+.sb-out{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--dim);text-decoration:none;transition:all .15s;flex-shrink:0;}
+.sb-out:hover{background:rgba(48,209,88,.18);color:var(--acc);}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;min-width:0;}
+.topbar{display:flex;align-items:center;padding:0 22px;height:54px;background:rgba(6,6,12,.65);backdrop-filter:var(--blur);border-bottom:1px solid var(--border);gap:12px;flex-shrink:0;}
+.tb-title{font-family:var(--fd);font-size:.88rem;font-weight:700;color:#fff;}
+.tb-sub{font-size:.62rem;color:var(--dim);margin-top:1px;}
+.tb-r{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.status-toggle{display:flex;align-items:center;gap:8px;padding:6px 14px;border-radius:20px;background:rgba(48,209,88,.12);border:1px solid rgba(48,209,88,.25);cursor:pointer;transition:all .2s;font-family:var(--fd);font-size:.7rem;font-weight:700;color:var(--acc);}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--acc);animation:sblink 1.5s infinite;}
+@keyframes sblink{0%,100%{opacity:1;}50%{opacity:.25;}}
+.content{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:12px;}
+.content::-webkit-scrollbar{width:4px;}
+.content::-webkit-scrollbar-thumb{background:rgba(255,255,255,.07);border-radius:4px;}
+
+/* HERO */
+.hero-strip{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;background:linear-gradient(135deg,rgba(48,209,88,.12),rgba(10,132,255,.08));border:1px solid rgba(48,209,88,.2);border-radius:var(--r);padding:20px 24px;}
+.hs-greet{font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:rgba(48,209,88,.7);font-weight:700;margin-bottom:4px;}
+.hs-name{font-family:var(--fd);font-size:1.4rem;font-weight:900;color:#fff;letter-spacing:-.4px;}
+.hs-sub{font-size:.74rem;color:var(--muted);margin-top:4px;}
+.hs-right{text-align:right;}
+.hs-time{font-family:var(--fd);font-size:1.6rem;font-weight:900;color:#fff;letter-spacing:1px;}
+.hs-date{font-size:.64rem;color:var(--dim);margin-top:2px;}
+.hs-online{display:flex;align-items:center;gap:5px;justify-content:flex-end;margin-top:8px;}
+.hs-dot{width:8px;height:8px;border-radius:50%;background:var(--acc);animation:sblink 1.5s infinite;}
+.hs-status{font-family:var(--fd);font-size:.68rem;font-weight:700;color:var(--acc);}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.kpi{border-radius:var(--r);padding:15px 16px;background:var(--glass);backdrop-filter:var(--blur);border:1px solid var(--border);transition:transform .2s cubic-bezier(.34,1.56,.64,1);cursor:default;position:relative;overflow:hidden;}
+.kpi:hover{transform:translateY(-4px);box-shadow:0 14px 36px rgba(0,0,0,.4);}
+.kpi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+.kpi-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);border:1px solid var(--border);}
+.kpi-ico svg{width:15px;height:15px;}
+.kpi-val{font-family:var(--fd);font-size:1.7rem;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1;}
+.kpi-lbl{font-size:.66rem;color:var(--muted);margin-top:4px;}
+.kpi-line{position:absolute;bottom:0;left:0;right:0;height:2px;}
+
+/* JOBS TODAY TABLE */
+.jobs-table{width:100%;border-collapse:collapse;}
+.jobs-table th{padding:8px 14px;font-size:.58rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);background:rgba(255,255,255,.02);text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+.jobs-table td{padding:11px 14px;font-size:.77rem;color:rgba(255,255,255,.75);vertical-align:middle;border-top:1px solid rgba(255,255,255,.04);}
+.jobs-table tr:hover td{background:rgba(255,255,255,.03);}
+.customer-cell{display:flex;align-items:center;gap:8px;}
+.c-ava{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.6rem;font-weight:800;color:#fff;flex-shrink:0;}
+.c-nm{font-weight:600;color:#fff;}
+.c-car{font-size:.62rem;color:var(--dim);margin-top:1px;}
+.time-badge{display:inline-flex;align-items:center;gap:3px;padding:4px 9px;border-radius:8px;background:rgba(10,132,255,.15);color:var(--blue);font-family:var(--fd);font-size:.68rem;font-weight:700;border:1px solid rgba(10,132,255,.2);}
+.pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:.58rem;font-weight:700;}
+.pill-g{background:rgba(48,209,88,.12);color:var(--acc);border:1px solid rgba(48,209,88,.2);}
+.pill-y{background:rgba(255,214,10,.12);color:var(--yellow);border:1px solid rgba(255,214,10,.2);}
+.pill-b{background:rgba(10,132,255,.12);color:var(--blue);border:1px solid rgba(10,132,255,.2);}
+.pill-r{background:rgba(255,59,48,.12);color:var(--red);border:1px solid rgba(255,59,48,.2);}
+.pill-d{width:5px;height:5px;border-radius:50%;background:currentColor;}
+.go-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:7px;background:rgba(48,209,88,.15);color:var(--acc);border:1px solid rgba(48,209,88,.2);font-family:var(--fd);font-size:.63rem;font-weight:700;text-decoration:none;transition:all .15s;}
+.go-btn:hover{background:rgba(48,209,88,.25);}
+.go-btn svg{width:10px;height:10px;}
+
+/* MAIN GRID */
+.two-col{display:grid;grid-template-columns:1fr 260px;gap:12px;}
+.card{border-radius:var(--r);background:var(--glass);backdrop-filter:var(--blur);border:1px solid var(--border);overflow:hidden;margin-bottom:12px;}
+.card-last{margin-bottom:0;}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);}
+.ch h4{font-family:var(--fd);font-size:.82rem;font-weight:700;color:#fff;}
+.ch p{font-size:.62rem;color:var(--dim);margin-top:1px;}
+.ch-r{font-size:.68rem;color:var(--acc);text-decoration:none;font-weight:600;}
+
+/* EARNINGS MINI */
+.earn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;}
+.eg{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.eg-lbl{font-size:.58rem;color:var(--dim);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px;}
+.eg-val{font-family:var(--fd);font-size:1.1rem;font-weight:900;color:#fff;}
+.eg-sub{font-size:.6rem;color:var(--acc);margin-top:3px;font-weight:600;}
+
+/* CHECKLIST MINI */
+.cl-item{display:flex;align-items:center;gap:9px;padding:9px 14px;border-top:1px solid rgba(255,255,255,.04);}
+.cl-item:first-of-type{border-top:none;}
+.cl-check{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.cl-check.done{background:var(--acc);border-color:var(--acc);}
+.cl-check.done svg{color:#fff;}
+.cl-check svg{width:10px;height:10px;color:transparent;}
+.cl-lbl{font-size:.76rem;color:#fff;flex:1;}
+.cl-lbl.done{text-decoration:line-through;color:var(--dim);}
+.cl-time{font-size:.6rem;color:var(--dim);}
+
+/* EMPTY */
+.empty{text-align:center;padding:30px 16px;}
+.empty-ico{font-size:2rem;margin-bottom:10px;}
+.empty-t{font-family:var(--fd);font-size:.84rem;font-weight:700;color:rgba(255,255,255,.3);}
+.empty-s{font-size:.7rem;color:var(--dim);margin-top:4px;}
+
+/* QLINKS */
+.qlink{display:flex;align-items:center;gap:10px;padding:11px 14px;border-top:1px solid rgba(255,255,255,.04);text-decoration:none;transition:background .1s;}
+.qlink:hover{background:rgba(255,255,255,.03);}
+.qlink:first-of-type{border-top:none;}
+.ql-ico{width:29px;height:29px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ql-ico svg{width:13px;height:13px;}
+.ql-lbl{font-family:var(--fd);font-size:.73rem;font-weight:700;color:#fff;}
+.ql-sub{font-size:.6rem;color:var(--dim);}
+.ql-arr{margin-left:auto;width:13px;height:13px;color:var(--dim);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.content>*{animation:fadeUp .38s ease both;}
+.content>*:nth-child(1){animation-delay:.04s;}
+.content>*:nth-child(2){animation-delay:.08s;}
+.content>*:nth-child(3){animation-delay:.12s;}
+.content>*:nth-child(4){animation-delay:.16s;}
+
+@media(max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr);}.two-col{grid-template-columns:1fr;}}
+@media(max-width:760px){.sidebar{display:none;}}
+</style>
+</head>
+<body>
+<div class="bg"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+<div class="wrap">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sl">
+    <div class="sl-brand">
+      <div class="sl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+      <div><div class="sl-name">eGarage</div><div class="sl-tag">Mechanic Portal</div></div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nlbl">Work</div>
+    <a href="{% url 'dashboard' %}"     class="ni on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+    <a href="{% url 'mechanic_jobs' %}" class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>My Jobs<span class="nbadge">{{ today_jobs.count|default:"" }}</span></a>
+    <a href="{% url 'earnings' %}"       class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Earnings</a>
+    <a href="{% url 'schedule' %}"       class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>My Schedule</a>
+    <div class="nlbl">Account</div>
+    <a href="{% url 'notifications' %}" class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Alerts</a>
+    <a href="{% url 'profile' %}"       class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-av">{{ request.user.initials }}</div>
+      <div class="sb-info"><div class="sb-nm">{{ request.user.name }}</div><div class="sb-rl">Mechanic</div></div>
+      <a href="{% url 'logout' %}" class="sb-out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></a>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <header class="topbar">
+    <div><div class="tb-title">Mechanic Dashboard</div><div class="tb-sub" id="topDate">—</div></div>
+    <div class="tb-r">
+      <div class="status-toggle"><div class="status-dot"></div>On Duty</div>
+      <a href="{% url 'notifications' %}" style="width:34px;height:34px;border-radius:9px;background:var(--glass);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all .15s;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></a>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- HERO STRIP -->
+    <div class="hero-strip">
+      <div>
+        <div class="hs-greet">Welcome back, mechanic</div>
+        <div class="hs-name">{{ request.user.name.split.0 }}, ready to roll? 🔧</div>
+        <div class="hs-sub">{{ today_jobs.count|default:"0" }} jobs today · {{ done_today|default:"0" }} completed · {{ pending_jobs|default:"0" }} in progress</div>
+      </div>
+      <div class="hs-right">
+        <div class="hs-time" id="mechTime">—</div>
+        <div class="hs-date" id="mechDate">—</div>
+        <div class="hs-online"><div class="hs-dot"></div><div class="hs-status">Online</div></div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#30d158" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div><span style="font-size:.6rem;font-weight:700;color:var(--acc);">Today</span></div><div class="kpi-val">{{ today_jobs.count|default:"0" }}</div><div class="kpi-lbl">Jobs Assigned</div><div class="kpi-line" style="background:linear-gradient(90deg,rgba(48,209,88,.7),transparent)"></div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><span style="font-size:.6rem;font-weight:700;color:var(--yellow);">Active</span></div><div class="kpi-val">{{ pending_jobs|default:"0" }}</div><div class="kpi-lbl">In Progress</div><div class="kpi-line" style="background:linear-gradient(90deg,rgba(255,214,10,.7),transparent)"></div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0a84ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span style="font-size:.6rem;font-weight:700;color:var(--blue);">Done</span></div><div class="kpi-val">{{ done_today|default:"0" }}</div><div class="kpi-lbl">Completed Today</div><div class="kpi-line" style="background:linear-gradient(90deg,rgba(10,132,255,.7),transparent)"></div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#bf5af2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><span style="font-size:.6rem;font-weight:700;color:var(--purple);">Rating</span></div><div class="kpi-val">{% if rating %}{{ rating|floatformat:1 }}★{% else %}—{% endif %}</div><div class="kpi-lbl">Avg Customer Rating</div><div class="kpi-line" style="background:linear-gradient(90deg,rgba(191,90,242,.7),transparent)"></div></div>
+    </div>
+
+    <!-- TODAY'S JOBS TABLE -->
+    <div class="two-col">
+    <div>
+      <div class="card card-last">
+        <div class="ch"><div><h4>Today's Job Queue</h4><p>{{ today_jobs.count|default:"0" }} jobs scheduled</p></div><a href="{% url 'mechanic_jobs' %}" class="ch-r">Full list →</a></div>
+        {% if today_jobs %}
+        <div style="overflow-x:auto;">
+          <table class="jobs-table">
+            <thead><tr><th>Customer</th><th>Service</th><th>Slot</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {% for job in today_jobs %}
+              <tr>
+                <td><div class="customer-cell"><div class="c-ava">{{ job.booking.customer_name|first }}</div><div><div class="c-nm">{{ job.booking.customer_name }}</div><div class="c-car">{% if job.booking.vehicle %}{{ job.booking.vehicle.brand }} {{ job.booking.vehicle.model_name }}{% else %}No vehicle{% endif %}</div></div></div></td>
+                <td style="color:#fff;font-weight:500;">{{ job.booking.service.name|default:"Service" }}</td>
+                <td><div class="time-badge">{{ job.booking.scheduled_slot|time:"h:i A" }}</div></td>
+                <td>
+                  {% if job.status == 'completed' %}<div class="pill pill-g"><div class="pill-d"></div>Done</div>
+                  {% elif job.status == 'in_progress' %}<div class="pill pill-y"><div class="pill-d"></div>Active</div>
+                  {% elif job.status == 'assigned' %}<div class="pill pill-b"><div class="pill-d"></div>Assigned</div>
+                  {% else %}<div class="pill" style="background:var(--glass);color:var(--muted);border:1px solid var(--border);">{{ job.get_status_display }}</div>{% endif %}
+                </td>
+                <td><a href="{% url 'job_detail' job.pk %}" class="go-btn">Open <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty"><div class="empty-ico">🎉</div><div class="empty-t">No jobs today</div><div class="empty-s">Check your schedule — you might have time off!</div></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div>
+      <!-- Earnings summary -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="ch"><h4>💰 Earnings</h4><a href="{% url 'earnings' %}" class="ch-r">Details →</a></div>
+        <div class="earn-grid">
+          <div class="eg">
+            <div class="eg-lbl">Today</div>
+            <div class="eg-val" style="color:var(--green);">{% if today_earn %}₹{{ today_earn|floatformat:0 }}{% else %}₹0{% endif %}</div>
+            <div class="eg-sub">{% if done_today %}{{ done_today }} job{{ done_today|pluralize }} done{% else %}No jobs yet{% endif %}</div>
+          </div>
+          <div class="eg">
+            <div class="eg-lbl">This Week</div>
+            <div class="eg-val">{% if week_earn %}₹{{ week_earn|floatformat:0 }}{% else %}₹0{% endif %}</div>
+            <div class="eg-sub">Mon–Sun</div>
+          </div>
+          <div class="eg">
+            <div class="eg-lbl">This Month</div>
+            <div class="eg-val">{% if month_earn %}₹{{ month_earn|floatformat:0 }}{% else %}₹0{% endif %}</div>
+            <div class="eg-sub">Credited earnings</div>
+          </div>
+          <div class="eg">
+            <div class="eg-lbl">Avg Rating</div>
+            <div class="eg-val">{% if rating %}{{ rating|floatformat:1 }}★{% else %}—{% endif %}</div>
+            <div class="eg-sub">Customer score</div>
+          </div>
+        </div>
+        {% if pending_accept %}
+        <div style="margin:8px 12px 12px;padding:10px 13px;background:rgba(255,214,10,.08);border:1px solid rgba(255,214,10,.2);border-radius:9px;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:1rem;">⚡</span>
+          <div style="flex:1;">
+            <div style="font-family:var(--fd);font-size:.74rem;font-weight:800;color:#fff;">{{ pending_accept }} job{{ pending_accept|pluralize }} awaiting your acceptance</div>
+            <div style="font-size:.62rem;color:var(--muted);margin-top:1px;">Accept quickly — manager is watching response time</div>
+          </div>
+          <a href="{% url 'mechanic_jobs' %}" style="padding:6px 13px;background:var(--yellow);color:#111;border-radius:7px;font-family:var(--fd);font-size:.66rem;font-weight:800;text-decoration:none;flex-shrink:0;">View →</a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Quick links -->
+      <div class="card card-last">
+        <div class="ch"><h4>Quick Actions</h4></div>
+        <a href="{% url 'mechanic_jobs' %}" class="qlink"><div class="ql-ico" style="background:rgba(48,209,88,.12);"><svg viewBox="0 0 24 24" fill="none" stroke="#30d158" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div><div><div class="ql-lbl">All Jobs</div><div class="ql-sub">View job list</div></div><svg class="ql-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'earnings' %}"     class="qlink"><div class="ql-ico" style="background:rgba(255,214,10,.12);"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div><div class="ql-lbl">Earnings</div><div class="ql-sub">Payouts & history</div></div><svg class="ql-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'schedule' %}"     class="qlink"><div class="ql-ico" style="background:rgba(10,132,255,.12);"><svg viewBox="0 0 24 24" fill="none" stroke="#0a84ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div><div class="ql-lbl">Schedule</div><div class="ql-sub">Shifts & availability</div></div><svg class="ql-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'profile' %}"     class="qlink"><div class="ql-ico" style="background:rgba(191,90,242,.12);"><svg viewBox="0 0 24 24" fill="none" stroke="#bf5af2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div><div class="ql-lbl">My Profile</div><div class="ql-sub">Edit details</div></div><svg class="ql-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+      </div>
+    </div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<script>
+function tick(){
+  var n=new Date();
+  var h=n.getHours()%12||12,m=n.getMinutes(),s=n.getSeconds(),ap=n.getHours()>=12?'PM':'AM';
+  var t=(h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s+' '+ap;
+  var d=n.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+  var te=document.getElementById('mechTime'),de=document.getElementById('mechDate'),td=document.getElementById('topDate');
+  if(te)te.textContent=t;
+  if(de)de.textContent=d;
+  if(td)td.textContent=d+', '+n.getFullYear()+' · Rajkot';
+}
+setInterval(tick,1000);tick();
+</script>
+</body>
+</html>

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Verify OTP — eGarage</title>
+<script>
+/* Apply saved theme BEFORE any paint — zero flash */
+(function(){
+  var t = localStorage.getItem('eg_theme');
+  if(!t) t = window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  
+/* ═══════════════════════════════════════════
+   TOKENS — same as base.html
+═══════════════════════════════════════════ */
+:root {
+  --red:#e8192c; --red2:#c0111f; --green:#00a651;
+  --fd:'Syne',sans-serif; --fb:'Instrument Sans',sans-serif;
+
+  /* DARK (default) */
+  --page-bg:#0f172a;
+  --card-bg:rgba(15,23,42,.86);
+  --card-border:rgba(148,163,184,.14);
+  --text:#f1f5f9;
+  --text2:#cbd5e1;
+  --muted:#64748b;
+  --muted2:#334155;
+  --slot-bg:#1e293b;
+  --slot-border:rgba(148,163,184,.12);
+  --slot-filled-bg:rgba(200,169,110,.05);
+  --slot-filled-border:rgba(200,169,110,.32);
+  --slot-digit-empty:#1e293b;
+  --slot-digit-filled:#f1f5f9;
+  --slot-lbl:#334155;
+  --progress-track:#1e293b;
+  --btn-disabled-bg:#1e293b;
+  --btn-disabled-color:#334155;
+  --sep-color:rgba(148,163,184,.12);
+  --flash-bg:rgba(232,25,44,.1);
+  --flash-border:rgba(232,25,44,.55);
+  --flash-color:#94a3b8;
+  --toggle-bg:rgba(148,163,184,.1);
+  --toggle-border:rgba(148,163,184,.2);
+  --toggle-color:#64748b;
+  --shadow:0 40px 100px rgba(0,0,0,.65);
+  --card-shine:rgba(255,255,255,.10);
+}
+
+[data-theme="light"] {
+  --page-bg:#f1f5f9;
+  --card-bg:rgba(255,255,255,.96);
+  --card-border:#e2e8f0;
+  --text:#0f172a;
+  --text2:#334155;
+  --muted:#64748b;
+  --muted2:#94a3b8;
+  --slot-bg:#f8fafc;
+  --slot-border:#e2e8f0;
+  --slot-filled-bg:rgba(232,25,44,.04);
+  --slot-filled-border:rgba(232,25,44,.28);
+  --slot-digit-empty:#f8fafc;
+  --slot-digit-filled:#0f172a;
+  --slot-lbl:#94a3b8;
+  --progress-track:#e2e8f0;
+  --btn-disabled-bg:#f1f5f9;
+  --btn-disabled-color:#94a3b8;
+  --sep-color:#e2e8f0;
+  --flash-bg:rgba(232,25,44,.06);
+  --flash-border:rgba(232,25,44,.4);
+  --flash-color:#64748b;
+  --toggle-bg:rgba(15,23,42,.06);
+  --toggle-border:#e2e8f0;
+  --toggle-color:#64748b;
+  --shadow:0 20px 60px rgba(15,23,42,.1);
+  --card-shine:rgba(255,255,255,.0);
+}
+
+/* ═══════════════════════════════════════════
+   BASE
+═══════════════════════════════════════════ */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html,body { width:100%; height:100%; overflow:hidden; }
+body {
+  font-family:var(--fb);
+  background:var(--page-bg);
+  display:flex; align-items:center; justify-content:center;
+  min-height:100vh;
+  position:relative;
+  transition:background .3s ease;
+}
+
+/* ── DARK BG CANVAS (hidden in light mode) ── */
+#cvs {
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  transition:opacity .4s ease;
+}
+[data-theme="light"] #cvs { opacity:0; }
+
+/* ── LIGHT BG PATTERN (hidden in dark mode) ── */
+.light-bg {
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  opacity:0; transition:opacity .4s ease;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(232,25,44,.06), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(59,130,246,.05), transparent 55%),
+    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(124,77,255,.03), transparent 60%);
+}
+[data-theme="light"] .light-bg { opacity:1; }
+
+/* Grain (dark only) */
+.grain {
+  position:fixed; inset:-50%; z-index:1; pointer-events:none;
+  width:200%; height:200%; opacity:.018;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain .45s steps(2) infinite;
+  transition:opacity .4s ease;
+}
+[data-theme="light"] .grain { opacity:0; }
+@keyframes grain { 0%{transform:translate(0,0)} 50%{transform:translate(1%,-1%)} 100%{transform:translate(0,0)} }
+
+/* ═══════════════════════════════════════════
+   GLASS CARD
+═══════════════════════════════════════════ */
+.card {
+  position:relative; z-index:10;
+  width:min(460px, calc(100vw - 36px));
+  padding:42px 40px 36px;
+  border-radius:22px;
+  background:var(--card-bg);
+  backdrop-filter:saturate(180%) blur(28px);
+  -webkit-backdrop-filter:saturate(180%) blur(28px);
+  border:1px solid var(--card-border);
+  box-shadow:var(--shadow);
+  transition:background .3s ease, border-color .3s ease, box-shadow .3s ease;
+  overflow:hidden;
+}
+/* top specular line */
+.card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, transparent 0%, var(--card-shine) 35%, rgba(255,255,255,.42) 50%, var(--card-shine) 65%, transparent 100%);
+  pointer-events:none;
+}
+[data-theme="light"] .card::before { background:linear-gradient(90deg,transparent,rgba(255,255,255,.8) 50%,transparent); }
+
+/* ═══════════════════════════════════════════
+   THEME TOGGLE (top-right of card)
+═══════════════════════════════════════════ */
+.theme-pill {
+  position:absolute; top:16px; right:16px;
+  display:flex; align-items:center; gap:7px;
+  padding:6px 12px; border-radius:20px;
+  background:var(--toggle-bg); border:1px solid var(--toggle-border);
+  cursor:pointer; user-select:none; z-index:20;
+  font-family:var(--fd); font-size:.62rem; font-weight:700;
+  color:var(--toggle-color); transition:all .2s;
+}
+.theme-pill:hover { border-color:var(--red); color:var(--red); }
+.tp-track {
+  width:28px; height:16px; border-radius:8px;
+  background:var(--muted2); position:relative; flex-shrink:0;
+  transition:background .3s;
+}
+[data-theme="dark"]  .tp-track { background:var(--red); }
+.tp-thumb {
+  position:absolute; top:2px; left:2px; width:12px; height:12px;
+  border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25);
+  display:flex; align-items:center; justify-content:center; font-size:7px;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+[data-theme="dark"]  .tp-thumb { transform:translateX(12px); }
+.tp-label { font-size:.62rem; font-weight:700; }
+
+/* ═══════════════════════════════════════════
+   BRAND ROW
+═══════════════════════════════════════════ */
+.brand { display:flex; align-items:center; gap:11px; margin-bottom:32px; margin-top:8px; }
+.brand-ico {
+  width:34px; height:34px; border-radius:8px; flex-shrink:0;
+  background:linear-gradient(135deg,var(--red),var(--red2));
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 14px rgba(232,25,44,.35);
+}
+.brand-ico svg { width:16px; height:16px; }
+.brand-name { font-family:var(--fd); font-size:1rem; font-weight:900; color:var(--text); letter-spacing:1.5px; }
+.brand-pill-small {
+  margin-left:auto; display:flex; align-items:center; gap:5px;
+  font-size:.56rem; font-weight:600; letter-spacing:1.8px; text-transform:uppercase; color:var(--muted);
+}
+.live-dot { width:5px; height:5px; border-radius:50%; background:var(--green); animation:lpulse 1.4s infinite; }
+@keyframes lpulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,166,81,.45);} 60%{box-shadow:0 0 0 5px rgba(0,166,81,0);} }
+
+/* ═══════════════════════════════════════════
+   HEADLINE
+═══════════════════════════════════════════ */
+.hl { font-family:var(--fd); font-size:clamp(2.6rem,7.5vw,4.2rem); line-height:.92; letter-spacing:1.5px; color:var(--text); margin-bottom:10px; }
+.hl-fire { display:block; background:linear-gradient(90deg,var(--red) 0%,#ff6535 55%,#ffb020 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.sub { font-size:.76rem; color:var(--muted); line-height:1.55; margin-bottom:26px; }
+.sub strong { color:var(--text2); font-weight:600; }
+
+/* ═══════════════════════════════════════════
+   FLASH MESSAGE
+═══════════════════════════════════════════ */
+.flash { margin-bottom:18px; padding:10px 14px; background:var(--flash-bg); border-left:2px solid var(--flash-border); font-size:.72rem; color:var(--flash-color); border-radius:0 7px 7px 0; }
+
+/* ═══════════════════════════════════════════
+   OTP SLOTS
+═══════════════════════════════════════════ */
+.slots { display:flex; align-items:flex-end; gap:7px; margin-bottom:10px; }
+.slot-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.sep { width:7px; height:1px; background:var(--sep-color); margin-bottom:18px; flex-shrink:0; }
+
+.slot {
+  width:100%; aspect-ratio:.72; border-radius:11px;
+  background:var(--slot-bg); border:1px solid var(--slot-border);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  position:relative; overflow:hidden; cursor:text;
+  transition:border-color .2s, background .2s, box-shadow .2s;
+}
+[data-theme="dark"] .slot::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.1) 50%,transparent);
+}
+
+.slot-bar {
+  position:absolute; bottom:0; left:0; right:0; height:2px;
+  background:transparent; transition:background .2s, box-shadow .2s;
+}
+.slot-n {
+  font-family:var(--fd); font-size:1.9rem; font-weight:900; line-height:1;
+  color:var(--slot-digit-empty);
+  position:relative; z-index:2; user-select:none;
+  transition:color .2s, transform .25s cubic-bezier(.34,1.56,.64,1);
+}
+.slot-lbl { font-size:.48rem; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--slot-lbl); transition:color .2s; }
+.slot-cursor { position:absolute; bottom:9px; left:50%; transform:translateX(-50%); width:10px; height:2px; background:var(--red); opacity:0; }
+.slot.focused.empty .slot-cursor { animation:blink .7s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* FOCUSED */
+.slot.focused { border-color:rgba(232,25,44,.45); background:rgba(232,25,44,.04); box-shadow:0 0 0 3px rgba(232,25,44,.1); }
+.slot.focused .slot-bar { background:linear-gradient(90deg,transparent,var(--red),transparent); box-shadow:0 0 6px 1px rgba(232,25,44,.3); }
+
+/* FILLED */
+.slot.filled { border-color:var(--slot-filled-border); background:var(--slot-filled-bg); }
+[data-theme="dark"]  .slot.filled .slot-bar { background:linear-gradient(90deg,transparent,#c8a96e,transparent); box-shadow:0 0 6px 1px rgba(200,169,110,.2); }
+[data-theme="light"] .slot.filled .slot-bar { background:linear-gradient(90deg,transparent,var(--red),transparent); }
+.slot.filled .slot-n { color:var(--slot-digit-filled) !important; transform:scale(1.06); }
+[data-theme="light"] .slot.filled .slot-lbl { color:rgba(232,25,44,.4); }
+
+/* Mobile ghost input */
+.ghost { position:absolute; opacity:0; width:1px; height:1px; pointer-events:none; left:-9999px; }
+
+/* ═══════════════════════════════════════════
+   PROGRESS
+═══════════════════════════════════════════ */
+.prg { height:2px; background:var(--progress-track); border-radius:2px; overflow:hidden; margin-bottom:5px; }
+.prg-fill { height:100%; width:0; border-radius:2px; background:linear-gradient(90deg,var(--red),#ff6535,#ffb020); transition:width .35s ease; }
+.prg-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+.prg-lbl { font-size:.56rem; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+.prg-ct { font-size:.6rem; color:var(--muted); }
+.prg-ct em { font-style:normal; color:var(--red); font-weight:700; }
+
+/* ═══════════════════════════════════════════
+   SUBMIT BUTTON
+═══════════════════════════════════════════ */
+.go-btn {
+  width:100%; padding:14px 22px; border-radius:10px; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  font-family:var(--fd); font-size:.86rem; font-weight:700;
+  letter-spacing:2.5px; text-transform:uppercase;
+  transition:all .25s; margin-bottom:22px;
+}
+.go-btn:not(:disabled) {
+  background:linear-gradient(135deg,var(--red),var(--red2));
+  color:#fff; box-shadow:0 6px 28px rgba(232,25,44,.4);
+}
+.go-btn:not(:disabled):hover { transform:translateY(-2px); box-shadow:0 10px 36px rgba(232,25,44,.52); }
+.go-btn:not(:disabled):active { transform:translateY(0); }
+.go-btn:disabled { background:var(--btn-disabled-bg); color:var(--btn-disabled-color); cursor:not-allowed; box-shadow:none; }
+.go-btn svg { width:14px; height:14px; }
+
+/* ═══════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════ */
+.foot { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.timer { display:flex; align-items:center; gap:6px; font-size:.6rem; font-weight:600; letter-spacing:1.8px; text-transform:uppercase; color:var(--muted); }
+.timer svg { color:var(--muted); }
+.timer-n { font-family:var(--fd); font-size:.95rem; color:var(--muted); min-width:30px; transition:color .3s; }
+[data-theme="dark"] .timer-n { color:rgba(200,169,110,.6); }
+.timer-n.hot { color:var(--red) !important; animation:hotblink .4s alternate infinite; }
+@keyframes hotblink { from{opacity:1} to{opacity:.2} }
+.resend-btn {
+  background:transparent; border:none; cursor:pointer;
+  font-size:.6rem; font-weight:600; letter-spacing:1.8px; text-transform:uppercase;
+  color:var(--muted2); transition:color .2s; display:flex; align-items:center; gap:5px;
+}
+.resend-btn:not(:disabled):hover { color:var(--red); }
+.resend-btn:disabled { cursor:not-allowed; opacity:.4; }
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media(max-width:420px) {
+  .card { padding:28px 18px 24px; }
+  .hl { font-size:2.4rem; }
+  .slot-n { font-size:1.55rem; }
+  .slots { gap:5px; }
+  .theme-pill .tp-label { display:none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="cvs"></canvas>
+<div class="light-bg"></div>
+<div class="grain"></div>
+
+<div class="card">
+
+  <!-- ── THEME TOGGLE ── -->
+  <div class="theme-pill" onclick="toggleOTPTheme()" title="Switch theme">
+    <div class="tp-track"><div class="tp-thumb" id="tpThumb">🌙</div></div>
+    <span class="tp-label" id="tpLabel">Night</span>
+  </div>
+
+  <!-- Brand -->
+  <div class="brand">
+    <div class="brand-ico">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/>
+        <circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+      </svg>
+    </div>
+    <div class="brand-name">eGarage</div>
+    <div class="brand-pill-small"><span class="live-dot"></span>Secure&thinsp;·&thinsp;Live</div>
+  </div>
+
+  <!-- Headline -->
+  <h1 class="hl">Ignition<br><span class="hl-fire">Access.</span></h1>
+  <p class="sub">
+    6-digit code sent to
+    {% if email %}<strong>{{ email }}</strong>{% else %}<strong>your registered contact</strong>{% endif %}.
+    Expires in&nbsp;5&nbsp;min.
+  </p>
+
+  <!-- Django flash messages -->
+  {% if messages %}
+  <div class="flash">{% for m in messages %}{{ m }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>
+  {% endif %}
+
+  <!-- OTP Form -->
+  <form method="POST" id="otpForm">
+    {% csrf_token %}
+    <input type="hidden" name="otp" id="otpVal">
+    <input class="ghost" id="ghost" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="\d{6}" enterkeyhint="done">
+
+    <!-- Visual slots -->
+    <div class="slots" id="slotsEl">
+      {% for i in "123456" %}
+      <div class="slot-wrap">
+        <div class="slot empty" id="sl{{ forloop.counter0 }}">
+          <div class="slot-n" id="sn{{ forloop.counter0 }}"></div>
+          <div class="slot-bar"></div>
+          <div class="slot-cursor"></div>
+        </div>
+        <div class="slot-lbl">0{{ forloop.counter }}</div>
+      </div>
+      {% if forloop.counter == 3 %}<div class="sep"></div>{% endif %}
+      {% endfor %}
+    </div>
+
+    <!-- Progress -->
+    <div class="prg"><div class="prg-fill" id="prgFill"></div></div>
+    <div class="prg-row">
+      <div class="prg-lbl">Code progress</div>
+      <div class="prg-ct" id="prgCt"><em>0</em>&thinsp;/&thinsp;6 digits</div>
+    </div>
+
+    <!-- Submit -->
+    <button class="go-btn" type="submit" id="subBtn" disabled>
+      Verify &amp; Continue
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
+
+    <!-- Footer -->
+    <div class="foot">
+      <div class="timer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" width="11" height="11"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Expires in&nbsp;<span class="timer-n" id="timerEl">5:00</span>
+      </div>
+      <form method="POST" action="{% url 'resend_otp' %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="resend-btn" id="resendBtn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="10" height="10"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          Resend OTP
+        </button>
+      </form>
+    </div>
+  </form>
+
+</div><!-- /card -->
+
+<!-- ═══════════════════════════════════════
+   THEME SYSTEM
+═══════════════════════════════════════ -->
+<script>
+(function(){
+  var KEY = 'eg_theme', DARK = 'dark', LIGHT = 'light';
+
+  function getTheme(){ return localStorage.getItem(KEY) || (window.matchMedia('(prefers-color-scheme:dark)').matches ? DARK : LIGHT); }
+
+  function applyTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem(KEY, t);
+    var thumb = document.getElementById('tpThumb');
+    var label = document.getElementById('tpLabel');
+    if(thumb) thumb.textContent = t===DARK ? '🌙' : '☀️';
+    if(label) label.textContent = t===DARK ? 'Night' : 'Day';
+  }
+
+  window.toggleOTPTheme = function(){
+    var cur = document.documentElement.getAttribute('data-theme') || DARK;
+    applyTheme(cur===DARK ? LIGHT : DARK);
+  };
+
+  /* Sync on load */
+  applyTheme(getTheme());
+})();
+</script>
+
+<!-- ═══════════════════════════════════════
+   STAR CANVAS (dark mode only — CSS hides it in light)
+═══════════════════════════════════════ -->
+<script>
+(function(){
+  var cv = document.getElementById('cvs');
+  var cx = cv.getContext('2d');
+  var W, H, T = 0;
+
+  function resize(){ W = cv.width = window.innerWidth; H = cv.height = window.innerHeight; drawNebula(); }
+  window.addEventListener('resize', resize);
+
+  var nb = document.createElement('canvas'), nc = nb.getContext('2d');
+  function drawNebula(){
+    nb.width=W; nb.height=H;
+    [{x:.1,y:.25,r:.5,c:'rgba(232,25,44,.042)'},{x:.88,y:.7,r:.42,c:'rgba(59,130,246,.03)'},{x:.5,y:.05,r:.35,c:'rgba(100,20,50,.025)'},{x:.15,y:.8,r:.28,c:'rgba(80,40,200,.03)'}]
+    .forEach(function(b){
+      var g=nc.createRadialGradient(b.x*W,b.y*H,0,b.x*W,b.y*H,b.r*Math.max(W,H));
+      g.addColorStop(0,b.c); g.addColorStop(1,'transparent');
+      nc.fillStyle=g; nc.fillRect(0,0,W,H);
+    });
+  }
+
+  var STARS=[];
+  for(var i=0;i<200;i++) STARS.push({x:Math.random()*9e4,y:Math.random()*9e4,r:.1+Math.random()*1.3,a:.06+Math.random()*.5,sp:.25+Math.random()*1.8,ph:Math.random()*Math.PI*2,c:Math.random()<.08?'#a78bfa':'#fff'});
+
+  var SPARKS=[];
+  setInterval(function(){
+    for(var i=0;i<9;i++){
+      var a=Math.random()*Math.PI*2,s=.5+Math.random()*2;
+      SPARKS.push({x:Math.random()*W,y:Math.random()*H,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,sz:.6+Math.random()*1.5});
+    }
+  }, 2800);
+
+  (function loop(){
+    requestAnimationFrame(loop); T+=.013;
+    cx.clearRect(0,0,W,H); cx.drawImage(nb,0,0);
+    STARS.forEach(function(s){
+      var sx=(s.x/9e4+T*.0004)*W%W, sy=(s.y/9e4+T*.00016)*H%H;
+      if(sx<0)sx+=W; if(sy<0)sy+=H;
+      var a=s.a*(.5+.5*Math.sin(T*s.sp+s.ph));
+      cx.save(); cx.globalAlpha=a; cx.fillStyle=s.c; cx.beginPath(); cx.arc(sx,sy,s.r,0,Math.PI*2); cx.fill(); cx.restore();
+    });
+    for(var i=SPARKS.length-1;i>=0;i--){
+      var sp=SPARKS[i]; sp.x+=sp.vx; sp.y+=sp.vy; sp.vy+=.04; sp.life-=.018;
+      if(sp.life<=0){SPARKS.splice(i,1);continue;}
+      cx.save(); cx.globalAlpha=sp.life*.6; cx.fillStyle='rgba(200,169,110,'+sp.life+')';
+      cx.beginPath(); cx.arc(sp.x,sp.y,sp.sz*sp.life,0,Math.PI*2); cx.fill(); cx.restore();
+    }
+  })();
+  resize();
+})();
+</script>
+
+<!-- ═══════════════════════════════════════
+   OTP LOGIC
+═══════════════════════════════════════ -->
+<script>
+(function(){
+  'use strict';
+  var digits = ['','','','','',''];
+  var focus  = 0;
+  var ghost  = document.getElementById('ghost');
+
+  function slot(i){ return document.getElementById('sl'+i); }
+  function num(i) { return document.getElementById('sn'+i); }
+
+  function render(){
+    var filled = digits.filter(function(d){return d!=='';}).length;
+
+    document.getElementById('prgFill').style.width = (filled/6*100)+'%';
+    document.getElementById('prgCt').innerHTML = '<em>'+filled+'</em>&thinsp;/&thinsp;6 digits';
+
+    for(var i=0;i<6;i++){
+      var sl=slot(i);
+      sl.classList.remove('focused','filled','empty');
+      if(digits[i]){ sl.classList.add('filled'); num(i).textContent=digits[i]; }
+      else          { sl.classList.add('empty');  num(i).textContent=''; }
+      if(i===focus) sl.classList.add('focused');
+    }
+    var otp = digits.join('');
+    document.getElementById('otpVal').value = otp;
+    document.getElementById('subBtn').disabled = otp.length < 6;
+  }
+
+  function moveFocus(i){ focus=Math.max(0,Math.min(5,i)); render(); ghost.focus(); }
+
+  /* Click slots */
+  for(var di=0;di<6;di++){
+    (function(idx){ slot(idx).addEventListener('click', function(){ moveFocus(idx); }); })(di);
+  }
+  document.getElementById('slotsEl').addEventListener('click', function(){ ghost.focus(); });
+
+  /* Keyboard */
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Tab') return;
+    if(e.key==='Backspace'){ e.preventDefault(); if(digits[focus])digits[focus]=''; else if(focus>0){focus--;digits[focus]='';}render();return; }
+    if(e.key==='ArrowLeft') { e.preventDefault(); moveFocus(focus-1); return; }
+    if(e.key==='ArrowRight'){ e.preventDefault(); moveFocus(focus+1); return; }
+    if(/^\d$/.test(e.key)){
+      e.preventDefault(); digits[focus]=e.key; render();
+      if(focus<5)focus++; render();
+      if(digits.join('').length===6) setTimeout(function(){ document.getElementById('otpForm').submit(); },360);
+    }
+  });
+
+  /* Paste */
+  document.addEventListener('paste', function(e){
+    var txt=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+    if(!txt) return; e.preventDefault();
+    for(var i=0;i<txt.length;i++) digits[i]=txt[i];
+    focus=Math.min(txt.length,5); render();
+    if(txt.length===6) setTimeout(function(){ document.getElementById('otpForm').submit(); },360);
+  });
+
+  /* Mobile ghost input */
+  ghost.addEventListener('input', function(){
+    var val=this.value.replace(/\D/g,'').slice(0,6); this.value=val;
+    for(var i=0;i<6;i++) digits[i]=val[i]||'';
+    focus=Math.min(val.length,5); render();
+    if(val.length===6) setTimeout(function(){ document.getElementById('otpForm').submit(); },360);
+  });
+
+  /* Auto-focus */
+  setTimeout(function(){ moveFocus(0); ghost.focus(); }, 150);
+
+  /* Countdown */
+  var left=300;
+  function tick(){
+    var m=Math.floor(left/60), s=left%60;
+    var el=document.getElementById('timerEl');
+    el.textContent=m+':'+(s<10?'0':'')+s;
+    el.classList.toggle('hot', left<=30);
+    if(left<=0){ document.getElementById('resendBtn').disabled=false; document.getElementById('subBtn').disabled=true; return; }
+    left--; setTimeout(tick,1000);
+  }
+  tick();
+  setTimeout(function(){ document.getElementById('resendBtn').disabled=false; }, 60000);
+})();
+</script>
+
+</body>
+</html>

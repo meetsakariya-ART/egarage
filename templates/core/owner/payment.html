@@ -1,0 +1,429 @@
+{% extends 'core/base.html' %}
+{% block title %}Pay ₹{{ booking.final_price|floatformat:0 }} — {{ booking.reference }} — eGarage{% endblock %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#e8192c;--green:#00c853;--blue:#2979ff;--yellow:#ffab00;
+  --fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;
+  --bg:#07070f;--card:rgba(255,255,255,.06);--bd:rgba(255,255,255,.1);
+  --t:#f0f4ff;--m:rgba(255,255,255,.45);
+}
+html,body{background:var(--bg);color:var(--t);font-family:var(--fb);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(0,200,83,.07),transparent 55%),radial-gradient(ellipse at 80% 100%,rgba(41,121,255,.05),transparent 50%);pointer-events:none;}
+
+/* NAV */
+.topbar{width:100%;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--bd);background:rgba(7,7,15,.8);backdrop-filter:blur(20px);position:sticky;top:0;z-index:10;}
+.logo{font-family:var(--fd);font-size:.95rem;font-weight:900;color:var(--green);text-decoration:none;letter-spacing:1px;}
+.logo span{color:rgba(255,255,255,.2);}
+
+.wrap{width:100%;max-width:440px;padding:28px 20px 60px;}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--bd);border-radius:20px;overflow:hidden;}
+
+/* STEPS */
+.psteps{display:flex;border-bottom:1px solid var(--bd);}
+.pstep{flex:1;text-align:center;padding:10px 6px;font-family:var(--fd);font-size:.58rem;font-weight:800;color:var(--m);letter-spacing:.5px;position:relative;}
+.pstep.on{color:#fff;}
+.pstep.done{color:var(--green);}
+.pstep::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:transparent;}
+.pstep.on::after{background:var(--green);}
+.pstep.done::after{background:var(--green);}
+
+/* AMOUNT */
+.amount-section{padding:24px;text-align:center;border-bottom:1px solid var(--bd);}
+.amt-label{font-size:.62rem;color:var(--m);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;}
+.amt-value{font-family:var(--fd);font-size:2.4rem;font-weight:900;color:#fff;line-height:1;}
+.amt-svc{font-size:.7rem;color:var(--m);margin-top:6px;}
+.amt-ref{font-size:.62rem;color:var(--blue);margin-top:3px;font-family:var(--fd);}
+
+/* BOOKING SUMMARY */
+.summary{padding:14px 20px;border-bottom:1px solid var(--bd);}
+.sum-row{display:flex;justify-content:space-between;padding:5px 0;font-size:.72rem;border-bottom:1px solid rgba(255,255,255,.04);}
+.sum-row:last-child{border-bottom:none;}
+.sum-k{color:var(--m);}
+.sum-v{font-weight:600;color:#fff;text-align:right;max-width:200px;}
+
+/* PAYMENT METHODS */
+.method-section{padding:16px 20px;border-bottom:1px solid var(--bd);}
+.method-label{font-size:.58rem;letter-spacing:.9px;text-transform:uppercase;color:var(--m);margin-bottom:10px;}
+.methods{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.method{padding:12px 8px;border:1.5px solid var(--bd);border-radius:11px;text-align:center;cursor:pointer;transition:all .18s;background:transparent;}
+.method:hover{border-color:rgba(0,200,83,.4);background:rgba(0,200,83,.04);}
+.method.on{border-color:var(--green);background:rgba(0,200,83,.08);}
+.mico{font-size:1.4rem;margin-bottom:5px;}
+.mname{font-size:.62rem;font-weight:700;color:var(--m);font-family:var(--fd);}
+.method.on .mname{color:var(--green);}
+
+/* UPI INPUT */
+.upi-input{padding:0 20px 14px;border-bottom:1px solid var(--bd);}
+.upi-field{display:flex;gap:8px;margin-top:10px;}
+.upi-field input{flex:1;padding:10px 13px;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:9px;font-family:var(--fb);font-size:.82rem;color:#fff;outline:none;}
+.upi-field input:focus{border-color:rgba(0,200,83,.5);}
+.upi-field input::placeholder{color:rgba(255,255,255,.2);}
+.upi-verify{padding:10px 16px;background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.25);border-radius:9px;color:var(--green);font-family:var(--fd);font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;}
+
+/* CARD FORM */
+.card-form{padding:0 20px 14px;border-bottom:1px solid var(--bd);}
+.cf-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.cf-ff{display:flex;flex-direction:column;gap:5px;}
+.cf-ff.full{grid-column:1/-1;}
+.cf-ff label{font-size:.57rem;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.3);}
+.cf-ff input{padding:10px 12px;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:9px;font-family:var(--fb);font-size:.82rem;color:#fff;outline:none;}
+.cf-ff input:focus{border-color:rgba(0,200,83,.5);}
+.cf-ff input::placeholder{color:rgba(255,255,255,.18);}
+
+/* CASH NOTE */
+.cash-note{padding:14px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;gap:10px;background:rgba(255,171,0,.05);}
+.cash-note svg{width:16px;height:16px;color:var(--yellow);flex-shrink:0;margin-top:1px;}
+.cash-note p{font-size:.72rem;color:rgba(255,255,255,.55);line-height:1.6;}
+
+/* PAY BUTTON */
+.pay-section{padding:18px 20px;}
+.pay-btn{width:100%;padding:16px;background:linear-gradient(135deg,#00a844,var(--green));color:#fff;border:none;border-radius:12px;font-family:var(--fd);font-size:.9rem;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(0,200,83,.25);display:flex;align-items:center;justify-content:center;gap:8px;}
+.pay-btn:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.pay-btn svg{width:16px;height:16px;}
+.secure-badges{display:flex;justify-content:center;gap:16px;margin-top:12px;}
+.sbadge{display:flex;align-items:center;gap:4px;font-size:.6rem;color:rgba(255,255,255,.25);}
+.sbadge svg{width:10px;height:10px;color:var(--green);}
+
+/* ═══════════════ PROCESSING OVERLAY ═══════════════ */
+.overlay{position:fixed;inset:0;background:rgba(7,7,15,.96);z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.overlay.on{display:flex;}
+
+/* STEP 1: PROCESSING */
+.proc-step{text-align:center;display:none;}
+.proc-step.on{display:block;}
+
+.spinner{width:60px;height:60px;border:3px solid rgba(0,200,83,.15);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.ring-wrap{width:90px;height:90px;position:relative;margin:0 auto 20px;}
+.ring-svg{transform:rotate(-90deg);}
+.ring-track{fill:none;stroke:rgba(0,200,83,.12);stroke-width:7;}
+.ring-fill{fill:none;stroke:var(--green);stroke-width:7;stroke-linecap:round;stroke-dasharray:251;stroke-dashoffset:251;transition:stroke-dashoffset .9s linear;}
+.ring-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:1.6rem;font-weight:900;color:var(--green);}
+
+.proc-title{font-family:var(--fd);font-size:1.1rem;font-weight:900;color:#fff;margin-bottom:6px;}
+.proc-sub{font-size:.76rem;color:var(--m);margin-bottom:4px;}
+.proc-steps{display:flex;flex-direction:column;gap:6px;margin:18px auto;max-width:280px;text-align:left;}
+.ps-item{display:flex;align-items:center;gap:10px;font-size:.72rem;color:var(--m);transition:color .3s;}
+.ps-item.done{color:var(--green);}
+.ps-item.active{color:#fff;}
+.ps-ico{width:20px;height:20px;border-radius:50%;border:1.5px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:.6rem;flex-shrink:0;transition:all .3s;}
+.ps-item.done .ps-ico{background:var(--green);border-color:var(--green);color:#000;}
+.ps-item.active .ps-ico{border-color:var(--green);color:var(--green);}
+
+/* STEP 2: CREDIT ANIMATION */
+.credit-step{text-align:center;display:none;}
+.credit-step.on{display:block;}
+
+.credit-circle{width:80px;height:80px;border-radius:50%;background:rgba(0,200,83,.12);border:2px solid rgba(0,200,83,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;animation:pop .4s ease;}
+@keyframes pop{from{transform:scale(0);}60%{transform:scale(1.15);}to{transform:scale(1);}}
+.credit-circle svg{width:36px;height:36px;color:var(--green);}
+
+.credit-amount{font-family:var(--fd);font-size:2rem;font-weight:900;color:var(--green);margin-bottom:4px;}
+.credit-label{font-size:.8rem;color:var(--m);margin-bottom:20px;}
+
+.credit-flow{background:rgba(255,255,255,.04);border:1px solid var(--bd);border-radius:14px;padding:16px 20px;max-width:320px;margin:0 auto 20px;text-align:left;}
+.cf-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.cf-row:last-child{border-bottom:none;}
+.cf-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.cf-dot.g{background:var(--green);}
+.cf-dot.b{background:var(--blue);}
+.cf-dot.y{background:var(--yellow);}
+.cf-text{font-size:.72rem;color:var(--m);}
+.cf-val{margin-left:auto;font-family:var(--fd);font-size:.76rem;font-weight:800;color:#fff;}
+
+.redirect-bar{font-size:.7rem;color:var(--m);display:flex;align-items:center;gap:6px;justify-content:center;}
+.redirect-bar span{color:var(--green);}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <a href="{% url 'home' %}" class="logo">e<span>GARAGE</span></a>
+</div>
+
+<div class="wrap">
+  <div class="card" id="payCard">
+
+    <!-- STEPS -->
+    <div class="psteps">
+      <div class="pstep done">Booking</div>
+      <div class="pstep on">Payment</div>
+      <div class="pstep">Confirmed</div>
+    </div>
+
+    <!-- AMOUNT -->
+    <div class="amount-section">
+      <div class="amt-label">Advance Confirmation Fee</div>
+      <div class="amt-value">₹{{ booking.advance_amount|floatformat:0 }}</div>
+      <div class="amt-svc">{{ booking.service.name|default:"Car Service" }} · {{ booking.get_package_display }}</div>
+      <div class="amt-ref">{{ booking.reference }}</div>
+      <div style="margin-top:8px;padding:6px 12px;background:rgba(0,200,83,.1);border-radius:8px;font-size:.66rem;color:#4ade80;display:inline-block;">
+        ✓ Pay balance ₹{{ booking.base_price|floatformat:0 }} at garage after service
+      </div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="summary">
+      <div class="sum-row"><span class="sum-k">Garage</span><span class="sum-v">{{ booking.garage.name|default:"eGarage" }}</span></div>
+      <div class="sum-row"><span class="sum-k">Date</span><span class="sum-v">{{ booking.scheduled_date|date:"d M Y" }} · {{ booking.scheduled_slot|time:"h:i A" }}</span></div>
+      <div class="sum-row"><span class="sum-k">Customer</span><span class="sum-v">{{ booking.customer_name }}</span></div>
+      {% if booking.discount_amount and booking.discount_amount > 0 %}
+      <div class="sum-row"><span class="sum-k">Discount</span><span class="sum-v" style="color:var(--green);">−₹{{ booking.discount_amount|floatformat:0 }}</span></div>
+      {% endif %}
+    </div>
+
+    <!-- PAYMENT METHODS -->
+    <div class="method-section">
+      <div class="method-label">Choose Payment Method</div>
+      <div class="methods">
+        <div class="method on" id="m-upi" onclick="selectMethod('upi')">
+          <div class="mico">📱</div>
+          <div class="mname">UPI</div>
+        </div>
+        <div class="method" id="m-card" onclick="selectMethod('card')">
+          <div class="mico">💳</div>
+          <div class="mname">Card</div>
+        </div>
+        <div class="method" id="m-cash" onclick="selectMethod('cash')">
+          <div class="mico">💵</div>
+          <div class="mname">Cash</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPI PANEL -->
+    <div id="panel-upi" class="upi-input">
+      <div style="font-size:.62rem;color:var(--m);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px;">UPI ID or Mobile Number</div>
+      <div class="upi-field">
+        <input type="text" id="upiId" placeholder="yourname@upi / 98765 43210">
+        <button class="upi-verify" onclick="verifyUPI()">Verify →</button>
+      </div>
+      <div id="upiStatus" style="font-size:.68rem;margin-top:6px;display:none;"></div>
+    </div>
+
+    <!-- CARD PANEL -->
+    <div id="panel-card" class="card-form" style="display:none;">
+      <div class="cf-grid">
+        <div class="cf-ff full">
+          <label>Card Number</label>
+          <input type="text" placeholder="4242 4242 4242 4242" maxlength="19" oninput="fmtCard(this)">
+        </div>
+        <div class="cf-ff">
+          <label>Expiry</label>
+          <input type="text" placeholder="MM / YY" maxlength="7">
+        </div>
+        <div class="cf-ff">
+          <label>CVV</label>
+          <input type="password" placeholder="•••" maxlength="4">
+        </div>
+        <div class="cf-ff full">
+          <label>Name on Card</label>
+          <input type="text" placeholder="{{ booking.customer_name }}" value="{{ booking.customer_name }}">
+        </div>
+      </div>
+    </div>
+
+    <!-- CASH PANEL -->
+    <div id="panel-cash" class="cash-note" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <p>You've chosen to <strong style="color:#fff;">pay cash at the garage</strong>. Your booking is confirmed — bring ₹{{ booking.final_price|floatformat:0 }} on the service day. No online transaction needed.</p>
+    </div>
+
+    <!-- PAY BUTTON -->
+    <div class="pay-section">
+      <button class="pay-btn" id="payBtn" onclick="startPayment()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <span id="payBtnTxt">Pay ₹{{ booking.advance_amount|floatformat:0 }} Advance</span>
+      </button>
+      <div class="secure-badges">
+        <div class="sbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>256-bit Secure</div>
+        <div class="sbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>PCI DSS</div>
+        <div class="sbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Encrypted</div>
+      </div>
+    </div>
+
+  </div><!-- /card -->
+</div><!-- /wrap -->
+
+<!-- ════════════ PROCESSING OVERLAY ════════════ -->
+<div class="overlay" id="overlay">
+
+  <!-- Step 1: Countdown -->
+  <div class="proc-step on" id="step-proc">
+    <div class="ring-wrap">
+      <svg class="ring-svg" width="90" height="90" viewBox="0 0 90 90">
+        <circle class="ring-track" cx="45" cy="45" r="40"/>
+        <circle class="ring-fill" id="ringFill" cx="45" cy="45" r="40"/>
+      </svg>
+      <div class="ring-num" id="countNum">5</div>
+    </div>
+    <div class="proc-title">Processing Payment…</div>
+    <div class="proc-sub" id="procMsg">Initialising secure connection…</div>
+    <div class="proc-steps">
+      <div class="ps-item" id="ps1"><div class="ps-ico">1</div><span>Verifying payment details</span></div>
+      <div class="ps-item" id="ps2"><div class="ps-ico">2</div><span>Connecting to payment gateway</span></div>
+      <div class="ps-item" id="ps3"><div class="ps-ico">3</div><span>Authorising transaction</span></div>
+      <div class="ps-item" id="ps4"><div class="ps-ico">4</div><span>Crediting garage account</span></div>
+      <div class="ps-item" id="ps5"><div class="ps-ico">5</div><span>Confirming booking</span></div>
+    </div>
+  </div>
+
+  <!-- Step 2: Credit animation -->
+  <div class="proc-step" id="step-credit">
+    <div class="credit-circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="credit-amount">+₹{{ booking.final_price|floatformat:0 }}</div>
+    <div class="credit-label">Credited to {{ booking.garage.name|default:"eGarage" }}</div>
+    <div class="credit-flow">
+      <div class="cf-row">
+        <div class="cf-dot b"></div>
+        <div class="cf-text">Customer — {{ booking.customer_name }}</div>
+        <div class="cf-val" style="color:var(--red);">−₹{{ booking.final_price|floatformat:0 }}</div>
+      </div>
+      <div class="cf-row">
+        <div class="cf-dot y"></div>
+        <div class="cf-text">Platform fee (2%)</div>
+        <div class="cf-val" style="color:var(--yellow);">−₹{{ booking.final_price|floatformat:0|add:"0" }}</div>
+      </div>
+      <div class="cf-row">
+        <div class="cf-dot g"></div>
+        <div class="cf-text">{{ booking.garage.name|default:"Garage" }} Wallet</div>
+        <div class="cf-val" style="color:var(--green);">+₹{{ booking.final_price|floatformat:0 }}</div>
+      </div>
+    </div>
+    <div class="redirect-bar">Redirecting to confirmation… <span id="redirectCount">3</span>s</div>
+  </div>
+
+</div><!-- /overlay -->
+
+<!-- Hidden submit form -->
+<form method="POST" action="{% url 'dummy_payment_success' %}" id="payForm" style="display:none;">
+  {% csrf_token %}
+  <input type="hidden" name="ref" value="{{ booking.reference }}">
+  <input type="hidden" name="method" id="methodInput" value="upi">
+</form>
+
+<script>
+var currentMethod = 'upi';
+var circumference = 2 * Math.PI * 40; // 251.2
+
+var procMessages = [
+  'Connecting to payment gateway…',
+  'Verifying your details…',
+  'Authorising transaction…',
+  'Crediting garage account…',
+  'Payment confirmed! ✓'
+];
+
+var stepTimings = [0, 800, 1600, 2800, 3800]; // ms when each step becomes active
+
+function selectMethod(m) {
+  currentMethod = m;
+  document.querySelectorAll('.method').forEach(function(el){ el.classList.remove('on'); });
+  document.getElementById('m-' + m).classList.add('on');
+  document.getElementById('methodInput').value = m;
+
+  document.getElementById('panel-upi').style.display  = m === 'upi'  ? 'block' : 'none';
+  document.getElementById('panel-card').style.display = m === 'card' ? 'block' : 'none';
+  document.getElementById('panel-cash').style.display = m === 'cash' ? 'block' : 'none';
+
+  var btn = document.getElementById('payBtnTxt');
+  if (m === 'cash') {
+    btn.textContent = 'Confirm Booking — Pay at Garage';
+  } else {
+    btn.textContent = 'Pay ₹{{ booking.final_price|floatformat:0 }}';
+  }
+}
+
+function verifyUPI() {
+  var val = document.getElementById('upiId').value.trim();
+  var st  = document.getElementById('upiStatus');
+  if (!val) return;
+  st.style.display = 'block';
+  st.style.color = '#fbbf24';
+  st.textContent = '⏳ Verifying UPI ID…';
+  setTimeout(function(){
+    st.style.color = '#4ade80';
+    st.textContent = '✓ UPI ID verified — ' + val;
+  }, 1200);
+}
+
+function fmtCard(inp) {
+  var v = inp.value.replace(/\D/g,'').substring(0,16);
+  inp.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+
+function startPayment() {
+  document.getElementById('overlay').classList.add('on');
+  document.body.style.overflow = 'hidden';
+
+  var ring    = document.getElementById('ringFill');
+  var num     = document.getElementById('countNum');
+  var msgEl   = document.getElementById('procMsg');
+  var count   = 5;
+
+  ring.style.strokeDasharray  = circumference;
+  ring.style.strokeDashoffset = circumference;
+
+  // Activate process steps
+  stepTimings.forEach(function(t, i) {
+    setTimeout(function(){
+      var el = document.getElementById('ps' + (i+1));
+      if (el) {
+        if (i > 0) {
+          var prev = document.getElementById('ps' + i);
+          if (prev) { prev.classList.remove('active'); prev.classList.add('done'); prev.querySelector('.ps-ico').textContent = '✓'; }
+        }
+        el.classList.add('active');
+      }
+      if (procMessages[i]) msgEl.textContent = procMessages[i];
+    }, t);
+  });
+
+  // Ring countdown
+  var interval = setInterval(function(){
+    count--;
+    num.textContent = count;
+    var progress = (5 - count) / 5;
+    ring.style.strokeDashoffset = circumference * (1 - progress);
+
+    if (count <= 0) {
+      clearInterval(interval);
+      // Mark last step done
+      setTimeout(function(){
+        var last = document.getElementById('ps5');
+        if (last) { last.classList.remove('active'); last.classList.add('done'); last.querySelector('.ps-ico').textContent = '✓'; }
+
+        // Show credit step
+        setTimeout(function(){
+          document.getElementById('step-proc').classList.remove('on');
+          document.getElementById('step-credit').classList.add('on');
+
+          // Redirect countdown
+          var rc = 3;
+          var ri = setInterval(function(){
+            rc--;
+            document.getElementById('redirectCount').textContent = rc;
+            if (rc <= 0) {
+              clearInterval(ri);
+              document.getElementById('payForm').submit();
+            }
+          }, 1000);
+        }, 600);
+      }, 400);
+    }
+  }, 1000);
+}
+
+// Init
+selectMethod('upi');
+</script>
+{% endblock %}

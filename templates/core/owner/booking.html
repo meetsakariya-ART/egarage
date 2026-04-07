@@ -1,0 +1,1337 @@
+{% extends 'core/base.html' %}
+{% block title %}Book Service — eGarage{% endblock %}
+
+{% block extra_head %}
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#e8192c;--red2:#c0111f;--green:#00a651;--blue:#1a56db;
+  --yellow:#f59e0b;--purple:#7c3aed;
+  --fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;
+  --gray:#f5f5f5;--border:#e0e0e0;--muted:#777;
+}
+html,body{background:#f0f2f5;color:#111;font-family:var(--fb);overflow-x:hidden;}
+
+/* ── NAV ── */
+.topbar{background:var(--red);color:#fff;text-align:center;padding:7px;font-size:.74rem;font-weight:600;}
+nav{position:sticky;top:0;z-index:200;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.navi{display:flex;align-items:center;padding:0 24px;height:60px;max-width:1280px;margin:0 auto;gap:14px;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-ico{width:32px;height:32px;border-radius:9px;background:var(--red);display:flex;align-items:center;justify-content:center;}
+.logo-ico svg{width:15px;height:15px;}
+.logo-name{font-family:var(--fd);font-size:1.15rem;font-weight:900;color:var(--red);}
+.logo-name span{color:#111;}
+.bc{display:flex;align-items:center;gap:5px;font-size:.74rem;color:var(--muted);}
+.bc a{color:var(--muted);text-decoration:none;}
+.bc a:hover{color:var(--red);}
+.nav-r{margin-left:auto;display:flex;gap:8px;}
+.nb{padding:7px 15px;border-radius:8px;font-family:var(--fd);font-size:.75rem;font-weight:700;text-decoration:none;transition:all .15s;}
+.nb.ghost{border:1.5px solid var(--border);color:#333;background:#fff;}
+.nb.ghost:hover{border-color:var(--red);color:var(--red);}
+.nb.solid{background:var(--red);color:#fff;border:none;}
+.nb.solid:hover{background:var(--red2);}
+
+/* ── PROGRESS ── */
+.pbar{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;}
+.pbari{max-width:900px;margin:0 auto;display:flex;align-items:center;padding:14px 0;}
+.pstep{display:flex;align-items:center;gap:8px;flex:1;}
+.pstep:last-child{flex:0;}
+.pcirc{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.78rem;font-weight:800;flex-shrink:0;transition:all .3s;}
+.pcirc.done{background:var(--green);color:#fff;}
+.pcirc.act{background:var(--red);color:#fff;box-shadow:0 0 0 4px rgba(232,25,44,.15);}
+.pcirc.pend{background:#e0e0e0;color:#aaa;}
+.plbl{font-size:.72rem;font-weight:600;transition:color .3s;white-space:nowrap;}
+.plbl.act{color:var(--red);font-weight:700;}
+.plbl.done{color:var(--green);}
+.plbl.pend{color:#aaa;}
+.pline{flex:1;height:2px;background:#e0e0e0;margin:0 10px;border-radius:2px;overflow:hidden;}
+.plinef{height:100%;background:var(--green);width:0%;transition:width .4s;}
+.plinef.on{width:100%;}
+
+/* ── LAYOUT ── */
+.page{max-width:1120px;margin:28px auto;padding:0 20px;display:grid;grid-template-columns:1fr 344px;gap:20px;align-items:start;}
+.panel{display:none;}
+.panel.on{display:block;}
+
+/* ── CARD ── */
+.card{background:#fff;border-radius:14px;border:1.5px solid var(--border);margin-bottom:16px;overflow:hidden;}
+.cardh{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.cardnum{width:26px;height:26px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.72rem;font-weight:800;flex-shrink:0;}
+.cardh h3{font-family:var(--fd);font-size:.92rem;font-weight:800;color:#111;}
+.cardh p{font-size:.68rem;color:var(--muted);margin-top:1px;}
+.cardb{padding:20px;}
+
+/* ── VEHICLE TYPE TABS ── */
+.vtabs{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.vtab{padding:16px 14px;border:2px solid var(--border);border-radius:13px;cursor:pointer;transition:all .22s;background:#fff;display:flex;align-items:center;gap:13px;}
+.vtab:hover{border-color:rgba(232,25,44,.3);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.06);}
+.vtab.on{border-color:var(--red);background:rgba(232,25,44,.035);box-shadow:0 0 0 3px rgba(232,25,44,.1);}
+.vtab-ico{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.vtab-ico svg{width:24px;height:24px;}
+.vtab-info h4{font-family:var(--fd);font-size:.88rem;font-weight:800;color:#111;}
+.vtab.on .vtab-info h4{color:var(--red);}
+.vtab-info p{font-size:.68rem;color:var(--muted);margin-top:2px;}
+.vtck{margin-left:auto;width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.vtab.on .vtck{background:var(--red);border-color:var(--red);}
+.vtck svg{width:11px;height:11px;color:#fff;display:none;}
+.vtab.on .vtck svg{display:block;}
+
+/* ── BRAND SECTION ── */
+.bsect{display:none;margin-top:22px;}
+.bsect.on{display:block;}
+.blabel{font-size:.63rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#aaa;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.blabel::after{content:'';flex:1;height:1px;background:#eee;}
+
+/* ── BRAND GRID ── */
+.bgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.bcard{
+  padding:14px 8px 12px;
+  border:1.5px solid var(--border);
+  border-radius:13px;
+  text-align:center;
+  cursor:pointer;
+  transition:all .22s;
+  background:#fff;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  position:relative;
+  user-select:none;
+}
+.bcard:hover{border-color:rgba(232,25,44,.35);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.09);}
+.bcard.on{border-color:var(--red);background:rgba(232,25,44,.04);box-shadow:0 0 0 3px rgba(232,25,44,.1);}
+.blogo-wrap{
+  width:58px;height:58px;border-radius:13px;
+  background:#fafafa;border:1px solid #efefef;
+  box-shadow:0 2px 8px rgba(0,0,0,.07);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;flex-shrink:0;transition:box-shadow .2s;
+}
+.bcard:hover .blogo-wrap,.bcard.on .blogo-wrap{box-shadow:0 4px 14px rgba(0,0,0,.12);}
+.blogo-wrap img{width:38px;height:38px;object-fit:contain;transition:transform .22s;display:block;}
+.bcard:hover .blogo-wrap img,.bcard.on .blogo-wrap img{transform:scale(1.1);}
+.bfb{
+  width:38px;height:38px;border-radius:8px;
+  display:none;align-items:center;justify-content:center;
+  font-family:var(--fd);font-size:.82rem;font-weight:900;
+  flex-shrink:0;
+}
+.bname{font-size:.68rem;font-weight:700;color:#444;line-height:1.25;max-width:72px;}
+.bcard.on .bname{color:var(--red);}
+.btick{display:none;position:absolute;top:7px;right:7px;width:18px;height:18px;border-radius:50%;background:var(--red);align-items:center;justify-content:center;}
+.btick svg{width:9px;height:9px;color:#fff;}
+.bcard.on .btick{display:flex;}
+
+/* ── MODEL ── */
+.mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.mbtn{padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;cursor:pointer;transition:all .15s;background:#fff;font-size:.76rem;font-weight:600;color:#333;text-align:left;}
+.mbtn:hover{border-color:var(--red);}
+.mbtn.on{border-color:var(--red);background:rgba(232,25,44,.05);color:var(--red);}
+
+/* ── FUEL ── */
+.fgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.ftab{padding:13px 8px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s;background:#fff;font-size:.74rem;font-weight:600;color:#444;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.ftab .fi{font-size:1.3rem;}
+.ftab:hover{border-color:var(--red);}
+.ftab.on{border-color:var(--red);background:rgba(232,25,44,.05);color:var(--red);}
+
+/* ── SERVICES ── */
+.srow{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1.5px solid var(--border);border-radius:12px;cursor:pointer;transition:all .2s;background:#fff;margin-bottom:10px;}
+.srow:last-child{margin-bottom:0;}
+.srow:hover{border-color:rgba(232,25,44,.3);box-shadow:0 3px 14px rgba(232,25,44,.08);}
+.srow.on{border-color:var(--red);background:rgba(232,25,44,.03);}
+.sico{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sico svg{width:20px;height:20px;}
+.snm{font-weight:700;font-size:.86rem;color:#111;}
+.sdsc{font-size:.7rem;color:var(--muted);margin-top:2px;}
+.sprc{text-align:right;flex-shrink:0;}
+.sprc .fr{font-size:.62rem;color:#aaa;display:block;}
+.sprc .am{font-family:var(--fd);font-size:1rem;font-weight:800;color:#111;display:block;}
+.sprc .ol{font-size:.65rem;color:#bbb;text-decoration:line-through;}
+.sck{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.srow.on .sck{background:var(--red);border-color:var(--red);}
+.sck svg{width:10px;height:10px;color:#fff;display:none;}
+.srow.on .sck svg{display:block;}
+.pkgrow{display:none;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:13px;}
+.pkgrow.on{display:grid;}
+.po{padding:14px;border:2px solid var(--border);border-radius:11px;cursor:pointer;transition:all .2s;position:relative;background:#fff;}
+.po:hover{border-color:rgba(232,25,44,.3);}
+.po.on{border-color:var(--red);background:rgba(232,25,44,.03);}
+.po.pop::before{content:'Popular';position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;font-size:.55rem;font-weight:800;padding:2px 9px;border-radius:20px;font-family:var(--fd);white-space:nowrap;}
+.po-nm{font-family:var(--fd);font-size:.79rem;font-weight:800;color:#111;margin-bottom:3px;}
+.po-pr{font-family:var(--fd);font-size:1.05rem;font-weight:900;color:var(--red);}
+.po-ol{font-size:.63rem;color:#bbb;text-decoration:line-through;margin-left:3px;}
+.po-ds{font-size:.65rem;color:var(--muted);margin-top:5px;line-height:1.4;}
+.po-sv{display:inline-block;background:rgba(0,166,81,.1);color:var(--green);font-size:.58rem;font-weight:800;padding:2px 7px;border-radius:20px;margin-top:5px;}
+
+/* ── DATE / TIME ── */
+.dgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px;}
+.dbtn{padding:10px 5px;border:1.5px solid var(--border);border-radius:10px;text-align:center;cursor:pointer;transition:all .15s;background:#fff;}
+.dbtn:hover{border-color:var(--red);}
+.dbtn.on{border-color:var(--red);background:rgba(232,25,44,.05);}
+.dbtn.dis{opacity:.35;cursor:not-allowed;pointer-events:none;}
+.dd{font-size:.62rem;color:var(--muted);text-transform:uppercase;font-weight:600;}
+.dn{font-family:var(--fd);font-size:1.2rem;font-weight:800;color:#111;line-height:1;}
+.dbtn.on .dn{color:var(--red);}
+.dm{font-size:.58rem;color:#aaa;margin-top:2px;}
+.tgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.tbtn{padding:10px 7px;border:1.5px solid var(--border);border-radius:9px;text-align:center;cursor:pointer;transition:all .15s;background:#fff;font-size:.78rem;font-weight:600;color:#333;}
+.tbtn:hover{border-color:var(--red);}
+.tbtn.on{border-color:var(--red);background:rgba(232,25,44,.05);color:var(--red);}
+.tbtn.busy{background:#f8f8f8;color:#ccc;border-color:#eee;cursor:not-allowed;pointer-events:none;text-decoration:line-through;}
+.tleg{display:flex;gap:16px;margin-bottom:12px;}
+.tleg-i{display:flex;align-items:center;gap:5px;font-size:.68rem;color:var(--muted);}
+.tleg-d{width:10px;height:10px;border-radius:3px;}
+
+/* ── FORM ── */
+.fgr{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.ff{display:flex;flex-direction:column;gap:5px;}
+.ff.full{grid-column:1/-1;}
+.ff label{font-size:.63rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#aaa;}
+.ff input,.ff textarea,.ff select{padding:11px 13px;border:1.5px solid var(--border);border-radius:9px;font-family:var(--fb);font-size:.84rem;color:#111;outline:none;transition:border-color .15s;background:#f8f8f8;width:100%;resize:none;}
+.ff input:focus,.ff textarea:focus,.ff select:focus{border-color:var(--red);background:#fff;}
+.ff .hint{font-size:.64rem;color:#aaa;margin-top:2px;}
+.ff .err{font-size:.64rem;color:var(--red);margin-top:2px;display:none;}
+.ff.bad input,.ff.bad textarea{border-color:var(--red);}
+.ff.bad .err{display:block;}
+.addrrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.ao{padding:12px 14px;border:1.5px solid var(--border);border-radius:9px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:9px;}
+.ao:hover{border-color:var(--red);}
+.ao.on{border-color:var(--red);background:rgba(232,25,44,.04);}
+.ao svg{width:16px;height:16px;color:#aaa;flex-shrink:0;}
+.ao.on svg{color:var(--red);}
+.ao span{font-size:.76rem;font-weight:600;color:#333;}
+.ao.on span{color:var(--red);}
+.cpnrow{display:flex;gap:8px;margin-bottom:14px;}
+.cpnrow input{flex:1;padding:10px 13px;border:1.5px solid var(--border);border-radius:9px;font-family:var(--fb);font-size:.82rem;outline:none;transition:border-color .15s;background:#f8f8f8;text-transform:uppercase;}
+.cpnrow input:focus{border-color:var(--red);background:#fff;}
+.cpnrow button{padding:10px 18px;background:#111;color:#fff;border:none;border-radius:9px;font-family:var(--fd);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s;}
+.cpnrow button:hover{background:#333;}
+.cpnok{display:none;align-items:center;gap:7px;padding:9px 13px;background:rgba(0,166,81,.08);border:1px solid rgba(0,166,81,.2);border-radius:9px;font-size:.75rem;color:var(--green);font-weight:600;margin-bottom:12px;}
+.cpnok.on{display:flex;}
+.cpnok svg{width:14px;height:14px;flex-shrink:0;}
+
+/* ── BUTTONS ── */
+.nbtns{display:flex;gap:10px;margin-top:20px;}
+.btnback{padding:12px 22px;border:1.5px solid var(--border);border-radius:10px;background:#fff;font-family:var(--fd);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s;color:#333;display:flex;align-items:center;gap:6px;}
+.btnback:hover{border-color:#333;}
+.btnback svg{width:14px;height:14px;}
+.btnnext{flex:1;padding:13px;background:var(--red);color:#fff;border:none;border-radius:10px;font-family:var(--fd);font-size:.88rem;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(232,25,44,.3);display:flex;align-items:center;justify-content:center;gap:8px;}
+.btnnext:hover{background:var(--red2);transform:translateY(-1px);}
+.btnnext.off{opacity:.45;cursor:not-allowed;transform:none;pointer-events:none;}
+.btnnext svg{width:15px;height:15px;}
+
+/* ── SIDEBAR ── */
+.sidebar{position:sticky;top:130px;display:flex;flex-direction:column;gap:14px;}
+.sumcard{background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;}
+.sumh{background:var(--red);padding:14px 18px;}
+.sumh h3{font-family:var(--fd);font-size:.9rem;font-weight:800;color:#fff;}
+.sumh p{font-size:.65rem;color:rgba(255,255,255,.6);margin-top:2px;}
+.sumb{padding:16px;}
+.sumempty{text-align:center;padding:18px 0;font-size:.76rem;color:#bbb;}
+.sumempty svg{width:34px;height:34px;color:#ddd;display:block;margin:0 auto 10px;}
+.sumrow{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);}
+.sumrow:last-of-type{border-bottom:none;}
+.sumk{font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:5px;}
+.sumk svg{width:12px;height:12px;flex-shrink:0;}
+.sumv{font-size:.73rem;font-weight:600;color:#111;text-align:right;max-width:160px;line-height:1.3;}
+.sumtot{display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:6px;border-top:2px solid var(--border);}
+.sumtot .lbl{font-family:var(--fd);font-size:.8rem;font-weight:800;color:#111;}
+.sumtot .amt{font-family:var(--fd);font-size:1.2rem;font-weight:900;color:var(--red);}
+.sumtot .old{font-size:.7rem;color:#bbb;text-decoration:line-through;text-align:right;}
+.sumtot .sv{font-size:.62rem;color:var(--green);font-weight:700;background:rgba(0,166,81,.1);padding:2px 7px;border-radius:20px;}
+.sumperks{margin-top:14px;display:flex;flex-direction:column;gap:7px;}
+.sumperk{display:flex;align-items:center;gap:7px;font-size:.71rem;color:#555;}
+.sumperk svg{width:13px;height:13px;color:var(--green);flex-shrink:0;}
+.trustcard{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;}
+.tr{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);}
+.tr:last-child{border-bottom:none;}
+.trico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.trico svg{width:15px;height:15px;}
+.trinfo h5{font-size:.75rem;font-weight:700;color:#111;}
+.trinfo p{font-size:.65rem;color:#aaa;margin-top:1px;}
+
+/* ── SUCCESS ── */
+.succwrap{text-align:center;padding:44px 28px;}
+.succcirc{width:80px;height:80px;border-radius:50%;background:rgba(0,166,81,.1);border:3px solid var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;animation:pop .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes pop{from{transform:scale(0);}to{transform:scale(1);}}
+.succcirc svg{width:36px;height:36px;color:var(--green);}
+.succref{font-family:var(--fd);font-size:2rem;font-weight:900;color:#111;letter-spacing:1px;margin:10px 0 4px;}
+.succsub{font-size:.8rem;color:var(--muted);line-height:1.6;max-width:400px;margin:0 auto 22px;}
+.succacts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.sa{padding:11px 24px;border-radius:10px;font-family:var(--fd);font-size:.82rem;font-weight:700;cursor:pointer;text-decoration:none;transition:all .18s;}
+.sa.primary{background:var(--red);color:#fff;border:none;}
+.sa.outline{border:1.5px solid var(--border);color:#333;background:#fff;}
+
+@media(max-width:860px){.page{grid-template-columns:1fr;}.sidebar{position:static;}}
+@media(max-width:600px){.bgrid{grid-template-columns:repeat(3,1fr);}.mgrid{grid-template-columns:1fr 1fr;}.tgrid{grid-template-columns:repeat(3,1fr);}.dgrid{grid-template-columns:repeat(4,1fr);}.fgr{grid-template-columns:1fr;}.pkgrow.on{grid-template-columns:1fr;}.addrrow{grid-template-columns:1fr;}.vtabs{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="topbar">🎉 Use code <strong>EGARAGE50</strong> — Get UP TO ₹500 OFF on your first booking!</div>
+
+<nav>
+  <div class="navi">
+    <a href="{% url 'home' %}" class="logo">
+      <div class="logo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+      <span class="logo-name">e<span>Garage</span></span>
+    </a>
+    <div class="bc">
+      <a href="{% url 'home' %}">Home</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><polyline points="9 18 15 12 9 6"/></svg>
+      <span style="color:#111;font-weight:600;">Book Service</span>
+    </div>
+    <div class="nav-r">
+      {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" class="nb ghost">Dashboard</a>
+        <a href="{% url 'logout' %}" class="nb solid">Logout</a>
+      {% else %}
+        <a href="{% url 'login' %}" class="nb ghost">Login</a>
+        <a href="{% url 'signup' %}" class="nb solid">Sign Up</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<!-- PROGRESS BAR -->
+<div class="pbar">
+  <div class="pbari">
+    <div class="pstep"><div class="pcirc act" id="sc1">1</div><div class="plbl act" id="sl1">Vehicle</div></div>
+    <div class="pline"><div class="plinef" id="ln1"></div></div>
+    <div class="pstep"><div class="pcirc pend" id="sc2">2</div><div class="plbl pend" id="sl2">Service</div></div>
+    <div class="pline"><div class="plinef" id="ln2"></div></div>
+    <div class="pstep"><div class="pcirc pend" id="sc3">3</div><div class="plbl pend" id="sl3">Garage</div></div>
+    <div class="pline"><div class="plinef" id="ln3"></div></div>
+    <div class="pstep"><div class="pcirc pend" id="sc4">4</div><div class="plbl pend" id="sl4">Date &amp; Time</div></div>
+    <div class="pline"><div class="plinef" id="ln4"></div></div>
+    <div class="pstep" style="flex:0;"><div class="pcirc pend" id="sc5">💳</div><div class="plbl pend" id="sl5">Confirm</div></div>
+  </div>
+</div>
+
+<div class="page">
+<div>
+
+<!-- ══ STEP 1: VEHICLE ══ -->
+<div class="panel on" id="panel1">
+
+  <!-- MY SAVED VEHICLES (if any) -->
+  {% if vehicles %}
+  <div class="card" id="savedVehiclesCard">
+    <div class="cardh"><div class="cardnum">★</div><div><h3>My Saved Vehicles</h3><p>Pick one to pre-fill all details</p></div></div>
+    <div class="cardb">
+      <div style="display:flex;flex-direction:column;gap:8px;" id="savedVehicleList">
+        {% for v in vehicles %}
+        <div class="svrow {% if forloop.first %}sv-on{% endif %}" id="sv{{ v.pk }}"
+             onclick="selectSavedVehicle({{ v.pk }},'{{ v.brand|escapejs }}','{{ v.model_name|escapejs }}','{{ v.get_fuel_type_display|escapejs }}','{{ v.type }}','{{ v.registration_number|escapejs }}',{{ v.condition_submitted|yesno:'true,false' }})"
+             style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid {% if forloop.first %}var(--red){% else %}var(--border){% endif %};border-radius:10px;cursor:pointer;transition:all .15s;background:{% if forloop.first %}rgba(232,25,44,.04){% else %}#fff{% endif %};">
+          <div style="width:40px;height:40px;border-radius:9px;background:linear-gradient(135deg,var(--red),#c0111f);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.8rem;font-weight:900;color:#fff;flex-shrink:0;">
+            {{ v.brand|first|upper }}{{ v.model_name|first|upper }}
+          </div>
+          <div style="flex:1;">
+            <div style="font-family:var(--fd);font-size:.84rem;font-weight:800;color:#111;">{{ v.brand }} {{ v.model_name }}</div>
+            <div style="font-size:.66rem;color:var(--muted);margin-top:2px;">
+              {{ v.get_fuel_type_display }} · {{ v.registration_number|default:"No reg" }}
+              {% if v.condition_submitted %}<span style="color:var(--green);margin-left:6px;">✓ Condition on file</span>{% endif %}
+            </div>
+          </div>
+          <div style="font-size:.6rem;font-weight:700;font-family:var(--fd);" id="svtick{{ v.pk }}">
+            {% if forloop.first %}✓{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+        <div class="svrow" id="sv0"
+             onclick="selectSavedVehicle(0,'','','','car','',false)"
+             style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px dashed var(--border);border-radius:10px;cursor:pointer;transition:all .15s;">
+          <div style="width:40px;height:40px;border-radius:9px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">➕</div>
+          <div style="flex:1;">
+            <div style="font-family:var(--fd);font-size:.82rem;font-weight:800;color:#555;">Enter a different vehicle</div>
+            <div style="font-size:.66rem;color:var(--muted);">Select brand, model & fuel below</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- VEHICLE CONDITION PROMPT (shows after saved vehicle selected if no condition on file) -->
+  <div class="card" id="conditionPromptCard" style="display:none;">
+    <div style="background:rgba(245,158,11,.06);border:1.5px solid rgba(245,158,11,.2);border-radius:13px;padding:18px 20px;display:flex;align-items:flex-start;gap:14px;">
+      <div style="font-size:1.5rem;flex-shrink:0;">📷</div>
+      <div style="flex:1;">
+        <div style="font-family:var(--fd);font-size:.86rem;font-weight:800;color:#111;margin-bottom:4px;">Vehicle Condition Photos Needed</div>
+        <div style="font-size:.74rem;color:#555;line-height:1.6;margin-bottom:12px;">We need photos of your vehicle before service starts — this protects you from any false damage claims. Takes less than 2 minutes.</div>
+        <a id="conditionLink" href="#" style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:var(--yellow);color:#fff;border-radius:8px;font-family:var(--fd);font-size:.72rem;font-weight:700;text-decoration:none;">
+          📷 Upload Condition Photos →
+        </a>
+        <button onclick="skipCondition()" style="margin-left:10px;padding:9px 16px;border:1.5px solid var(--border);background:#fff;border-radius:8px;font-family:var(--fd);font-size:.72rem;font-weight:700;cursor:pointer;color:#555;">Skip for now</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cardh"><div class="cardnum">1</div><div><h3>Vehicle Type</h3><p>Choose car or two-wheeler</p></div></div>
+    <div class="cardb">
+      <div class="vtabs">
+        <div class="vtab on" id="vt-car" onclick="setVType('car')">
+          <div class="vtab-ico" style="background:rgba(232,25,44,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#e8192c" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+          <div class="vtab-info"><h4>Car</h4><p>Hatchback · Sedan · SUV · MUV</p></div>
+          <div class="vtck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="vtab" id="vt-bike" onclick="setVType('bike')">
+          <div class="vtab-ico" style="background:rgba(26,86,219,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 18V9l3-7h6l3 7"/><path d="M6 9h12"/><path d="M9 18h6"/></svg></div>
+          <div class="vtab-info"><h4>Bike &amp; Scooter</h4><p>Motorcycle · Scooter · Electric 2W</p></div>
+          <div class="vtck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+      </div>
+
+      <!-- CAR BRANDS -->
+      <div class="bsect on" id="car-brands-sect">
+        <div class="blabel">Select Car Brand</div>
+        <div class="bgrid" id="carBrandGrid"></div>
+      </div>
+
+      <!-- BIKE BRANDS -->
+      <div class="bsect" id="bike-brands-sect">
+        <div class="blabel">Select Bike / Scooter Brand</div>
+        <div class="bgrid" id="bikeBrandGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="modelCard" style="display:none;">
+    <div class="cardh"><div class="cardnum">2</div><div><h3 id="modelTitle">Select Model</h3><p>Choose your specific model</p></div></div>
+    <div class="cardb"><div class="mgrid" id="modelGrid"></div></div>
+  </div>
+
+  <div class="card" id="fuelCard" style="display:none;">
+    <div class="cardh"><div class="cardnum">3</div><div><h3>Fuel Type</h3><p>What fuel does your vehicle use?</p></div></div>
+    <div class="cardb"><div class="fgrid" id="fuelGrid"></div></div>
+  </div>
+
+  <div class="nbtns" id="s1next" style="display:none;">
+    <button class="btnnext" onclick="goStep(2)">Continue to Service Selection <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+  </div>
+</div>
+
+<!-- ══ STEP 2: SERVICE ══ -->
+<div class="panel" id="panel2">
+  <div class="card">
+    <div class="cardh"><div class="cardnum">2</div><div><h3>Select a Garage</h3><p>Choose the nearest or best-rated workshop</p></div></div>
+    <div class="cardb">
+      <div id="garageList" style="display:flex;flex-direction:column;gap:10px;">
+        {% for g in garages %}
+        <div id="gcard{{ g.pk }}"
+             onclick="selectGarage({{ g.pk }},'{{ g.name|escapejs }}',{{ g.advance_fee|default:600|floatformat:0 }})"
+             style="display:flex;align-items:flex-start;gap:12px;padding:14px;border:1.5px solid var(--border);border-radius:12px;cursor:pointer;transition:all .15s;background:#fff;">
+          <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--red),#c0111f);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.78rem;font-weight:900;color:#fff;flex-shrink:0;">
+            {{ g.name|first|upper }}
+          </div>
+          <div style="flex:1;">
+            <div style="font-family:var(--fd);font-size:.86rem;font-weight:800;color:#111;">{{ g.name }}</div>
+            <div style="font-size:.66rem;color:var(--muted);margin-top:2px;">
+              📍 {{ g.area|default:'' }} {{ g.city }}
+              {% if g.rating %} · ⭐ {{ g.rating|floatformat:1 }}{% endif %}
+              {% if g.total_reviews %} ({{ g.total_reviews }} reviews){% endif %}
+            </div>
+            <div style="font-size:.64rem;margin-top:4px;display:flex;gap:10px;">
+              <span style="color:var(--green);font-weight:700;">✓ Advance: ₹{{ g.advance_fee|default:600|floatformat:0 }}</span>
+              <span style="color:#888;">{{ g.mechanics_count|default:'' }}{% if g.mechanics_count %} mechanics{% endif %}</span>
+            </div>
+          </div>
+          <div id="gtick{{ g.pk }}" style="font-size:1rem;color:var(--red);display:none;">✓</div>
+        </div>
+        {% empty %}
+        <div style="text-align:center;padding:32px;color:#bbb;font-size:.76rem;">
+          No garages available in your area yet.
+        </div>
+        {% endfor %}
+      </div>
+      <div id="advanceNote" style="margin-top:14px;padding:11px 15px;background:rgba(0,166,81,.06);border:1.5px solid rgba(0,166,81,.15);border-radius:10px;font-size:.72rem;color:#555;display:none;">
+        💳 Advance fee: <strong id="advanceAmt" style="color:var(--red);">₹600</strong> — Remaining balance payable at garage after service.
+      </div>
+    </div>
+  </div>
+  <div class="nbtns">
+    <button class="btnback" onclick="goStep(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back</button>
+    <button class="btnnext off" id="s2next" onclick="goStep(3)">Choose Service <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+  </div>
+</div>
+
+<!-- ══ STEP 3: SERVICE (loads dynamically from selected garage) ══ -->
+<div class="panel" id="panel3">
+  <div class="card">
+    <div class="cardh">
+      <div class="cardnum">3</div>
+      <div>
+        <h3 id="svcTitle">Select Service</h3>
+        <p id="svcGarageName" style="color:var(--red);font-weight:600;font-size:.68rem;"></p>
+      </div>
+    </div>
+    <div class="cardb">
+      <div id="svcLoading" style="text-align:center;padding:32px;display:none;">
+        <div style="width:32px;height:32px;border:3px solid #f0f0f0;border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;"></div>
+        <div style="font-size:.74rem;color:#888;">Loading services…</div>
+      </div>
+      <div id="svcList" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <div id="svcEmpty" style="display:none;text-align:center;padding:24px;color:#bbb;font-size:.74rem;">No services found for this garage.</div>
+    </div>
+  </div>
+  <div class="nbtns">
+    <button class="btnback" onclick="goStep(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back</button>
+    <button class="btnnext off" id="s3next" onclick="goStep(4)">Continue to Date &amp; Time <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+  </div>
+</div>
+        <div class="srow" onclick="selSvc(this,'car-service','Car Service',2499,3999)">
+          <div class="sico" style="background:rgba(232,25,44,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#e8192c" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+          <div style="flex:1;"><div class="snm">Car Service</div><div class="sdsc">Engine oil · Filters · 30-point safety check · Tyre pressure</div></div>
+          <div class="sprc"><span class="fr">from</span><span class="am">₹2,499</span><span class="ol">₹3,999</span></div>
+          <div class="sck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="pkgrow" id="pkg-car-service">
+          <div class="po" onclick="selPkg(this,2499,'Basic Service','Basic Car Service')"><div class="po-nm">Basic</div><span class="po-pr">₹2,499</span><span class="po-ol">₹3,999</span><div class="po-ds">Oil change + filter + tyre pressure</div><span class="po-sv">37% OFF</span></div>
+          <div class="po pop" onclick="selPkg(this,3999,'Standard Service','Standard Car Service')"><div class="po-nm">Standard</div><span class="po-pr">₹3,999</span><span class="po-ol">₹6,499</span><div class="po-ds">Basic + brake check + 30-point report</div><span class="po-sv">38% OFF</span></div>
+          <div class="po" onclick="selPkg(this,5499,'Comprehensive','Comprehensive Car Service')"><div class="po-nm">Comprehensive</div><span class="po-pr">₹5,499</span><span class="po-ol">₹8,999</span><div class="po-ds">All-in + OBD scan + battery test</div><span class="po-sv">38% OFF</span></div>
+        </div>
+
+        <div class="srow" onclick="selSvc(this,'ac-service','AC Service',1499,2499)">
+          <div class="sico" style="background:rgba(8,145,178,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3"/></svg></div>
+          <div style="flex:1;"><div class="snm">AC Service &amp; Repair</div><div class="sdsc">Gas top-up · Compressor check · Condenser cleaning · Filter</div></div>
+          <div class="sprc"><span class="fr">from</span><span class="am">₹1,499</span><span class="ol">₹2,499</span></div>
+          <div class="sck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="pkgrow" id="pkg-ac-service">
+          <div class="po" onclick="selPkg(this,799,'AC Check','AC Check-up')"><div class="po-nm">AC Check</div><span class="po-pr">₹799</span><span class="po-ol">₹1,299</span><div class="po-ds">Diagnosis + filter clean + gas level</div><span class="po-sv">38% OFF</span></div>
+          <div class="po pop" onclick="selPkg(this,1999,'AC Full Service','AC Full Service')"><div class="po-nm">Full Service</div><span class="po-pr">₹1,999</span><span class="po-ol">₹3,299</span><div class="po-ds">Full AC service + gas top-up + sanitize</div><span class="po-sv">39% OFF</span></div>
+          <div class="po" onclick="selPkg(this,3499,'AC Repair','AC Repair')"><div class="po-nm">Repair</div><span class="po-pr">₹3,499</span><span class="po-ol">₹5,999</span><div class="po-ds">Compressor repair + full parts check</div><span class="po-sv">41% OFF</span></div>
+        </div>
+
+        <div class="srow" onclick="selSvc(this,'denting','Denting & Painting',1799,2999)">
+          <div class="sico" style="background:rgba(124,58,237,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.47-1.125"/><path d="M16.5 21c2.49 0 4.5-2.01 4.5-4.5S19 12 16.5 12 12 14.01 12 16.5 14.01 21 16.5 21z"/></svg></div>
+          <div style="flex:1;"><div class="snm">Denting &amp; Painting</div><div class="sdsc">Panel beating · Colour matching · Primer + paint · Polish</div></div>
+          <div class="sprc"><span class="fr">from</span><span class="am">₹1,799</span><span class="ol">₹2,999</span></div>
+          <div class="sck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="pkgrow" id="pkg-denting">
+          <div class="po" onclick="selPkg(this,1799,'Minor Dent','Minor Dent Repair')"><div class="po-nm">Minor Dent</div><span class="po-pr">₹1,799</span><span class="po-ol">₹2,999</span><div class="po-ds">1 panel · colour match · polish</div><span class="po-sv">40% OFF</span></div>
+          <div class="po pop" onclick="selPkg(this,3999,'Standard Dent+Paint','Standard Denting & Paint')"><div class="po-nm">Standard</div><span class="po-pr">₹3,999</span><span class="po-ol">₹6,499</span><div class="po-ds">Up to 3 panels · clear coat</div><span class="po-sv">38% OFF</span></div>
+          <div class="po" onclick="selPkg(this,14999,'Full Body Paint','Full Body Paint')"><div class="po-nm">Full Body</div><span class="po-pr">₹14,999</span><span class="po-ol">₹24,999</span><div class="po-ds">Complete repaint + rust protection</div><span class="po-sv">40% OFF</span></div>
+        </div>
+
+        <div class="srow" onclick="selSvc(this,'tyres','Tyres & Wheel Care',599,999)">
+          <div class="sico" style="background:rgba(0,166,81,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#00a651" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <div style="flex:1;"><div class="snm">Tyres &amp; Wheel Care</div><div class="sdsc">Balancing · Alignment · Rotation · Puncture repair · N₂ fill</div></div>
+          <div class="sprc"><span class="fr">from</span><span class="am">₹599</span><span class="ol">₹999</span></div>
+          <div class="sck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="pkgrow" id="pkg-tyres">
+          <div class="po" onclick="selPkg(this,599,'Tyre Rotation','Tyre Rotation')"><div class="po-nm">Rotation</div><span class="po-pr">₹599</span><span class="po-ol">₹999</span><div class="po-ds">Rotation + pressure check</div><span class="po-sv">40% OFF</span></div>
+          <div class="po pop" onclick="selPkg(this,1299,'Balance + Align','Wheel Balancing & Alignment')"><div class="po-nm">Balance + Align</div><span class="po-pr">₹1,299</span><span class="po-ol">₹2,199</span><div class="po-ds">All 4 wheels balanced + alignment</div><span class="po-sv">40% OFF</span></div>
+          <div class="po" onclick="selPkg(this,3599,'New Tyre Fitting','New Tyre Fitting')"><div class="po-nm">New Tyres</div><span class="po-pr">₹3,599</span><span class="po-ol">₹5,999</span><div class="po-ds">New tyre fitting + balancing</div><span class="po-sv">40% OFF</span></div>
+        </div>
+
+        <div class="srow" onclick="selSvc(this,'battery','Battery Replacement',1999,3499)">
+          <div class="sico" style="background:rgba(245,158,11,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="22" height="12" rx="2"/><line x1="7" y1="6" x2="7" y2="18"/><line x1="17" y1="6" x2="17" y2="18"/><line x1="1" y1="12" x2="23" y2="12"/></svg></div>
+          <div style="flex:1;"><div class="snm">Battery Replacement</div><div class="sdsc">Amaron / Exide · Health test · 2-year warranty · Disposal</div></div>
+          <div class="sprc"><span class="fr">from</span><span class="am">₹1,999</span><span class="ol">₹3,499</span></div>
+          <div class="sck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="pkgrow" id="pkg-battery">
+          <div class="po" onclick="selPkg(this,199,'Battery Test','Battery Health Test')"><div class="po-nm">Test Only</div><span class="po-pr">₹199</span><span class="po-ol">₹399</span><div class="po-ds">Voltage + load test + report</div><span class="po-sv">50% OFF</span></div>
+          <div class="po pop" onclick="selPkg(this,3499,'Battery Replacement','Battery Replacement')"><div class="po-nm">Replacement</div><span class="po-pr">₹3,499</span><span class="po-ol">₹5,499</span><div class="po-ds">New Amaron/Exide + 2yr warranty</div><span class="po-sv">36% OFF</span></div>
+          <div class="po" onclick="selPkg(this,599,'Battery Recharge','Battery Recharge')"><div class="po-nm">Recharge</div><span class="po-pr">₹599</span><span class="po-ol">₹999</span><div class="po-ds">Full recharge + health report</div><span class="po-sv">40% OFF</span></div>
+        </div>
+      </div>
+
+      <!-- BIKE SERVICES -->
+      <div id="bike-services" style="display:none;">
+        <div class="srow" onclick="selSvc(this,'bike-service','Bike Service',799,1299)">
+          <div class="sico" style="background:rgba(26,86,219,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 18V9l3-7h6l3 7"/><path d="M6 9h12"/></svg></div>
+          <div style="flex:1;"><div class="snm">Bike Service</div><div class="sdsc">Engine oil · Air filter · Chain clean · Brake adjust · 20-point check</div></div>
+          <div class="sprc"><span class="fr">from</span><span class="am">₹799</span><span class="ol">₹1,299</span></div>
+          <div class="sck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="pkgrow" id="pkg-bike-service">
+          <div class="po" onclick="selPkg(this,799,'Basic Bike Service','Basic Bike Service')"><div class="po-nm">Basic</div><span class="po-pr">₹799</span><span class="po-ol">₹1,299</span><div class="po-ds">Oil change + air filter + chain clean</div><span class="po-sv">38% OFF</span></div>
+          <div class="po pop" onclick="selPkg(this,1499,'Standard Bike Service','Standard Bike Service')"><div class="po-nm">Standard</div><span class="po-pr">₹1,499</span><span class="po-ol">₹2,499</span><div class="po-ds">Basic + brake check + carburettor clean</div><span class="po-sv">40% OFF</span></div>
+          <div class="po" onclick="selPkg(this,2499,'Full Bike Service','Comprehensive Bike Service')"><div class="po-nm">Comprehensive</div><span class="po-pr">₹2,499</span><span class="po-ol">₹3,999</span><div class="po-ds">All-in + fork oil + spark plug</div><span class="po-sv">37% OFF</span></div>
+        </div>
+
+        <div class="srow" onclick="selSvc(this,'bike-tyre','Tyre & Wheel',299,499)">
+          <div class="sico" style="background:rgba(0,166,81,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#00a651" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <div style="flex:1;"><div class="snm">Tyre &amp; Wheel</div><div class="sdsc">Puncture repair · Tyre replacement · Balancing · Nitrogen</div></div>
+          <div class="sprc"><span class="fr">from</span><span class="am">₹299</span><span class="ol">₹499</span></div>
+          <div class="sck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="pkgrow" id="pkg-bike-tyre">
+          <div class="po" onclick="selPkg(this,299,'Puncture Repair','Bike Puncture Repair')"><div class="po-nm">Puncture</div><span class="po-pr">₹299</span><span class="po-ol">₹499</span><div class="po-ds">Tubeless puncture fix + pressure</div><span class="po-sv">40% OFF</span></div>
+          <div class="po pop" onclick="selPkg(this,799,'Tyre Balancing','Tyre Balancing')"><div class="po-nm">Balancing</div><span class="po-pr">₹799</span><span class="po-ol">₹1,299</span><div class="po-ds">Both wheels balanced + nitrogen fill</div><span class="po-sv">38% OFF</span></div>
+          <div class="po" onclick="selPkg(this,1999,'New Bike Tyre','New Bike Tyre Fitting')"><div class="po-nm">New Tyre</div><span class="po-pr">₹1,999</span><span class="po-ol">₹3,299</span><div class="po-ds">New tyre fitting + balancing</div><span class="po-sv">39% OFF</span></div>
+        </div>
+
+        <div class="srow" onclick="selSvc(this,'chain-sprocket','Chain & Sprocket',699,1199)">
+          <div class="sico" style="background:rgba(245,158,11,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="M13 13l6 6"/></svg></div>
+          <div style="flex:1;"><div class="snm">Chain &amp; Sprocket</div><div class="sdsc">Chain clean · Lubrication · Sprocket check · Tension adjust</div></div>
+          <div class="sprc"><span class="fr">from</span><span class="am">₹699</span><span class="ol">₹1,199</span></div>
+          <div class="sck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="pkgrow" id="pkg-chain-sprocket">
+          <div class="po" onclick="selPkg(this,299,'Chain Clean','Chain Cleaning & Lube')"><div class="po-nm">Clean &amp; Lube</div><span class="po-pr">₹299</span><span class="po-ol">₹499</span><div class="po-ds">Full clean + high-quality O-ring lube</div><span class="po-sv">40% OFF</span></div>
+          <div class="po pop" onclick="selPkg(this,999,'Chain Replace','Chain Replacement')"><div class="po-nm">Chain Replace</div><span class="po-pr">₹999</span><span class="po-ol">₹1,699</span><div class="po-ds">New O-ring chain + tension set</div><span class="po-sv">41% OFF</span></div>
+          <div class="po" onclick="selPkg(this,2499,'Chain+Sprocket Kit','Chain & Sprocket Kit')"><div class="po-nm">Full Kit</div><span class="po-pr">₹2,499</span><span class="po-ol">₹3,999</span><div class="po-ds">Chain + both sprockets replaced</div><span class="po-sv">37% OFF</span></div>
+        </div>
+
+        <div class="srow" onclick="selSvc(this,'bike-battery','Battery Service',199,349)">
+          <div class="sico" style="background:rgba(124,58,237,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="22" height="12" rx="2"/><line x1="7" y1="6" x2="7" y2="18"/><line x1="17" y1="6" x2="17" y2="18"/><line x1="1" y1="12" x2="23" y2="12"/></svg></div>
+          <div style="flex:1;"><div class="snm">Battery Service</div><div class="sdsc">Test · Recharge · Replacement · 1-year warranty</div></div>
+          <div class="sprc"><span class="fr">from</span><span class="am">₹199</span><span class="ol">₹349</span></div>
+          <div class="sck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="pkgrow" id="pkg-bike-battery">
+          <div class="po" onclick="selPkg(this,199,'Battery Test','Bike Battery Test')"><div class="po-nm">Test Only</div><span class="po-pr">₹199</span><span class="po-ol">₹349</span><div class="po-ds">Voltage + health report</div><span class="po-sv">43% OFF</span></div>
+          <div class="po pop" onclick="selPkg(this,1499,'Battery Replace','Bike Battery Replacement')"><div class="po-nm">Replacement</div><span class="po-pr">₹1,499</span><span class="po-ol">₹2,499</span><div class="po-ds">New battery + 1yr warranty</div><span class="po-sv">40% OFF</span></div>
+          <div class="po" onclick="selPkg(this,399,'Battery Recharge','Bike Battery Recharge')"><div class="po-nm">Recharge</div><span class="po-pr">₹399</span><span class="po-ol">₹699</span><div class="po-ds">Full recharge + distilled water top-up</div><span class="po-sv">42% OFF</span></div>
+        </div>
+
+        <div class="srow" onclick="selSvc(this,'bike-wash','Bike Wash & Detailing',399,699)">
+          <div class="sico" style="background:rgba(8,145,178,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 007-7c0-2-1-3.9-3-5.5s-3.8-4-4-6.5c-.2 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 007 7z"/></svg></div>
+          <div style="flex:1;"><div class="snm">Bike Wash &amp; Detailing</div><div class="sdsc">Foam wash · Engine clean · Polish · Tyre dressing · Seat conditioner</div></div>
+          <div class="sprc"><span class="fr">from</span><span class="am">₹399</span><span class="ol">₹699</span></div>
+          <div class="sck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="pkgrow" id="pkg-bike-wash">
+          <div class="po" onclick="selPkg(this,399,'Basic Wash','Basic Bike Wash')"><div class="po-nm">Basic Wash</div><span class="po-pr">₹399</span><span class="po-ol">₹699</span><div class="po-ds">Foam wash + engine clean + dry</div><span class="po-sv">42% OFF</span></div>
+          <div class="po pop" onclick="selPkg(this,999,'Full Detail','Full Bike Detailing')"><div class="po-nm">Full Detail</div><span class="po-pr">₹999</span><span class="po-ol">₹1,699</span><div class="po-ds">Wash + polish + tyre dressing + seat</div><span class="po-sv">41% OFF</span></div>
+          <div class="po" onclick="selPkg(this,2499,'Ceramic Coat','Bike Ceramic Coating')"><div class="po-nm">Ceramic</div><span class="po-pr">₹2,499</span><span class="po-ol">₹3,999</span><div class="po-ds">9H ceramic coat + 1yr protection</div><span class="po-sv">37% OFF</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="nbtns">
+    <button class="btnback" onclick="goStep(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back</button>
+    <button class="btnnext off" id="s2next" onclick="goStep(3)">Continue to Select Garage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+  </div>
+</div>
+
+<!-- ══ STEP 4: DATE & TIME ══ -->
+<div class="panel" id="panel4">
+  <div class="card">
+    <div class="cardh"><div class="cardnum">4</div><div><h3>Select Pickup Date</h3><p>We offer free pickup from your location</p></div></div>
+    <div class="cardb"><div class="dgrid" id="dateGrid"></div></div>
+  </div>
+  <div class="card">
+    <div class="cardh"><div class="cardnum">5</div><div><h3>Select Time Slot</h3><p>Pick a time that works for you</p></div></div>
+    <div class="cardb">
+      <div class="tleg">
+        <div class="tleg-i"><div class="tleg-d" style="background:#e0e0e0;border:1px solid #ccc;"></div>Available</div>
+        <div class="tleg-i"><div class="tleg-d" style="background:rgba(232,25,44,.15);border:1px solid var(--red);"></div>Selected</div>
+        <div class="tleg-i"><div class="tleg-d" style="background:#f5f5f5;border:1px solid #eee;"></div>Booked</div>
+      </div>
+      <div class="tgrid" id="timeGrid"></div>
+    </div>
+  </div>
+  <div class="nbtns">
+    <button class="btnback" onclick="goStep(3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back</button>
+    <button class="btnnext off" id="s4next" onclick="goStep(5)">Continue to Your Details <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+  </div>
+</div>
+
+<!-- ══ STEP 5: DETAILS ══ -->
+<div class="panel" id="panel5">
+  <div class="card">
+    <div class="cardh"><div class="cardnum">5</div><div><h3>Your Contact Details</h3><p>We'll confirm via call and SMS</p></div></div>
+    <div class="cardb">
+      <div class="fgr">
+        <div class="ff" id="ff-name"><label>Full Name *</label><input type="text" id="fName" placeholder="Arjun Patel" value="{{ user.name|default:'' }}"><span class="err">Please enter your name</span></div>
+        <div class="ff" id="ff-phone"><label>Phone Number *</label><input type="tel" id="fPhone" placeholder="+91 98765 43210" value="{{ user.phone|default:'' }}"><span class="err">Enter a valid 10-digit number</span></div>
+        <div class="ff"><label>Email Address</label><input type="email" id="fEmail" placeholder="arjun@example.com" value="{{ user.email|default:'' }}"><span class="hint">For booking confirmation email</span></div>
+        <div class="ff"><label>City</label><select id="fCity"><option>Rajkot</option><option>Ahmedabad</option><option>Surat</option><option>Vadodara</option><option>Gandhinagar</option><option>Bhavnagar</option></select></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="cardh"><div class="cardnum">6</div><div><h3>Pickup Address</h3><p>Where should we collect your vehicle?</p></div></div>
+    <div class="cardb">
+      <div class="addrrow">
+        <div class="ao on" onclick="selAddr(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></div>
+        <div class="ao" onclick="selAddr(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg><span>Office</span></div>
+      </div>
+      <div class="fgr">
+        <div class="ff full" id="ff-addr"><label>Full Address *</label><textarea id="fAddr" rows="3" placeholder="House No, Street, Area, Rajkot — 360001">{{ user.address|default:'' }}</textarea><span class="err">Please enter your pickup address</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="cardh"><div class="cardnum">7</div><div><h3>Have a Coupon?</h3><p>Apply discount code for extra savings</p></div></div>
+    <div class="cardb">
+      <div class="cpnrow"><input type="text" id="couponInput" placeholder="e.g. EGARAGE50"><button onclick="applyCpn()">Apply</button></div>
+      <div class="cpnok" id="cpnOk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span id="cpnMsg"></span></div>
+    </div>
+  </div>
+
+  <!-- Hidden fields populated by JS -->
+  <input type="hidden" id="garageSelect" value="{{ garages.0.pk|default:'' }}">
+  <input type="hidden" id="vehicleSelect" value="">
+  <input type="hidden" name="service_type" value="garage">
+  <!-- payment_method set dynamically by confirmBooking() -->
+
+  <div class="nbtns">
+    <button class="btnback" onclick="goStep(4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back</button>
+    <!-- Payment Choice -->
+    <div style="margin-bottom:16px;">
+      <div style="font-size:.72rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#888;margin-bottom:10px;">How would you like to pay?</div>
+      <div id="payChoiceWrap" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div class="pay-opt on" id="po-advance" onclick="selPayType('advance')" style="border:1.5px solid var(--red);border-radius:10px;padding:12px 10px;cursor:pointer;text-align:center;background:rgba(232,25,44,.06);transition:all .2s;">
+          <div style="font-size:1.1rem;margin-bottom:4px;">💳</div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--red);">Pay Advance</div>
+          <div style="font-size:.58rem;color:#aaa;margin-top:2px;">₹<span class="adv-amt">600</span> now<br>Balance at garage</div>
+        </div>
+        <div class="pay-opt" id="po-full" onclick="selPayType('full')" style="border:1.5px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 10px;cursor:pointer;text-align:center;background:rgba(255,255,255,.03);transition:all .2s;">
+          <div style="font-size:1.1rem;margin-bottom:4px;">🟢</div>
+          <div style="font-size:.72rem;font-weight:700;color:#f5f0e8;">Pay Full</div>
+          <div style="font-size:.58rem;color:#aaa;margin-top:2px;">₹<span class="full-amt">0</span> now<br>Nothing at garage</div>
+        </div>
+        <div class="pay-opt" id="po-cash" onclick="selPayType('cash')" style="border:1.5px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 10px;cursor:pointer;text-align:center;background:rgba(255,255,255,.03);transition:all .2s;">
+          <div style="font-size:1.1rem;margin-bottom:4px;">💵</div>
+          <div style="font-size:.72rem;font-weight:700;color:#f5f0e8;">Pay Cash</div>
+          <div style="font-size:.58rem;color:#aaa;margin-top:2px;">₹0 now<br>Cash at garage</div>
+        </div>
+      </div>
+      <div id="payTypeNote" style="margin-top:8px;font-size:.7rem;color:#aaa;padding:8px 12px;background:rgba(255,255,255,.04);border-radius:7px;">
+        💳 Pay ₹<span class="adv-amt">600</span> advance online now. Remaining balance paid at garage after service.
+      </div>
+    </div>
+    <input type="hidden" name="payment_type" id="payTypeInput" value="advance">
+    <button class="btnnext" id="confirmBtn" onclick="confirmBooking()">Confirm &amp; Pay ₹<span id="advPayAmt">600</span> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+  </div>
+</div>
+
+<!-- ══ STEP 6: SUCCESS ══ -->
+<div class="panel" id="panel6">
+  <div class="card">
+    <div class="cardb">
+      <div class="succwrap">
+        <div class="succcirc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <h2 style="font-family:var(--fd);font-size:1.55rem;font-weight:900;color:#111;">Booking Confirmed! 🎉</h2>
+        <div class="succref" id="succRef">EG-00000</div>
+        <div style="font-size:.68rem;color:#aaa;margin-bottom:12px;">Your Booking Reference</div>
+        <p class="succsub">Our team will call within <strong>15 minutes</strong> to confirm pickup. You'll also receive an SMS with live tracking.</p>
+        <div style="background:#f8f8f8;border-radius:12px;padding:16px;max-width:380px;margin:0 auto 24px;text-align:left;" id="succDetail"></div>
+        <div class="succacts">
+          <a href="{% url 'home' %}" class="sa outline">Back to Home</a>
+          <a href="{% url 'signup' %}" class="sa primary">Create Account →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /left -->
+
+<!-- ══ SIDEBAR ══ -->
+<div class="sidebar">
+  <div class="sumcard">
+    <div class="sumh"><h3>Booking Summary</h3><p>Your selections appear here live</p></div>
+    <div class="sumb" id="sumBody">
+      <div class="sumempty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+        Select your vehicle and service to see the summary
+      </div>
+    </div>
+  </div>
+  <div class="trustcard">
+    <div class="tr"><div class="trico" style="background:rgba(0,166,81,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="#00a651" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="trinfo"><h5>1000-Day Warranty</h5><p>Parts &amp; labour fully covered</p></div></div>
+    <div class="tr"><div class="trico" style="background:rgba(232,25,44,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="#e8192c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div><div class="trinfo"><h5>Free Pickup &amp; Drop</h5><p>From your home or office</p></div></div>
+    <div class="tr"><div class="trico" style="background:rgba(26,86,219,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="trinfo"><h5>Real-Time Tracking</h5><p>Watch every step live</p></div></div>
+    <div class="tr"><div class="trico" style="background:rgba(245,158,11,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="trinfo"><h5>Genuine Parts Only</h5><p>OEM &amp; certified components</p></div></div>
+    <div class="tr"><div class="trico" style="background:rgba(0,166,81,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="#00a651" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="trinfo"><h5>40% Cheaper</h5><p>Than authorised dealers</p></div></div>
+  </div>
+  <div style="background:#111;border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;">
+    <div style="width:38px;height:38px;border-radius:9px;background:rgba(232,25,44,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="#e8192c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.09 9.81 19.79 19.79 0 01.09 1.18 2 2 0 012.07 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6z"/></svg></div>
+    <div><div style="font-family:var(--fd);font-size:.76rem;font-weight:800;color:#fff;">Need Help?</div><div style="font-size:.67rem;color:rgba(255,255,255,.4);margin-top:2px;"><a href="tel:+918000000000" style="color:var(--red);font-weight:700;text-decoration:none;">+91 80000 00000</a></div><div style="font-size:.62rem;color:rgba(255,255,255,.3);margin-top:1px;">Mon–Sat · 8am–8pm</div></div>
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<script>
+/* ════════════════════════════════
+   BRAND DATA
+   Logos loaded from logo.clearbit.com
+   onerror → branded coloured initials
+════════════════════════════════ */
+var CAR_BRANDS = [
+  { n:'Maruti Suzuki', url:'https://logo.clearbit.com/marutisuzuki.com',    fb:'MS', bg:'#C8102E', fg:'#fff' },
+  { n:'Hyundai',       url:'https://logo.clearbit.com/hyundai.com',         fb:'HY', bg:'#002C5F', fg:'#fff' },
+  { n:'Honda',         url:'https://logo.clearbit.com/honda.com',           fb:'HO', bg:'#CC0000', fg:'#fff' },
+  { n:'Toyota',        url:'https://logo.clearbit.com/toyota.com',          fb:'TO', bg:'#EB0A1E', fg:'#fff' },
+  { n:'Tata',          url:'https://logo.clearbit.com/tatamotors.com',      fb:'TA', bg:'#00438A', fg:'#fff' },
+  { n:'Mahindra',      url:'https://logo.clearbit.com/mahindra.com',        fb:'MA', bg:'#C41230', fg:'#fff' },
+  { n:'Kia',           url:'https://logo.clearbit.com/kia.com',             fb:'KI', bg:'#05141F', fg:'#fff' },
+  { n:'Ford',          url:'https://logo.clearbit.com/ford.com',            fb:'FO', bg:'#003478', fg:'#fff' },
+  { n:'Volkswagen',    url:'https://logo.clearbit.com/volkswagen.com',      fb:'VW', bg:'#001E50', fg:'#fff' },
+  { n:'Renault',       url:'https://logo.clearbit.com/renault.com',         fb:'RE', bg:'#EFB800', fg:'#111' },
+  { n:'BMW',           url:'https://logo.clearbit.com/bmw.com',             fb:'BM', bg:'#0066B1', fg:'#fff' },
+  { n:'Mercedes-Benz', url:'https://logo.clearbit.com/mercedes-benz.com',   fb:'MB', bg:'#222',    fg:'#fff' },
+];
+var BIKE_BRANDS = [
+  { n:'Hero MotoCorp',  url:'https://logo.clearbit.com/heromotocorp.com',         fb:'HM', bg:'#CC0000', fg:'#fff'    },
+  { n:'Honda 2W',       url:'https://logo.clearbit.com/honda.com',                fb:'H2', bg:'#CC0000', fg:'#fff'    },
+  { n:'Bajaj',          url:'https://logo.clearbit.com/bajajauto.com',            fb:'BJ', bg:'#003399', fg:'#fff'    },
+  { n:'TVS',            url:'https://logo.clearbit.com/tvsmotor.com',             fb:'TV', bg:'#D01818', fg:'#fff'    },
+  { n:'Royal Enfield',  url:'https://logo.clearbit.com/royalenfield.com',         fb:'RE', bg:'#2B2B2B', fg:'#C5A050' },
+  { n:'Yamaha',         url:'https://logo.clearbit.com/yamaha-motor.com',         fb:'YM', bg:'#0033A0', fg:'#fff'    },
+  { n:'Suzuki',         url:'https://logo.clearbit.com/suzuki.com',               fb:'SZ', bg:'#005AAB', fg:'#fff'    },
+  { n:'KTM',            url:'https://logo.clearbit.com/ktm.com',                  fb:'KT', bg:'#F47920', fg:'#fff'    },
+  { n:'Ola Electric',   url:'https://logo.clearbit.com/olaelectric.com',          fb:'OE', bg:'#00D26A', fg:'#111'   },
+  { n:'Ather Energy',   url:'https://logo.clearbit.com/atherenergy.com',          fb:'AE', bg:'#1DA462', fg:'#fff'   },
+  { n:'Jawa',           url:'https://logo.clearbit.com/jawamotorcycles.com',      fb:'JW', bg:'#4A3520', fg:'#fff'    },
+  { n:'Triumph',        url:'https://logo.clearbit.com/triumphmotorcycles.co.uk', fb:'TR', bg:'#B01820', fg:'#fff'    },
+];
+var CAR_MODELS = {
+  'Maruti Suzuki':['Swift','Baleno','Wagon R','Alto K10','Ertiga','Brezza','Dzire','Celerio','Ignis','S-Presso','Grand Vitara'],
+  'Hyundai':['Creta','i20','Venue','Verna','Alcazar','Tucson','i10 Nios','Grand i10','Aura','Santro'],
+  'Honda':['City','Amaze','Jazz','WR-V','Elevate','Civic','CR-V'],
+  'Toyota':['Fortuner','Innova Crysta','Innova HyCross','Glanza','Hyryder','Camry','Urban Cruiser'],
+  'Tata':['Nexon','Harrier','Safari','Tiago','Tigor','Punch','Altroz','Curvv','Nexon EV'],
+  'Mahindra':['Scorpio-N','Scorpio Classic','XUV700','XUV300','XUV400 EV','Thar','Bolero','KUV100'],
+  'Kia':['Seltos','Sonet','Carnival','EV6','Carens'],
+  'Ford':['EcoSport','Endeavour','Figo','Aspire','Freestyle'],
+  'Volkswagen':['Polo','Vento','Taigun','Virtus','Tiguan'],
+  'Renault':['Kwid','Duster','Triber','Kiger'],
+  'BMW':['3 Series','5 Series','7 Series','X1','X3','X5','X7','iX'],
+  'Mercedes-Benz':['A-Class','C-Class','E-Class','S-Class','GLA','GLC','GLE'],
+};
+var BIKE_MODELS = {
+  'Hero MotoCorp':['Splendor Plus','HF Deluxe','Passion Pro','Glamour','Xtreme 160R','Xpulse 200','Maestro Edge'],
+  'Honda 2W':['Activa 6G','CB Shine','SP 125','Unicorn','CB300R','Hornet 2.0','Dio'],
+  'Bajaj':['Pulsar NS200','Pulsar 150','Avenger Street','Dominar 400','CT100','Platina 110'],
+  'TVS':['Apache RTR 160','Apache RR 310','Jupiter','Ntorq 125','Raider 125','iQube Electric'],
+  'Royal Enfield':['Classic 350','Bullet 350','Meteor 350','Himalayan','Hunter 350','Super Meteor 650'],
+  'Yamaha':['FZ-S V3','MT-15','R15 V4','FZ25','Ray-ZR 125','Aerox 155','Fascino 125'],
+  'Suzuki':['Access 125','Burgman Street','Gixxer SF','Intruder 150','Avenis 125'],
+  'KTM':['Duke 200','Duke 390','RC 200','RC 390','Adventure 390','Duke 125'],
+  'Ola Electric':['S1 Pro','S1 Air','S1 X','S1 X+'],
+  'Ather Energy':['450X','450 Plus','450S','Rizta'],
+  'Jawa':['Jawa 42','Perak','Yezdi Roadster','Yezdi Scrambler'],
+  'Triumph':['Street Triple','Speed Triple','Tiger Sport 660','Bonneville T100','Trident 660'],
+};
+var CAR_FUELS  = [{e:'⛽',l:'Petrol'},{e:'🛢️',l:'Diesel'},{e:'🔵',l:'CNG'},{e:'⚡',l:'Electric'}];
+var BIKE_FUELS = [{e:'⛽',l:'Petrol'},{e:'⚡',l:'Electric'},{e:'🔵',l:'CNG'}];
+var COUPONS    = {EGARAGE50:500,FIRST200:200,FLAT300:300,BIKE100:100};
+var MONTHS     = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var DAYS       = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var SLOTS      = ['8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM','7:00 PM'];
+var BUSY       = ['10:00 AM','2:00 PM'];
+
+/* ── STATE ── */
+var S = {vtype:'car',brand:'',model:'',fuel:'',svc:'',svcName:'',pkgName:'',price:0,oldPrice:0,date:'',time:'',discount:0,garageId:'{{ garages.0.pk|default:"" }}',garageName:'{{ garages.0.name|default:""|escapejs }}',advance:{{ garages.0.advance_fee|default:600|floatformat:0 }}};
+
+/* ════════════════════════════════
+   GARAGE SELECTION
+════════════════════════════════ */
+/* ── PAYMENT TYPE ── */
+var selectedPayType = 'advance';
+function selPayType(type) {
+  selectedPayType = type;
+  document.getElementById('payTypeInput').value = type;
+  ['advance','full','cash'].forEach(function(t){
+    var el = document.getElementById('po-'+t);
+    if(!el) return;
+    if(t === type){
+      el.style.borderColor = 'var(--red)';
+      el.style.background  = 'rgba(232,25,44,.06)';
+      el.querySelector('div:nth-child(2)').style.color = 'var(--red)';
+    } else {
+      el.style.borderColor = 'rgba(255,255,255,.1)';
+      el.style.background  = 'rgba(255,255,255,.03)';
+      el.querySelector('div:nth-child(2)').style.color = '#f5f0e8';
+    }
+  });
+  var btn  = document.getElementById('confirmBtn');
+  var note = document.getElementById('payTypeNote');
+  var adv  = S.advance || 600;
+  var tot  = S.price   || 0;
+  if(type === 'advance'){
+    btn.innerHTML  = 'Confirm &amp; Pay ₹<span id="advPayAmt">'+adv+'</span> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    note.textContent = '💳 Pay ₹'+adv+' advance online now. Remaining balance paid at garage after service.';
+  } else if(type === 'full'){
+    btn.innerHTML  = 'Pay Full ₹<span id="advPayAmt">'+tot+'</span> Online <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    note.textContent = '🟢 Pay full ₹'+tot+' now online. No payment needed at garage.';
+  } else {
+    btn.innerHTML  = 'Confirm — Pay Cash at Garage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    note.textContent = '💵 No online payment needed. Pay full ₹'+tot+' cash directly at the garage.';
+  }
+}
+
+/* Update pay amounts when price changes */
+function refreshPayAmounts(){
+  var adv = S.advance || 600;
+  var tot = S.price   || 0;
+  document.querySelectorAll('.adv-amt').forEach(function(e){ e.textContent = adv; });
+  document.querySelectorAll('.full-amt').forEach(function(e){ e.textContent = tot; });
+  selPayType(selectedPayType);
+}
+
+function selectGarage(pk, name, advance) {
+  S.garageId   = pk;
+  S.garageName = name;
+  S.advance    = advance;
+  document.getElementById('garageSelect').value = pk;
+  // Update pay button
+  var ab = document.getElementById('advPayAmt');
+  if(ab) ab.textContent = advance;
+  // Visual selection
+  document.querySelectorAll('[id^="gcard"]').forEach(function(el){
+    el.style.border='1.5px solid var(--border)';el.style.background='#fff';
+  });
+  document.querySelectorAll('[id^="gtick"]').forEach(function(el){el.style.display='none';});
+  var card=document.getElementById('gcard'+pk);
+  if(card){card.style.border='1.5px solid var(--red)';card.style.background='rgba(232,25,44,.04)';}
+  var tick=document.getElementById('gtick'+pk);
+  if(tick) tick.style.display='block';
+  // Show advance note
+  var note=document.getElementById('advanceNote');
+  var amt=document.getElementById('advanceAmt');
+  if(note) note.style.display='block';
+  if(amt)  amt.textContent='₹'+advance;
+  // Enable step 2 next
+  var nb=document.getElementById('s2next');
+  if(nb) nb.classList.remove('off');
+
+  // ── Load services from API for this garage ──
+  var garageName = document.getElementById('svcGarageName');
+  if(garageName) garageName.textContent = name;
+  loadGarageServices(pk);
+  updateSummary();
+}
+
+function loadGarageServices(garageId) {
+  var list    = document.getElementById('svcList');
+  var loading = document.getElementById('svcLoading');
+  var empty   = document.getElementById('svcEmpty');
+  if(!list) return;
+  // Show loading
+  loading.style.display = 'block';
+  list.innerHTML = '';
+  empty.style.display = 'none';
+  document.getElementById('s3next').classList.add('off');
+  S.svc=''; S.svcName=''; S.price=0;
+
+  fetch('/api/garage/'+garageId+'/services/')
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    loading.style.display = 'none';
+    if(!d.ok || !d.services || !d.services.length){
+      empty.style.display = 'block'; return;
+    }
+    // Filter by vehicle type
+    var filtered = d.services.filter(function(s){
+      return s.category === 'both' || s.category === (S.vtype === 'bike' ? 'bike' : 'car');
+    });
+    if(!filtered.length){ empty.style.display='block'; return; }
+
+    list.innerHTML = filtered.map(function(s){
+      var stdPrice  = s.price_standard || 0;
+      var basPrice  = s.price_basic    || stdPrice;
+      var premPrice = s.price_premium  || stdPrice;
+      var slug      = s.slug || 'svc-'+s.id;
+      var colors    = {'car':'rgba(232,25,44,.08)','bike':'rgba(26,86,219,.08)','both':'rgba(0,166,81,.08)'};
+      var bg        = colors[s.category] || 'rgba(0,0,0,.04)';
+      return '<div class="srow" id="sr-'+slug+'" onclick="selSvcDb(this,\''+slug+'\',\''+s.name.replace(/'/g,"\\'")+'\','+stdPrice+','+s.id+')">'
+        + '<div class="sico" style="background:'+bg+';flex-shrink:0;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">'+s.icon+'</div>'
+        + '<div style="flex:1;padding-left:10px;">'
+        +   '<div class="snm">'+s.name+'</div>'
+        +   (s.description ? '<div class="sdsc">'+s.description.substring(0,60)+'</div>' : '')
+        +   (s.notes ? '<div style="font-size:.6rem;color:var(--green);margin-top:2px;">✓ '+s.notes+'</div>' : '')
+        + '</div>'
+        + '<div class="sprc"><span class="fr">from</span><span class="am">₹'+stdPrice.toLocaleString('en-IN')+'</span></div>'
+        + '<div class="sck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>'
+        + '</div>'
+        // Package row
+        + '<div class="pkgrow" id="pkgdb-'+slug+'">'
+        + (basPrice ? '<div class="po" onclick="selPkg(this,'+basPrice+',\'basic\',\'Basic '+s.name+'\')" style="cursor:pointer"><div class="po-nm">Basic</div><span class="po-pr">₹'+basPrice.toLocaleString('en-IN')+'</span><div class="po-ds">Essential service</div></div>' : '')
+        + '<div class="po pop" onclick="selPkg(this,'+stdPrice+',\'standard\',\''+s.name.replace(/'/g,"\\'")+'\')" style="cursor:pointer"><div class="po-nm">Standard</div><span class="po-pr">₹'+stdPrice.toLocaleString('en-IN')+'</span><div class="po-ds">Recommended</div><span class="po-sv">Best Value</span></div>'
+        + (premPrice && premPrice !== stdPrice ? '<div class="po" onclick="selPkg(this,'+premPrice+',\'premium\',\'Premium '+s.name+'\')" style="cursor:pointer"><div class="po-nm">Premium</div><span class="po-pr">₹'+premPrice.toLocaleString('en-IN')+'</span><div class="po-ds">Full service</div></div>' : '')
+        + '</div>';
+    }).join('');
+  })
+  .catch(function(){
+    loading.style.display='none';
+    list.innerHTML='<div style="text-align:center;padding:20px;color:#e8192c;font-size:.74rem;">Failed to load services. Please try again.</div>';
+  });
+}
+
+function selSvcDb(el, slug, name, price, dbId) {
+  document.querySelectorAll('.srow').forEach(function(r){r.classList.remove('on');});
+  document.querySelectorAll('.pkgrow').forEach(function(r){r.classList.remove('on');});
+  el.classList.add('on');
+  S.svc=slug; S.svcName=name; S.pkgName=name; S.price=price; S.pkg='standard'; S.svcDbId=dbId;
+  var pk = document.getElementById('pkgdb-'+slug);
+  if(pk) pk.classList.add('on');
+  document.getElementById('s3next').classList.remove('off');
+  updateSummary();
+}
+// Auto-select first garage on load
+{% if garages %}window.addEventListener('DOMContentLoaded',function(){ selectGarage({{ garages.0.pk }},'{{ garages.0.name|escapejs }}',{{ garages.0.advance_fee|default:600|floatformat:0 }}); });{% endif %}
+
+/* ════════════════════════════════
+   BUILD BRAND CARDS
+════════════════════════════════ */
+function brandCard(b) {
+  var uid = 'logo_' + b.n.replace(/[^a-z0-9]/gi,'_');
+  return '<div class="bcard" onclick="selBrand(this,\'' + q(b.n) + '\')">'
+    + '<div class="btick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>'
+    + '<div class="blogo-wrap">'
+    +   '<img id="' + uid + '" src="' + b.url + '" alt="' + b.n + '"'
+    +        ' onerror="showFb(\'' + uid + '\',\'' + b.fb + '\',\'' + b.bg + '\',\'' + b.fg + '\')" />'
+    +   '<div class="bfb" id="fb_' + uid + '">' + b.fb + '</div>'
+    + '</div>'
+    + '<div class="bname">' + b.n + '</div>'
+    + '</div>';
+}
+function showFb(uid, init, bg, fg) {
+  var img = document.getElementById(uid);
+  var fb  = document.getElementById('fb_' + uid);
+  if (img) img.style.display = 'none';
+  if (fb)  { fb.style.display = 'flex'; fb.style.background = bg; fb.style.color = fg; }
+}
+function q(s){ return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+document.getElementById('carBrandGrid').innerHTML  = CAR_BRANDS.map(brandCard).join('');
+document.getElementById('bikeBrandGrid').innerHTML = BIKE_BRANDS.map(brandCard).join('');
+
+/* ════════════════════════════════
+   STEP NAVIGATION
+════════════════════════════════ */
+function goStep(n) {
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+  document.getElementById('panel'+n).classList.add('on');
+  for (var i=1; i<=5; i++) {
+    var sc=document.getElementById('sc'+i), sl=document.getElementById('sl'+i);
+    if (!sc) continue;
+    sc.className='pcirc'; sl.className='plbl';
+    if      (i < n)  { sc.classList.add('done'); sc.innerHTML='✓'; sl.classList.add('done'); }
+    else if (i===n)  { sc.classList.add('act'); if(sc.innerHTML==='✓') sc.innerHTML=i; sl.classList.add('act'); }
+    else             { sc.classList.add('pend'); if(sc.innerHTML==='✓'&&i!==5) sc.innerHTML=i; sl.classList.add('pend'); }
+  }
+  for (var j=1; j<=4; j++) { var ln=document.getElementById('ln'+j); if(ln) ln.className='plinef'+(n>j?' on':''); }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ════════════════════════════════
+   VEHICLE TYPE
+════════════════════════════════ */
+function setVType(t) {
+  S.vtype=t; S.brand=''; S.model=''; S.fuel='';
+  document.getElementById('vt-car').classList.toggle('on',  t==='car');
+  document.getElementById('vt-bike').classList.toggle('on', t==='bike');
+  document.getElementById('car-brands-sect').classList.toggle('on',  t==='car');
+  document.getElementById('bike-brands-sect').classList.toggle('on', t==='bike');
+  document.getElementById('car-services').style.display  = t==='car'  ? '' : 'none';
+  document.getElementById('bike-services').style.display = t==='bike' ? '' : 'none';
+  document.getElementById('svcTitle').textContent = t==='car' ? 'Select Car Service' : 'Select Bike Service';
+  document.querySelectorAll('.bcard').forEach(function(b){b.classList.remove('on');});
+  document.getElementById('modelCard').style.display = 'none';
+  document.getElementById('fuelCard').style.display  = 'none';
+  document.getElementById('s1next').style.display    = 'none';
+  document.querySelectorAll('.srow').forEach(function(r){r.classList.remove('on');});
+  document.querySelectorAll('.pkgrow').forEach(function(r){r.classList.remove('on');});
+  document.getElementById('s2next').classList.add('off');
+  S.svc=''; S.svcName=''; S.pkgName=''; S.price=0; S.oldPrice=0;
+  updateSummary();
+}
+
+/* ════════════════════════════════
+   STEP 1
+════════════════════════════════ */
+function selBrand(el, brand) {
+  var gid = S.vtype==='car' ? 'carBrandGrid' : 'bikeBrandGrid';
+  document.getElementById(gid).querySelectorAll('.bcard').forEach(function(b){b.classList.remove('on');});
+  el.classList.add('on');
+  S.brand=brand; S.model=''; S.fuel='';
+  var models = S.vtype==='car' ? (CAR_MODELS[brand]||[]) : (BIKE_MODELS[brand]||[]);
+  document.getElementById('modelGrid').innerHTML = models.map(function(m){
+    return '<div class="mbtn" onclick="selModel(this,\''+q(m)+'\')">'+m+'</div>';
+  }).join('');
+  document.getElementById('modelTitle').textContent = brand;
+  document.getElementById('modelCard').style.display = '';
+  document.getElementById('fuelCard').style.display  = 'none';
+  document.getElementById('s1next').style.display    = 'none';
+  updateSummary();
+  setTimeout(function(){ document.getElementById('modelCard').scrollIntoView({behavior:'smooth',block:'nearest'}); },100);
+}
+function selModel(el, m) {
+  document.querySelectorAll('.mbtn').forEach(function(b){b.classList.remove('on');});
+  el.classList.add('on');
+  S.model = m;
+  var fuels = S.vtype==='car' ? CAR_FUELS : BIKE_FUELS;
+  document.getElementById('fuelGrid').innerHTML = fuels.map(function(f){
+    return '<div class="ftab" onclick="selFuel(this,\''+f.l+'\')"><div class="fi">'+f.e+'</div>'+f.l+'</div>';
+  }).join('');
+  document.getElementById('fuelCard').style.display = '';
+  document.getElementById('s1next').style.display   = 'none';
+  updateSummary();
+  setTimeout(function(){ document.getElementById('fuelCard').scrollIntoView({behavior:'smooth',block:'nearest'}); },100);
+}
+function selFuel(el, fuel) {
+  document.querySelectorAll('.ftab').forEach(function(b){b.classList.remove('on');});
+  el.classList.add('on');
+  S.fuel = fuel;
+  // Auto-save this vehicle so it has a PK for booking
+  fetch("{% url 'add_vehicle' %}", {
+    method: 'POST',
+    headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/json'},
+    body: JSON.stringify({type: S.vtype, brand: S.brand, model: S.model, fuel: fuel})
+  }).then(function(r){return r.json();}).then(function(d){
+    if(d.success && d.id){
+      var vs = document.getElementById('vehicleSelect');
+      if(vs) vs.value = d.id;
+      S.vehicleId = d.id;
+      // Show condition prompt for new vehicle
+      var prompt = document.getElementById('conditionPromptCard');
+      var link   = document.getElementById('conditionLink');
+      if(prompt) prompt.style.display = 'block';
+      if(link)   link.href = '/vehicle/'+d.id+'/condition/?next=/booking/payment/';
+    }
+  }).catch(function(){});
+  document.getElementById('s1next').style.display = 'flex';
+  updateSummary();
+}
+
+/* ════════════════════════════════
+   STEP 2
+════════════════════════════════ */
+function selSvc(el, svc, name, price, old) {
+  document.querySelectorAll('.srow').forEach(function(r){r.classList.remove('on');});
+  document.querySelectorAll('.pkgrow').forEach(function(r){r.classList.remove('on');});
+  el.classList.add('on');
+  S.svc=svc; S.svcName=name; S.pkgName=name; S.price=price; S.oldPrice=old; S.pkg='standard';
+  var pk = document.getElementById('pkg-'+svc);
+  if (pk) pk.classList.add('on');
+  document.getElementById('s2next').classList.remove('off');
+  updateSummary();
+}
+function selPkg(el, price, pkg, pkgName) {
+  el.closest('.pkgrow').querySelectorAll('.po').forEach(function(p){p.classList.remove('on');});
+  el.classList.add('on');
+  S.price=price; S.pkgName=pkgName;
+  updateSummary();
+  event.stopPropagation();
+}
+
+/* ════════════════════════════════
+   STEP 3
+════════════════════════════════ */
+function buildDates() {
+  var h='';
+  for (var i=1; i<=7; i++) {
+    var d=new Date(); d.setDate(d.getDate()+i);
+    var ds=d.toISOString().split('T')[0];
+    h+='<div class="dbtn'+(i===1?' dis':'')+'" onclick="selDate(this,\''+ds+'\')">'
+      +'<div class="dd">'+DAYS[d.getDay()]+'</div>'
+      +'<div class="dn">'+d.getDate()+'</div>'
+      +'<div class="dm">'+MONTHS[d.getMonth()]+'</div></div>';
+  }
+  document.getElementById('dateGrid').innerHTML=h;
+}
+function buildTimes() {
+  document.getElementById('timeGrid').innerHTML=SLOTS.map(function(t){
+    var b=BUSY.indexOf(t)>-1;
+    return '<div class="tbtn'+(b?' busy':'')+'" onclick="selTime(this,\''+t+'\')">'+t+'</div>';
+  }).join('');
+}
+function selDate(el, ds) {
+  document.querySelectorAll('.dbtn').forEach(function(b){b.classList.remove('on');});
+  el.classList.add('on');
+  S.date=ds; S.time='';
+  buildTimes();
+  document.getElementById('s4next').classList.add('off');
+  updateSummary();
+}
+function selTime(el, t) {
+  document.querySelectorAll('.tbtn').forEach(function(b){b.classList.remove('on');});
+  el.classList.add('on');
+  S.time=t;
+  document.getElementById('s4next').classList.remove('off');
+  updateSummary();
+}
+
+/* ════════════════════════════════
+   STEP 4
+════════════════════════════════ */
+function selAddr(el) { document.querySelectorAll('.ao').forEach(function(a){a.classList.remove('on');}); el.classList.add('on'); }
+function applyCpn() {
+  var code=document.getElementById('cpnInput').value.trim().toUpperCase();
+  var d=COUPONS[code];
+  if(d===undefined){alert('Invalid coupon. Try EGARAGE50');return;}
+  S.discount = d<1 ? Math.round(S.price*d) : d;
+  document.getElementById('cpnMsg').textContent=code+' applied! ₹'+S.discount.toLocaleString('en-IN')+' OFF';
+  document.getElementById('cpnOk').classList.add('on');
+  updateSummary();
+}
+function confirmBooking() {
+  var ok=true;
+  function chk(fid,ffid,test){
+    var el=document.getElementById(fid);
+    var ff=document.getElementById(ffid);
+    if(!el||!ff) return;
+    if(!test(el.value)){ff.classList.add('bad');ok=false;}
+    else ff.classList.remove('bad');
+  }
+  chk('fName','ff-name',function(s){return s.trim().length>1;});
+  chk('fPhone','ff-phone',function(s){return s.replace(/\D/g,'').length>=10;});
+  if(!ok) return;
+
+  // Build a real hidden form and submit it — server redirect works properly
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = "{% url 'booking_confirm' %}";
+  form.style.display = 'none';
+
+  function addField(name, value){
+    var inp = document.createElement('input');
+    inp.type = 'hidden';
+    inp.name = name;
+    inp.value = value || '';
+    form.appendChild(inp);
+  }
+
+  addField('csrfmiddlewaretoken', CSRF);
+  addField('service_slug',   S.svc     || 'car-service');
+  addField('service_id',     S.svcDbId || '');
+  addField('package',        S.pkg     || 'standard');
+  addField('service_type',   'garage');
+  addField('garage_id',      S.garageId || (document.getElementById('garageSelect') ? document.getElementById('garageSelect').value : ''));
+  addField('vehicle_id', (document.getElementById('vehicleSelect') && document.getElementById('vehicleSelect').value) || S.vehicleId || '');
+  addField('date',           S.date || '');
+  addField('slot',           S.time || '09:00');
+  addField('name',           document.getElementById('fName') ? document.getElementById('fName').value : '');
+  addField('phone',          document.getElementById('fPhone') ? document.getElementById('fPhone').value : '');
+  addField('email',          document.getElementById('fEmail') ? document.getElementById('fEmail').value : '');
+  addField('address',        document.getElementById('fAddr') ? document.getElementById('fAddr').value : '');
+  addField('notes',          document.getElementById('fNotes') ? document.getElementById('fNotes').value : '');
+  addField('payment_method', selectedPayType === 'cash' ? 'cash' : 'online');
+  addField('payment_type', selectedPayType || 'advance');
+  addField('coupon_code',    document.getElementById('couponInput') ? document.getElementById('couponInput').value : '');
+
+  var btn = document.getElementById('confirmBtn');
+  if(btn){btn.disabled=true;btn.innerHTML='Confirming…';}
+
+  document.body.appendChild(form);
+  form.submit();
+}
+
+/* ════════════════════════════════
+   LIVE SUMMARY
+════════════════════════════════ */
+function fmtD(ds){if(!ds)return '';var d=new Date(ds);return DAYS[d.getDay()]+', '+d.getDate()+' '+MONTHS[d.getMonth()];}
+function ico(p){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';}
+function srow(i,k,v){return '<div class="sumrow"><span class="sumk">'+ico(i)+k+'</span><span class="sumv">'+v+'</span></div>';}
+
+function updateSummary(){
+  var body=document.getElementById('sumBody');
+  if(!S.brand&&!S.svcName){
+    body.innerHTML='<div class="sumempty">'+ico('<path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>')+'Select your vehicle and service to see the summary</div>';
+    return;
+  }
+  var rows='';
+  if(S.brand)  rows+=srow('<path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>','Vehicle',S.brand+(S.model?' '+S.model:'')+(S.fuel?' ('+S.fuel+')':''));
+  if(S.pkgName)rows+=srow('<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>','Service',S.pkgName);
+  if(S.garageName) rows+=srow('<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>','Garage',S.garageName);
+  if(S.date)   rows+=srow('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>','Date',fmtD(S.date));
+  if(S.time)   rows+=srow('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>','Time',S.time);
+  var tot='';
+  if(S.price){
+    var fin=S.price-S.discount;
+    tot='<div class="sumtot">'
+      +'<div class="lbl">Total'+(S.discount?'<div style="margin-top:3px;"><span class="sv">−₹'+S.discount.toLocaleString('en-IN')+'</span></div>':'')+'</div>'
+      +'<div style="text-align:right"><div class="amt">₹'+fin.toLocaleString('en-IN')+'</div>'+(S.oldPrice?'<div class="old">₹'+S.oldPrice.toLocaleString('en-IN')+'</div>':'')+'</div>'
+      +'</div>';
+  }
+  var perks='<div class="sumperks">'
+    +'<div class="sumperk">'+ico('<polyline points="20 6 9 17 4 12"/>')+'Free doorstep pickup &amp; drop</div>'
+    +'<div class="sumperk">'+ico('<polyline points="20 6 9 17 4 12"/>')+'1000-day warranty included</div>'
+    +'<div class="sumperk">'+ico('<polyline points="20 6 9 17 4 12"/>')+'No payment needed to book</div>'
+    +'</div>';
+  body.innerHTML=rows+tot+perks;
+}
+
+/* ── INIT ── */
+var CSRF = '{{ csrf_token }}';
+
+/* Saved vehicle selector */
+var selectedVehicleId = {% if vehicles %}{{ vehicles.0.pk }}{% else %}0{% endif %};
+var selectedConditionDone = {% if vehicles %}{{ vehicles.0.condition_submitted|yesno:'true,false' }}{% else %}false{% endif %};
+
+function selectSavedVehicle(pk, brand, model, fuel, type, reg, condDone){
+  // Update highlight
+  document.querySelectorAll('.svrow').forEach(function(r){
+    r.style.border = '1.5px dashed var(--border)';
+    r.style.background = '#fff';
+  });
+  document.querySelectorAll('[id^="svtick"]').forEach(function(t){ t.textContent=''; });
+
+  var row = document.getElementById('sv'+pk);
+  if(row){
+    row.style.border = '1.5px solid var(--red)';
+    row.style.background = 'rgba(232,25,44,.04)';
+  }
+  var tick = document.getElementById('svtick'+pk);
+  if(tick) tick.textContent = '✓';
+
+  selectedVehicleId = pk;
+  selectedConditionDone = condDone;
+
+  // Set hidden vehicle field
+  var vs = document.getElementById('vehicleSelect');
+  if(vs) vs.value = pk || '';
+
+  // Pre-fill brand/model/fuel in S
+  if(pk && brand){
+    S.brand = brand; S.model = model; S.fuel = fuel;
+    S.vtype = type;
+    updateSummary();
+  }
+
+  // Show condition prompt if vehicle has no condition photos yet
+  var prompt = document.getElementById('conditionPromptCard');
+  if(prompt){
+    if(pk && !condDone){
+      prompt.style.display = 'block';
+      var link = document.getElementById('conditionLink');
+      if(link) link.href = '/vehicle/'+pk+'/condition/?next=/booking/payment/';
+    } else {
+      prompt.style.display = 'none';
+    }
+  }
+
+  // Auto-enable continue button if vehicle is pre-filled
+  if(pk && brand){
+    document.getElementById('s1next').style.display = 'flex';
+  }
+}
+
+function skipCondition(){
+  document.getElementById('conditionPromptCard').style.display = 'none';
+}
+
+// Init: select first saved vehicle automatically
+{% if vehicles %}
+window.addEventListener('DOMContentLoaded', function(){
+  selectSavedVehicle(
+    {{ vehicles.0.pk }},
+    '{{ vehicles.0.brand|escapejs }}',
+    '{{ vehicles.0.model_name|escapejs }}',
+    '{{ vehicles.0.get_fuel_type_display|escapejs }}',
+    '{{ vehicles.0.type }}',
+    '{{ vehicles.0.registration_number|escapejs }}',
+    {{ vehicles.0.condition_submitted|yesno:'true,false' }}
+  );
+});
+{% endif %}
+
+buildDates();
+buildTimes();
+</script>
+{% endblock %}

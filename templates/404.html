@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>404 — Page Not Found · eGarage</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800;900&family=Instrument+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100vh;background:#080c10;color:#fff;font-family:'Instrument Sans',sans-serif;display:flex;align-items:center;justify-content:center;padding:24px;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(232,25,44,.08),transparent 60%);pointer-events:none;}
+.wrap{text-align:center;max-width:480px;position:relative;z-index:1;}
+canvas{display:block;margin:0 auto 24px;}
+.num{font-family:'Syne',sans-serif;font-size:clamp(80px,15vw,120px);font-weight:900;line-height:1;color:rgba(232,25,44,.25);letter-spacing:-5px;margin-bottom:8px;}
+h1{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:900;margin-bottom:10px;}
+p{font-size:.88rem;color:rgba(255,255,255,.45);line-height:1.7;margin-bottom:28px;}
+.btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.btn{padding:12px 24px;border-radius:10px;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-red{background:#e8192c;color:#fff;box-shadow:0 4px 18px rgba(232,25,44,.3);}
+.btn-red:hover{background:#c0111f;transform:translateY(-1px);}
+.btn-ghost{background:rgba(255,255,255,.07);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1);}
+.btn-ghost:hover{background:rgba(255,255,255,.12);color:#fff;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <canvas id="c" width="180" height="110"></canvas>
+  <div class="num">404</div>
+  <h1>Page Not Found</h1>
+  <p>The page you're looking for doesn't exist or has been moved.<br>Let's get you back on the road.</p>
+  <div class="btns">
+    <a href="/" class="btn btn-red">🏠 Go Home</a>
+    <a href="/dashboard/" class="btn btn-ghost">📊 Dashboard</a>
+    <a href="/booking/" class="btn btn-ghost">🔧 Book Service</a>
+  </div>
+</div>
+<script>
+(function(){
+  var c=document.getElementById('c'),ctx=c.getContext('2d'),w=c.width,h=c.height;
+  var col='#e8192c',cx=w/2,by=h*.78;
+  var sg=ctx.createRadialGradient(cx,by+4,0,cx,by+4,w*.35);
+  sg.addColorStop(0,'rgba(232,25,44,.2)');sg.addColorStop(1,'transparent');
+  ctx.fillStyle=sg;ctx.beginPath();ctx.ellipse(cx,by+5,w*.35,h*.1,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=col;ctx.beginPath();ctx.roundRect(cx-w*.4,by-h*.28,w*.8,h*.22,6);ctx.fill();
+  var rd=ctx.createLinearGradient(cx,by-h*.58,cx,by-h*.28);rd.addColorStop(0,col);rd.addColorStop(1,'#aa1020');
+  ctx.fillStyle=rd;ctx.beginPath();ctx.moveTo(cx-w*.32,by-h*.28);ctx.quadraticCurveTo(cx-w*.24,by-h*.58,cx-w*.08,by-h*.58);ctx.lineTo(cx+w*.08,by-h*.58);ctx.quadraticCurveTo(cx+w*.24,by-h*.58,cx+w*.32,by-h*.28);ctx.closePath();ctx.fill();
+  var wg=ctx.createLinearGradient(0,0,w,h);wg.addColorStop(0,'rgba(147,210,255,.7)');wg.addColorStop(1,'rgba(100,160,220,.3)');
+  ctx.fillStyle=wg;ctx.beginPath();ctx.moveTo(cx-w*.2,by-h*.29);ctx.quadraticCurveTo(cx-w*.15,by-h*.56,cx-w*.07,by-h*.56);ctx.lineTo(cx+w*.07,by-h*.56);ctx.quadraticCurveTo(cx+w*.15,by-h*.56,cx+w*.16,by-h*.29);ctx.closePath();ctx.fill();
+  [[cx-w*.27,by+h*.03],[cx+w*.27,by+h*.03]].forEach(function(p){
+    ctx.fillStyle='#111';ctx.beginPath();ctx.ellipse(p[0],p[1],h*.18,h*.18,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#374151';ctx.beginPath();ctx.ellipse(p[0],p[1],h*.11,h*.11,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#6b7280';ctx.beginPath();ctx.ellipse(p[0],p[1],h*.04,h*.04,0,0,Math.PI*2);ctx.fill();
+  });
+  /* question mark on car */
+  ctx.fillStyle='rgba(255,255,255,.5)';ctx.font='bold '+h*.25+'px Syne,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('?',cx,by-h*.38);
+})();
+</script>
+</body>
+</html>

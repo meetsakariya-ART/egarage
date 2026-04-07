@@ -1,39 +1,879 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>eGarage | Professional Auto Services</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        :root { --primary-color: #2c3e50; --accent-color: #e74c3c; }
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .navbar { background-color: var(--primary-color) !important; }
-        .btn-primary { background-color: var(--primary-color); border: none; }
-        .btn-primary:hover { background-color: #1a252f; }
-        .auth-card { border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: none; }
-    </style>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>{% block title %}eGarage{% endblock %}</title>
+  <script>
+  (function(){
+    var t=localStorage.getItem('eg_theme');
+    if(!t) t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+    document.documentElement.setAttribute('data-theme',t);
+  })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+  /* ═══════════════════════════════════════════
+     DESIGN TOKENS
+  ═══════════════════════════════════════════ */
+  :root {
+    --red:#e8192c; --red2:#c0111f; --red-glow:rgba(232,25,44,.22);
+    --green:#00a651; --green2:#008f45;
+    --blue:#3b82f6; --blue2:#2563eb;
+    --yellow:#f59e0b; --purple:#7c3aed;
+    --teal:#0891b2; --orange:#ea580c;
+    --fd:'Syne',sans-serif; --fb:'Instrument Sans',sans-serif;
+    --nav-h:62px; --btab-h:60px;
+    --safe-b:env(safe-area-inset-bottom,0px);
+    --r:12px; --rl:18px;
+
+    /* ── DARK ── */
+    --bg:#0a0f1e;
+    --bg2:#111827;
+    --bg3:#1a2332;
+    --surface:#111827;
+    --surface2:#1a2332;
+    --surface3:#222e40;
+    --border:rgba(148,163,184,.1);
+    --border2:rgba(148,163,184,.18);
+    --text:#f1f5f9;
+    --text2:#cbd5e1;
+    --muted:#94a3b8;
+    --muted2:#64748b;
+    --nav-bg:rgba(10,15,30,.88);
+    --nav-border:rgba(148,163,184,.08);
+    --nav-shadow:0 1px 0 var(--nav-border),0 4px 32px rgba(0,0,0,.5);
+    --dropdown-bg:rgba(12,18,34,.97);
+    --drawer-bg:#0a0f1e;
+    --card-shadow:0 4px 28px rgba(0,0,0,.35);
+    --input-bg:rgba(255,255,255,.04);
+    --input-border:rgba(148,163,184,.12);
+    --input-text:#f1f5f9;
+    --toast-bg:#111827;
+  }
+  [data-theme="light"] {
+    --bg:#f4f6fa;
+    --bg2:#ffffff;
+    --bg3:#eef1f7;
+    --surface:#ffffff;
+    --surface2:#f4f6fa;
+    --surface3:#eef1f7;
+    --border:#e2e8f0;
+    --border2:#cbd5e1;
+    --text:#0f172a;
+    --text2:#334155;
+    --muted:#64748b;
+    --muted2:#94a3b8;
+    --nav-bg:rgba(255,255,255,.92);
+    --nav-border:#e8ecf2;
+    --nav-shadow:0 1px 0 var(--nav-border),0 4px 20px rgba(15,23,42,.07);
+    --dropdown-bg:#ffffff;
+    --drawer-bg:#ffffff;
+    --card-shadow:0 2px 16px rgba(15,23,42,.06);
+    --input-bg:#f8fafc;
+    --input-border:#e2e8f0;
+    --input-text:#0f172a;
+    --toast-bg:#0f172a;
+  }
+
+  /* RESET */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg);color:var(--text);font-family:var(--fb);line-height:1.5;overflow-x:hidden;}
+  body.drawer-open{overflow:hidden;}
+  a{text-decoration:none;color:inherit;}
+  img{display:block;max-width:100%;}
+
+  /* ── GLOBAL TRANSITIONS ── */
+  :where(a,button,.nav-link,.nd-item,.drawer-nav-item,.bt-item,
+         .sb-item,.drawer-book-btn,.drawer-logout){
+    transition:background .15s ease,color .15s ease,border-color .15s ease,
+               opacity .15s ease,transform .15s ease,box-shadow .15s ease;
+  }
+
+  /* ── DARK GLOBAL OVERRIDES ── */
+  [data-theme="dark"] body,[data-theme="dark"] main{background:var(--bg)!important;color:var(--text)!important;}
+  [data-theme="dark"] :is(.card,[class*="card"],[class*="-box"],[class*="panel"],
+    .modal,.stat-card,.bc,.jc,.vc,.vcard,.rcard,.sc,.bcard,.cardb,.cardh,
+    .methods-card,.bill-card,.pay-card,.bi,.sg){
+    background:var(--surface)!important;border-color:var(--border)!important;
+    color:var(--text)!important;box-shadow:var(--card-shadow)!important;}
+  [data-theme="dark"] :is(.page-wrap,.page,.pg,.wrap,.content){background:var(--bg)!important;}
+  [data-theme="dark"] :is(h1,h2,h3,h4,h5,h6){color:var(--text)!important;}
+  [data-theme="dark"] :is(p,label,li){color:var(--text2)!important;}
+  [data-theme="dark"] :is(td,th){color:var(--text2)!important;}
+  [data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
+  [data-theme="dark"] textarea,[data-theme="dark"] select{
+    background:var(--input-bg)!important;border-color:var(--input-border)!important;color:var(--input-text)!important;}
+  [data-theme="dark"] :is(input,textarea)::placeholder{color:var(--muted2)!important;}
+  [data-theme="dark"] :is(input,textarea,select):focus{border-color:var(--red)!important;box-shadow:0 0 0 3px var(--red-glow)!important;}
+  [data-theme="dark"] select option{background:var(--bg2)!important;color:var(--text)!important;}
+  [data-theme="dark"] table{background:transparent!important;}
+  [data-theme="dark"] thead,[data-theme="dark"] th{background:var(--surface2)!important;color:var(--muted)!important;}
+  [data-theme="dark"] tr{border-bottom-color:var(--border)!important;background:transparent!important;}
+  [data-theme="dark"] tr:hover{background:var(--surface2)!important;}
+  [data-theme="dark"] td{color:var(--text2)!important;}
+  [data-theme="dark"] hr,[data-theme="dark"] .divider{border-color:var(--border)!important;}
+  [data-theme="dark"] *::-webkit-scrollbar{background:var(--bg)!important;}
+  [data-theme="dark"] *::-webkit-scrollbar-thumb{background:var(--border2)!important;border-radius:4px;}
+
+  /* ═══════════════════════════════════════════
+     TOAST
+  ═══════════════════════════════════════════ */
+  .toast-container{position:fixed;top:76px;right:16px;z-index:9999;
+    display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+  .toast-msg{
+    background:var(--toast-bg);color:var(--text);
+    padding:11px 16px 11px 14px;border-radius:11px;
+    font-size:.78rem;font-weight:600;font-family:var(--fb);
+    display:flex;align-items:center;gap:9px;pointer-events:all;
+    animation:tmIn .28s cubic-bezier(.34,1.56,.64,1) forwards;
+    box-shadow:0 4px 24px rgba(0,0,0,.3),0 0 0 1px var(--border);
+    max-width:340px;
+  }
+  .toast-msg.closing{animation:tmOut .2s ease forwards;}
+  .toast-icon{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;
+    justify-content:center;flex-shrink:0;}
+  .toast-icon svg{width:13px;height:13px;}
+  .toast-msg.success .toast-icon{background:rgba(0,166,81,.15);color:var(--green);}
+  .toast-msg.error  .toast-icon{background:rgba(220,38,38,.15);color:#f87171;}
+  .toast-msg.warning .toast-icon{background:rgba(245,158,11,.15);color:var(--yellow);}
+  .toast-msg.info   .toast-icon{background:rgba(59,130,246,.15);color:var(--blue);}
+  .toast-close{margin-left:auto;width:18px;height:18px;border-radius:4px;
+    background:transparent;border:none;cursor:pointer;color:var(--muted2);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .toast-close:hover{color:var(--text);background:var(--surface3);}
+  .toast-close svg{width:10px;height:10px;}
+  @keyframes tmIn{from{opacity:0;transform:translateX(20px) scale(.95)}to{opacity:1;transform:none}}
+  @keyframes tmOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(16px) scale(.95)}}
+
+  /* ═══════════════════════════════════════════
+     DESKTOP NAV
+  ═══════════════════════════════════════════ */
+  .desktop-nav{
+    position:sticky;top:0;z-index:500;
+    height:var(--nav-h);
+    background:var(--nav-bg);
+    border-bottom:1px solid var(--nav-border);
+    box-shadow:var(--nav-shadow);
+    backdrop-filter:blur(20px) saturate(180%);
+    -webkit-backdrop-filter:blur(20px) saturate(180%);
+  }
+  .nav-inner{
+    display:flex;align-items:center;
+    padding:0 28px;height:100%;
+    max-width:1440px;margin:0 auto;gap:8px;
+  }
+
+  /* Logo */
+  .nav-logo{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+  .nav-logo-mark{
+    width:34px;height:34px;border-radius:10px;
+    background:var(--red);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 12px var(--red-glow);
+    flex-shrink:0;
+  }
+  .nav-logo-mark svg{width:17px;height:17px;}
+  .nav-logo-mark:hover{transform:rotate(-8deg) scale(1.08);}
+  .nav-wordmark{font-family:var(--fd);font-size:1.15rem;font-weight:900;letter-spacing:-.5px;
+    color:var(--text);}
+  .nav-wordmark em{color:var(--red);font-style:normal;}
+
+  /* Nav links */
+  .nav-links{display:flex;align-items:center;gap:1px;margin-left:10px;}
+  .nav-link{
+    padding:7px 12px;border-radius:8px;
+    font-family:var(--fd);font-size:.7rem;font-weight:700;letter-spacing:.2px;
+    color:var(--muted);white-space:nowrap;
+  }
+  .nav-link:hover{color:var(--text);background:var(--surface3);}
+  .nav-link.active{color:var(--red);}
+  .nav-link.active::after{
+    content:'';display:block;height:2px;background:var(--red);
+    border-radius:2px;margin-top:2px;animation:linkAct .2s ease;
+  }
+  @keyframes linkAct{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+  /* Right cluster */
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:6px;}
+
+  /* Bell */
+  .nav-bell{position:relative;display:inline-flex;}
+  .nav-bell-btn{
+    width:36px;height:36px;border-radius:9px;
+    border:1px solid var(--border);background:var(--surface2);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  .nav-bell-btn:hover{border-color:var(--border2);background:var(--surface3);}
+  .nav-bell-btn svg{width:17px;height:17px;color:var(--muted);}
+  .nav-bell-dot{
+    position:absolute;top:-2px;right:-2px;min-width:16px;height:16px;
+    border-radius:8px;padding:0 3px;
+    background:var(--red);color:#fff;
+    font-size:.52rem;font-weight:900;font-family:var(--fd);
+    display:flex;align-items:center;justify-content:center;
+    border:2px solid var(--nav-bg);
+  }
+
+  /* Book CTA */
+  .nav-cta{
+    padding:8px 16px;border-radius:9px;
+    background:var(--red);color:#fff;
+    font-family:var(--fd);font-size:.7rem;font-weight:800;
+    box-shadow:0 2px 10px var(--red-glow);
+    display:inline-flex;align-items:center;gap:5px;
+  }
+  .nav-cta:hover{background:var(--red2);transform:translateY(-1px);box-shadow:0 4px 16px var(--red-glow);}
+  .nav-cta svg{width:11px;height:11px;}
+
+  /* Theme toggle */
+  .theme-pill{
+    display:flex;align-items:center;gap:8px;
+    padding:6px 12px 6px 8px;border-radius:20px;
+    border:1px solid var(--border);background:var(--surface2);
+    cursor:pointer;user-select:none;
+    font-family:var(--fd);font-size:.68rem;font-weight:700;
+    color:var(--muted);white-space:nowrap;flex-shrink:0;
+  }
+  .theme-pill:hover{border-color:var(--red);color:var(--red);}
+  .tp-track{
+    width:30px;height:17px;border-radius:9px;
+    background:var(--border2);position:relative;flex-shrink:0;
+    transition:background .3s ease;
+  }
+  [data-theme="dark"] .tp-track{background:var(--red);}
+  .tp-thumb{
+    position:absolute;top:2px;left:2px;width:13px;height:13px;
+    border-radius:50%;background:#fff;
+    box-shadow:0 1px 4px rgba(0,0,0,.25);
+    font-size:8px;display:flex;align-items:center;justify-content:center;line-height:1;
+    transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  [data-theme="dark"] .tp-thumb{transform:translateX(13px);}
+
+  /* ── AVATAR ── */
+  .nav-avatar-wrap{position:relative;}
+  .nav-avatar{
+    width:36px;height:36px;border-radius:50%;
+    background:linear-gradient(135deg,var(--blue),var(--purple));
+    border:2px solid var(--border);
+    cursor:pointer;overflow:hidden;padding:0;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--fd);font-size:.76rem;font-weight:900;color:#fff;
+    flex-shrink:0;
+  }
+  .nav-avatar:hover,.nav-avatar.open{border-color:var(--red);}
+  .nav-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  /* Online status ring */
+  .nav-avatar-wrap::after{
+    content:'';position:absolute;bottom:0;right:0;
+    width:9px;height:9px;border-radius:50%;
+    background:var(--green);border:2px solid var(--nav-bg);
+    pointer-events:none;
+  }
+
+  /* Dropdown */
+  .nav-dropdown{
+    position:absolute;top:calc(100% + 10px);right:0;width:252px;
+    background:var(--dropdown-bg);
+    border:1px solid var(--border2);border-radius:16px;
+    box-shadow:0 16px 60px rgba(0,0,0,.3),0 0 0 1px var(--border);
+    overflow:hidden;z-index:600;
+    opacity:0;transform:translateY(-8px) scale(.97);pointer-events:none;
+    transition:opacity .2s ease,transform .2s cubic-bezier(.4,0,.2,1);
+    backdrop-filter:blur(20px);
+  }
+  .nav-dropdown.open{opacity:1;transform:none;pointer-events:all;}
+  .nd-header{
+    padding:14px 16px;
+    background:linear-gradient(135deg,rgba(232,25,44,.12),transparent);
+    border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:11px;
+  }
+  .nd-ava{
+    width:40px;height:40px;border-radius:50%;
+    background:linear-gradient(135deg,var(--blue),var(--purple));
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--fd);font-size:.8rem;font-weight:900;color:#fff;
+    flex-shrink:0;overflow:hidden;padding:0;border:2px solid var(--border2);
+  }
+  .nd-ava img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .nd-info{flex:1;min-width:0;}
+  .nd-name{font-family:var(--fd);font-size:.82rem;font-weight:800;color:var(--text);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .nd-role{
+    display:inline-flex;align-items:center;gap:4px;
+    font-size:.6rem;color:var(--muted);margin-top:3px;
+  }
+  .nd-role-dot{width:5px;height:5px;border-radius:50%;background:var(--green);}
+  .nd-body{padding:6px;}
+  .nd-item{
+    display:flex;align-items:center;gap:10px;
+    padding:9px 12px;border-radius:9px;
+    font-size:.76rem;font-weight:600;color:var(--text2);cursor:pointer;
+  }
+  .nd-item:hover{background:var(--surface3);}
+  .nd-item-ico{
+    width:28px;height:28px;border-radius:7px;background:var(--surface3);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .nd-item-ico svg{width:13px;height:13px;color:var(--muted);}
+  .nd-item:hover .nd-item-ico{background:var(--border2);}
+  .nd-item.danger{color:var(--red);}
+  .nd-item.danger .nd-item-ico{background:rgba(232,25,44,.12);}
+  .nd-item.danger .nd-item-ico svg{color:var(--red);}
+  .nd-sep{height:1px;background:var(--border);margin:4px 6px;}
+
+  /* ── HAMBURGER ── */
+  .hamburger{
+    display:none;width:38px;height:38px;border-radius:9px;
+    border:1px solid var(--border);background:var(--surface2);
+    cursor:pointer;flex-direction:column;align-items:center;
+    justify-content:center;gap:5px;flex-shrink:0;margin-left:auto;
+  }
+  .hamburger:hover{border-color:var(--red);}
+  .h-bar{width:18px;height:2px;border-radius:2px;background:var(--muted);transform-origin:center;
+    transition:transform .25s cubic-bezier(.4,0,.2,1),opacity .2s ease!important;}
+  .hamburger.open .h-bar:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .hamburger.open .h-bar:nth-child(2){opacity:0;}
+  .hamburger.open .h-bar:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+  /* ═══════════════════════════════════════════
+     MOBILE DRAWER
+  ═══════════════════════════════════════════ */
+  .drawer-overlay{
+    position:fixed;inset:0;z-index:700;
+    background:transparent;backdrop-filter:blur(0);
+    pointer-events:none;
+    transition:background .3s ease,backdrop-filter .3s ease;
+  }
+  .drawer-overlay.open{
+    background:rgba(0,0,0,.6);
+    backdrop-filter:blur(6px);
+    pointer-events:all;
+  }
+  .drawer{
+    position:fixed;top:0;left:0;bottom:0;z-index:800;
+    width:min(300px,88vw);
+    background:var(--drawer-bg);
+    border-right:1px solid var(--border);
+    transform:translateX(-100%);
+    transition:transform .32s cubic-bezier(.4,0,.2,1);
+    display:flex;flex-direction:column;overflow:hidden;
+    box-shadow:4px 0 48px rgba(0,0,0,.3);
+  }
+  .drawer.open{transform:translateX(0);}
+
+  /* Drawer header */
+  .drawer-head{
+    padding:0 18px;height:62px;
+    display:flex;align-items:center;justify-content:space-between;
+    border-bottom:1px solid var(--border);flex-shrink:0;
+  }
+  .drawer-close{
+    width:30px;height:30px;border-radius:50%;
+    border:1px solid var(--border);background:var(--surface2);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  .drawer-close:hover{border-color:var(--red);}
+  .drawer-close svg{width:12px;height:12px;color:var(--muted);}
+
+  /* User card in drawer */
+  .drawer-user{
+    margin:14px 14px 6px;padding:14px;
+    background:linear-gradient(135deg,rgba(232,25,44,.15) 0%,var(--surface2) 100%);
+    border:1px solid var(--border);border-radius:14px;
+    display:flex;align-items:center;gap:12px;flex-shrink:0;
+    position:relative;overflow:hidden;
+  }
+  .drawer-user::before{
+    content:'';position:absolute;top:-30px;right:-30px;
+    width:100px;height:100px;border-radius:50%;
+    background:rgba(232,25,44,.08);pointer-events:none;
+  }
+  .du-ava{
+    width:46px;height:46px;border-radius:50%;
+    background:linear-gradient(135deg,var(--blue),var(--purple));
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--fd);font-size:.88rem;font-weight:900;color:#fff;
+    border:2.5px solid rgba(255,255,255,.2);flex-shrink:0;
+    overflow:hidden;padding:0;position:relative;z-index:1;
+  }
+  .du-ava img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .du-text{position:relative;z-index:1;}
+  .du-name{font-family:var(--fd);font-size:.86rem;font-weight:900;color:var(--text);}
+  .du-role{font-size:.62rem;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:4px;}
+  .du-dot{width:6px;height:6px;border-radius:50%;background:var(--green);
+    animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
+
+  /* Theme row in drawer */
+  .drawer-theme{
+    margin:6px 14px 4px;padding:11px 14px;border-radius:11px;
+    background:var(--surface2);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+    cursor:pointer;flex-shrink:0;
+  }
+  .drawer-theme:hover{border-color:var(--red);}
+  .dt-left{display:flex;align-items:center;gap:8px;
+    font-family:var(--fd);font-size:.72rem;font-weight:700;color:var(--text2);}
+  .dt-left svg{width:14px;height:14px;color:var(--muted);}
+
+  /* Drawer scroll area */
+  .drawer-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px;}
+  .drawer-scroll::-webkit-scrollbar{display:none;}
+  .drawer-sec{padding:10px 10px 0;}
+  .drawer-sec-lbl{
+    font-size:.56rem;font-weight:800;letter-spacing:1.2px;
+    text-transform:uppercase;color:var(--muted2);padding:8px 10px 4px;
+  }
+  .dni{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 10px;border-radius:10px;
+    font-family:var(--fd);font-size:.76rem;font-weight:700;
+    color:var(--text2);cursor:pointer;margin-bottom:1px;
+  }
+  .dni:hover{background:var(--surface3);}
+  .dni.active{background:rgba(232,25,44,.1);color:var(--red);}
+  .dni.active .dni-ico{background:rgba(232,25,44,.14);}
+  .dni.active .dni-ico svg{color:var(--red);}
+  .dni-ico{
+    width:32px;height:32px;border-radius:8px;background:var(--surface3);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .dni-ico svg{width:15px;height:15px;color:var(--muted);}
+  .dni-lbl{flex:1;}
+  .dni-badge{background:var(--red);color:#fff;font-size:.55rem;font-weight:900;
+    padding:2px 6px;border-radius:20px;font-family:var(--fd);}
+  .dni-arrow{width:14px;height:14px;color:var(--border2);}
+  .drawer-sep{height:1px;background:var(--border);margin:6px 18px;}
+
+  /* Drawer bottom */
+  .drawer-foot{
+    padding:14px;border-top:1px solid var(--border);flex-shrink:0;
+    padding-bottom:calc(14px + var(--safe-b));background:var(--drawer-bg);
+  }
+  .drawer-cta{
+    display:flex;align-items:center;justify-content:center;gap:7px;
+    width:100%;padding:12px;border-radius:11px;
+    background:var(--red);color:#fff;
+    font-family:var(--fd);font-size:.8rem;font-weight:800;
+    border:none;cursor:pointer;margin-bottom:8px;
+    box-shadow:0 4px 14px var(--red-glow);
+  }
+  .drawer-cta:hover{background:var(--red2);}
+  .drawer-cta svg{width:14px;height:14px;}
+  .drawer-out{
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    width:100%;padding:10px;border-radius:11px;
+    border:1px solid var(--border);background:var(--surface2);
+    font-family:var(--fd);font-size:.74rem;font-weight:700;
+    color:var(--muted);cursor:pointer;
+  }
+  .drawer-out:hover{border-color:var(--red);color:var(--red);}
+  .drawer-out svg{width:13px;height:13px;}
+
+  /* ═══════════════════════════════════════════
+     BOTTOM TABS
+  ═══════════════════════════════════════════ */
+  .btabs{
+    display:none;position:fixed;bottom:0;left:0;right:0;z-index:499;
+    background:var(--nav-bg);border-top:1px solid var(--nav-border);
+    box-shadow:0 -4px 24px rgba(0,0,0,.15);
+    height:calc(var(--btab-h) + var(--safe-b));
+    padding-bottom:var(--safe-b);
+    backdrop-filter:blur(20px) saturate(180%);
+  }
+  .btabs-inner{display:flex;height:var(--btab-h);}
+  .bt{
+    flex:1;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:3px;cursor:pointer;text-decoration:none;
+    position:relative;-webkit-tap-highlight-color:transparent;
+  }
+  .bt:active{transform:scale(.9);}
+  .bt-ico{
+    width:26px;height:26px;
+    display:flex;align-items:center;justify-content:center;border-radius:8px;
+  }
+  .bt-ico svg{width:20px;height:20px;color:var(--muted2);}
+  .bt-lbl{font-family:var(--fd);font-size:.53rem;font-weight:800;color:var(--muted2);letter-spacing:.2px;}
+  .bt.active .bt-ico svg{color:var(--red);}
+  .bt.active .bt-lbl{color:var(--red);}
+  .bt.active .bt-ico{background:rgba(232,25,44,.1);}
+  .bt.active::before{
+    content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:24px;height:2px;border-radius:0 0 2px 2px;background:var(--red);
+  }
+  /* Center book button */
+  .bt-book{
+    flex:1;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  }
+  .bt-book-ring{
+    width:50px;height:50px;border-radius:50%;
+    background:var(--red);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 18px var(--red-glow);
+    margin-top:-16px;border:3px solid var(--nav-bg);
+    transition:transform .15s ease,box-shadow .15s ease;
+  }
+  .bt-book:active .bt-book-ring{transform:scale(.88);}
+  .bt-book-ring svg{width:20px;height:20px;color:#fff;}
+  .bt-book-lbl{font-family:var(--fd);font-size:.52rem;font-weight:800;color:var(--red);margin-top:2px;}
+  .bt-badge{
+    position:absolute;top:7px;right:calc(50% - 18px);
+    min-width:14px;height:14px;border-radius:7px;padding:0 3px;
+    background:var(--red);color:#fff;font-size:.5rem;font-weight:900;
+    font-family:var(--fd);display:flex;align-items:center;justify-content:center;
+    border:2px solid var(--nav-bg);
+  }
+
+  /* ═══════════════════════════════════════════
+     RESPONSIVE
+  ═══════════════════════════════════════════ */
+  @media(max-width:900px){
+    .nav-links,.nav-right .nav-avatar-wrap,.nav-right .nav-bell,.nav-right .nav-cta,.nav-right .theme-pill{display:none;}
+    .hamburger{display:flex;}
+    .btabs{display:flex;flex-direction:column;}
+    body{padding-bottom:calc(var(--btab-h) + var(--safe-b));}
+  }
+  @media(min-width:901px){.drawer,.drawer-overlay,.btabs{display:none!important;}}
+  </style>
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="#">🚀 eGarage</a>
-            <div class="ms-auto">
-                {% if user.is_authenticated %}
-                    <span class="text-light me-3">Hello, {{ user.name }}</span>
-                    <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Logout</a>
-                {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm me-2">Login</a>
-                    <a href="{% url 'signup' %}" class="btn btn-light btn-sm text-primary">Sign Up</a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
 
-    <div class="container">
-        {% block content %}{% endblock %}
+{# ═══ DESKTOP NAV ═══ #}
+<nav class="desktop-nav" role="navigation" aria-label="Main">
+  <div class="nav-inner">
+
+    <a href="{% url 'home' %}" class="nav-logo">
+      <div class="nav-logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/>
+          <circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+        </svg>
+      </div>
+      <span class="nav-wordmark"><em>e</em>Garage</span>
+    </a>
+
+    <div class="nav-links">
+      {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
+        {% if user.role == 'owner' or not user.role %}
+          <a href="{% url 'booking' %}"       class="nav-link {% if request.resolver_match.url_name == 'booking' %}active{% endif %}">Book Service</a>
+          <a href="{% url 'bookings' %}"      class="nav-link {% if request.resolver_match.url_name == 'bookings' %}active{% endif %}">My Bookings</a>
+          <a href="{% url 'vehicles' %}"      class="nav-link {% if request.resolver_match.url_name == 'vehicles' %}active{% endif %}">Vehicles</a>
+          <a href="{% url 'track' %}"         class="nav-link {% if request.resolver_match.url_name == 'track' %}active{% endif %}">Live Track</a>
+          <a href="{% url 'garage_finder' %}" class="nav-link {% if request.resolver_match.url_name == 'garage_finder' %}active{% endif %}">Find Garage</a>
+        {% elif user.role == 'mechanic' %}
+          <a href="{% url 'mechanic_jobs' %}" class="nav-link {% if request.resolver_match.url_name == 'mechanic_jobs' %}active{% endif %}">My Jobs</a>
+          <a href="{% url 'earnings' %}"      class="nav-link {% if request.resolver_match.url_name == 'earnings' %}active{% endif %}">Earnings</a>
+          <a href="{% url 'schedule' %}"      class="nav-link {% if request.resolver_match.url_name == 'schedule' %}active{% endif %}">Schedule</a>
+        {% elif user.role == 'manager' %}
+          <a href="{% url 'reports' %}"         class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">Reports</a>
+          <a href="{% url 'manager_finance' %}" class="nav-link {% if request.resolver_match.url_name == 'manager_finance' %}active{% endif %}">Finance</a>
+          <a href="{% url 'team' %}"            class="nav-link {% if request.resolver_match.url_name == 'team' %}active{% endif %}">Team</a>
+          <a href="{% url 'garage_settings' %}" class="nav-link {% if request.resolver_match.url_name == 'garage_settings' %}active{% endif %}">Settings</a>
+        {% endif %}
+      {% else %}
+        <a href="{% url 'home' %}"          class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+        <a href="{% url 'garage_finder' %}" class="nav-link">Find Garage</a>
+      {% endif %}
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="nav-right">
+      <button class="theme-pill" onclick="toggleTheme()" aria-label="Toggle theme">
+        <div class="tp-track"><div class="tp-thumb" id="tpThumb">🌙</div></div>
+        <span id="tpLabel">Night</span>
+      </button>
+
+      {% if user.is_authenticated %}
+        <div class="nav-bell">
+          <a href="{% url 'notifications' %}" class="nav-bell-btn" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 01-3.46 0"/>
+            </svg>
+          </a>
+          {% if unread_count %}<span class="nav-bell-dot">{{ unread_count }}</span>{% endif %}
+        </div>
+
+        {% if user.role == 'owner' or not user.role %}
+          <a href="{% url 'booking' %}" class="nav-cta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Book Now
+          </a>
+        {% endif %}
+
+        <div class="nav-avatar-wrap">
+          <div class="nav-avatar" id="avatarBtn" onclick="toggleDropdown()">
+            {% if user.profile_photo and user.profile_photo.name %}
+              <img src="{{ user.profile_photo.url }}" alt="{{ user.name }}">
+            {% else %}
+              {{ user.name|first|upper }}{% if user.name.split|length > 1 %}{{ user.name.split|last|first|upper }}{% endif %}
+            {% endif %}
+          </div>
+          <div class="nav-dropdown" id="navDropdown">
+            <div class="nd-header">
+              <div class="nd-ava">
+                {% if user.profile_photo and user.profile_photo.name %}
+                  <img src="{{ user.profile_photo.url }}" alt="{{ user.name }}">
+                {% else %}{{ user.name|first|upper }}{% endif %}
+              </div>
+              <div class="nd-info">
+                <div class="nd-name">{{ user.name }}</div>
+                <div class="nd-role"><div class="nd-role-dot"></div>{{ user.role|capfirst|default:"User" }} · Active</div>
+              </div>
+            </div>
+            <div class="nd-body">
+              <a href="{% url 'profile' %}" class="nd-item">
+                <div class="nd-item-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>My Profile
+              </a>
+              <a href="{% url 'notifications' %}" class="nd-item">
+                <div class="nd-item-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>Notifications
+                {% if unread_count %}<span style="margin-left:auto;background:var(--red);color:#fff;font-size:.55rem;font-weight:900;padding:2px 6px;border-radius:10px;font-family:var(--fd);">{{ unread_count }}</span>{% endif %}
+              </a>
+              {% if user.role == 'owner' or not user.role %}
+                <a href="{% url 'vehicles' %}" class="nd-item">
+                  <div class="nd-item-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>My Vehicles
+                </a>
+              {% endif %}
+              {% if user.is_staff %}
+                <div class="nd-sep"></div>
+                <a href="{% url 'admin_panel' %}" class="nd-item">
+                  <div class="nd-item-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>Admin Panel
+                </a>
+              {% endif %}
+              <div class="nd-sep"></div>
+              <a href="{% url 'logout' %}" class="nd-item danger">
+                <div class="nd-item-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>Sign Out
+              </a>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <a href="{% url 'login' %}"  style="padding:7px 14px;border:1px solid var(--border);border-radius:8px;font-family:var(--fd);font-size:.7rem;font-weight:700;color:var(--muted);">Sign In</a>
+        <a href="{% url 'signup' %}" class="nav-cta">Sign Up Free</a>
+      {% endif %}
+    </div>
+
+    <button class="hamburger" id="hamburger" onclick="toggleDrawer()" aria-label="Menu">
+      <div class="h-bar"></div><div class="h-bar"></div><div class="h-bar"></div>
+    </button>
+  </div>
+</nav>
+
+{# ═══ MOBILE DRAWER ═══ #}
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer" aria-label="Navigation menu">
+  <div class="drawer-head">
+    <a href="{% url 'home' %}" class="nav-logo" onclick="closeDrawer()">
+      <div class="nav-logo-mark" style="width:30px;height:30px;border-radius:8px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+      </div>
+      <span class="nav-wordmark" style="font-size:1rem;"><em>e</em>Garage</span>
+    </a>
+    <button class="drawer-close" onclick="closeDrawer()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  {% if user.is_authenticated %}
+  <div class="drawer-user">
+    <div class="du-ava">
+      {% if user.profile_photo and user.profile_photo.name %}
+        <img src="{{ user.profile_photo.url }}" alt="{{ user.name }}">
+      {% else %}{{ user.name|first|upper }}{% endif %}
+    </div>
+    <div class="du-text">
+      <div class="du-name">{{ user.name }}</div>
+      <div class="du-role"><div class="du-dot"></div>{{ user.role|capfirst|default:"User" }} · {{ user.city|default:"" }}</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="drawer-theme" onclick="toggleTheme()">
+    <div class="dt-left">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+      <span id="dtLabel">Switch to Day Mode</span>
+    </div>
+    <div class="tp-track" style="width:34px;height:19px;"><div class="tp-thumb" style="width:15px;height:15px;"></div></div>
+  </div>
+
+  <div class="drawer-scroll">
+    {% if user.is_authenticated %}
+      <div class="drawer-sec"><div class="drawer-sec-lbl">Main</div>
+        <a href="{% url 'dashboard' %}" class="dni {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><span class="dni-lbl">Dashboard</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'notifications' %}" class="dni {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}" onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div><span class="dni-lbl">Notifications</span>{% if unread_count %}<span class="dni-badge">{{ unread_count }}</span>{% endif %}</a>
+      </div>
+
+      {% if user.role == 'owner' or not user.role %}
+      <div class="drawer-sep"></div>
+      <div class="drawer-sec"><div class="drawer-sec-lbl">Services</div>
+        <a href="{% url 'booking' %}"       class="dni {% if request.resolver_match.url_name == 'booking' %}active{% endif %}"       onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div><span class="dni-lbl">Book a Service</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'bookings' %}"      class="dni {% if request.resolver_match.url_name == 'bookings' %}active{% endif %}"      onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><span class="dni-lbl">My Bookings</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'track' %}"         class="dni {% if request.resolver_match.url_name == 'track' %}active{% endif %}"         onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><span class="dni-lbl">Live Tracking</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'vehicles' %}"      class="dni {% if request.resolver_match.url_name == 'vehicles' %}active{% endif %}"      onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div><span class="dni-lbl">My Vehicles</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'garage_finder' %}" class="dni {% if request.resolver_match.url_name == 'garage_finder' %}active{% endif %}" onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="dni-lbl">Find a Garage</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'profile' %}"       class="dni {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"       onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><span class="dni-lbl">My Profile</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+      </div>
+
+      {% elif user.role == 'mechanic' %}
+      <div class="drawer-sep"></div>
+      <div class="drawer-sec"><div class="drawer-sec-lbl">My Work</div>
+        <a href="{% url 'mechanic_jobs' %}" class="dni {% if request.resolver_match.url_name == 'mechanic_jobs' %}active{% endif %}" onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div><span class="dni-lbl">My Jobs</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'earnings' %}"      class="dni {% if request.resolver_match.url_name == 'earnings' %}active{% endif %}"      onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><span class="dni-lbl">Earnings</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'schedule' %}"      class="dni {% if request.resolver_match.url_name == 'schedule' %}active{% endif %}"      onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><span class="dni-lbl">My Schedule</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'profile' %}"       class="dni {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"       onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><span class="dni-lbl">My Profile</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+      </div>
+
+      {% elif user.role == 'manager' %}
+      <div class="drawer-sep"></div>
+      <div class="drawer-sec"><div class="drawer-sec-lbl">Manage</div>
+        <a href="{% url 'reports' %}"         class="dni {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"         onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><span class="dni-lbl">Reports</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'manager_finance' %}" class="dni {% if request.resolver_match.url_name == 'manager_finance' %}active{% endif %}" onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><span class="dni-lbl">Finance</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'team' %}"            class="dni {% if request.resolver_match.url_name == 'team' %}active{% endif %}"            onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div><span class="dni-lbl">Team</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'garage_settings' %}" class="dni {% if request.resolver_match.url_name == 'garage_settings' %}active{% endif %}" onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div><span class="dni-lbl">Garage Settings</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        <a href="{% url 'profile' %}"         class="dni {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"         onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><span class="dni-lbl">My Profile</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+      </div>
+      {% endif %}
+
+      {% if user.is_staff %}
+        <div class="drawer-sep"></div>
+        <div class="drawer-sec"><div class="drawer-sec-lbl">Admin</div>
+          <a href="{% url 'admin_panel' %}" class="dni" onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><span class="dni-lbl">Admin Panel</span><svg class="dni-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        </div>
+      {% endif %}
+
+    {% else %}
+      <div class="drawer-sec"><div class="drawer-sec-lbl">Navigation</div>
+        <a href="{% url 'home' %}"          class="dni {% if request.resolver_match.url_name == 'home' %}active{% endif %}" onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><span class="dni-lbl">Home</span></a>
+        <a href="{% url 'garage_finder' %}" class="dni" onclick="closeDrawer()"><div class="dni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="dni-lbl">Find a Garage</span></a>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="drawer-foot">
+    {% if user.is_authenticated %}
+      {% if user.role == 'owner' or not user.role %}
+        <a href="{% url 'booking' %}" class="drawer-cta" onclick="closeDrawer()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Book a Service
+        </a>
+      {% endif %}
+      <a href="{% url 'logout' %}" class="drawer-out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    {% else %}
+      <a href="{% url 'signup' %}" class="drawer-cta" onclick="closeDrawer()">Create Free Account</a>
+      <a href="{% url 'login' %}"  class="drawer-out"  onclick="closeDrawer()">Sign In</a>
+    {% endif %}
+  </div>
+</aside>
+
+{# ═══ BOTTOM TABS ═══ #}
+<nav class="btabs" aria-label="Mobile navigation">
+  <div class="btabs-inner">
+    {% if user.is_authenticated %}
+      {% if user.role == 'owner' or not user.role %}
+        <a href="{% url 'home' %}"     class="bt {% if request.resolver_match.url_name == 'home' %}active{% endif %}"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><span class="bt-lbl">Home</span></a>
+        <a href="{% url 'bookings' %}" class="bt {% if request.resolver_match.url_name == 'bookings' %}active{% endif %}"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><span class="bt-lbl">Bookings</span></a>
+        <a href="{% url 'booking' %}" class="bt-book"><div class="bt-book-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div><span class="bt-book-lbl">Book</span></a>
+        <a href="{% url 'track' %}"   class="bt {% if request.resolver_match.url_name == 'track' %}active{% endif %}"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><span class="bt-lbl">Track</span></a>
+        <a href="{% url 'profile' %}" class="bt {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><span class="bt-lbl">Profile</span></a>
+      {% elif user.role == 'mechanic' %}
+        <a href="{% url 'dashboard' %}"     class="bt {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><span class="bt-lbl">Home</span></a>
+        <a href="{% url 'mechanic_jobs' %}" class="bt {% if request.resolver_match.url_name == 'mechanic_jobs' %}active{% endif %}"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div><span class="bt-lbl">Jobs</span></a>
+        <a href="{% url 'notifications' %}" class="bt {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}" style="position:relative;">{% if unread_count %}<span class="bt-badge">{{ unread_count }}</span>{% endif %}<div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div><span class="bt-lbl">Alerts</span></a>
+        <a href="{% url 'earnings' %}" class="bt {% if request.resolver_match.url_name == 'earnings' %}active{% endif %}"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><span class="bt-lbl">Earnings</span></a>
+        <a href="{% url 'profile' %}"  class="bt {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><span class="bt-lbl">Profile</span></a>
+      {% elif user.role == 'manager' %}
+        <a href="{% url 'dashboard' %}"     class="bt {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><span class="bt-lbl">Dashboard</span></a>
+        <a href="{% url 'reports' %}"       class="bt {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><span class="bt-lbl">Reports</span></a>
+        <a href="{% url 'team' %}"          class="bt {% if request.resolver_match.url_name == 'team' %}active{% endif %}"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div><span class="bt-lbl">Team</span></a>
+        <a href="{% url 'notifications' %}" class="bt {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}" style="position:relative;">{% if unread_count %}<span class="bt-badge">{{ unread_count }}</span>{% endif %}<div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div><span class="bt-lbl">Alerts</span></a>
+        <a href="{% url 'profile' %}"       class="bt {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><span class="bt-lbl">Profile</span></a>
+      {% endif %}
+    {% else %}
+      <a href="{% url 'home' %}"          class="bt {% if request.resolver_match.url_name == 'home' %}active{% endif %}"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><span class="bt-lbl">Home</span></a>
+      <a href="{% url 'garage_finder' %}" class="bt"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="bt-lbl">Find</span></a>
+      <a href="{% url 'booking' %}" class="bt-book"><div class="bt-book-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div><span class="bt-book-lbl">Book</span></a>
+      <a href="{% url 'login' %}"  class="bt"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></div><span class="bt-lbl">Sign In</span></a>
+      <a href="{% url 'signup' %}" class="bt"><div class="bt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div><span class="bt-lbl">Sign Up</span></a>
+    {% endif %}
+  </div>
+</nav>
+
+<div class="toast-container" id="toastContainer"></div>
+<main>{% block content %}{% endblock %}</main>
+
+{% if messages %}
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  {% for message in messages %}showGlobalToast("{{ message|escapejs }}","{% if message.tags %}{{ message.tags }}{% else %}success{% endif %}");{% endfor %}
+});
+</script>
+{% endif %}
+
+<script>
+/* ── THEME ── */
+(function(){
+  var K='eg_theme',D='dark',L='light';
+  function get(){var s=localStorage.getItem(K);return s||(window.matchMedia('(prefers-color-scheme:dark)').matches?D:L);}
+  function apply(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem(K,t);sync(t);}
+  function sync(t){
+    var dark=t===D;
+    var lbl=document.getElementById('tpLabel'),thumb=document.getElementById('tpThumb'),dtlbl=document.getElementById('dtLabel');
+    if(lbl)lbl.textContent=dark?'Night':'Day';
+    if(thumb)thumb.textContent=dark?'🌙':'☀️';
+    if(dtlbl)dtlbl.textContent=dark?'Switch to Day Mode':'Switch to Night Mode';
+  }
+  window.toggleTheme=function(){apply(document.documentElement.getAttribute('data-theme')===D?L:D);};
+  apply(get());
+  window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',function(e){if(!localStorage.getItem(K))apply(e.matches?D:L);});
+})();
+
+/* ── DRAWER ── */
+var _dOpen=false;
+function toggleDrawer(){_dOpen?closeDrawer():openDrawer();}
+function openDrawer(){_dOpen=true;['drawer','drawerOverlay'].forEach(function(id){document.getElementById(id).classList.add('open');});document.getElementById('hamburger').classList.add('open');document.body.classList.add('drawer-open');}
+function closeDrawer(){_dOpen=false;['drawer','drawerOverlay'].forEach(function(id){document.getElementById(id).classList.remove('open');});document.getElementById('hamburger').classList.remove('open');document.body.classList.remove('drawer-open');}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&_dOpen)closeDrawer();});
+(function(){var tx=0,ty=0,d=document.getElementById('drawer');d.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});d.addEventListener('touchmove',function(e){if(e.touches[0].clientX-tx<-44&&Math.abs(e.touches[0].clientY-ty)<60)closeDrawer();},{passive:true});})();
+
+/* ── DROPDOWN ── */
+var _ddOpen=false;
+function toggleDropdown(){_ddOpen?closeDropdown():openDropdown();}
+function openDropdown(){_ddOpen=true;document.getElementById('navDropdown').classList.add('open');document.getElementById('avatarBtn').classList.add('open');}
+function closeDropdown(){_ddOpen=false;var d=document.getElementById('navDropdown'),a=document.getElementById('avatarBtn');if(d)d.classList.remove('open');if(a)a.classList.remove('open');}
+document.addEventListener('click',function(e){var w=document.querySelector('.nav-avatar-wrap');if(w&&!w.contains(e.target))closeDropdown();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&_ddOpen)closeDropdown();});
+
+/* ── TOAST ── */
+var _icons={
+  success:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  error:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+  warning:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>',
+  info:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+};
+function showGlobalToast(msg,type){
+  type=type||'success';
+  var c=document.getElementById('toastContainer');if(!c)return;
+  var el=document.createElement('div');
+  el.className='toast-msg '+(type||'success');
+  el.innerHTML='<div class="toast-icon">'+(_icons[type]||_icons.success)+'</div><span style="flex:1;">'+msg+'</span>'
+    +'<button class="toast-close" onclick="this.parentNode.remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
+  c.appendChild(el);
+  setTimeout(function(){el.classList.add('closing');setTimeout(function(){el.remove();},220);},4500);
+}
+window.showGlobalToast=showGlobalToast;
+</script>
+{% block extra_scripts %}{% endblock %}
 </body>
 </html>

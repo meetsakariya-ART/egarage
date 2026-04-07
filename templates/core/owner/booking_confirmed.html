@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Booking Confirmed — eGarage</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--red:#e8192c;--green:#00a651;--blue:#1a56db;--fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;}
+html,body{min-height:100vh;background:#06060c;font-family:var(--fb);color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;}
+
+/* BG */
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(0,166,81,.12),transparent 60%);pointer-events:none;}
+
+/* CONFETTI */
+.confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.cf{position:absolute;top:-20px;border-radius:2px;animation:cffall var(--d,3s) linear var(--delay,0s) infinite;}
+@keyframes cffall{0%{transform:translateY(-20px) rotate(0);opacity:1;}100%{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+
+.wrap{position:relative;z-index:1;width:100%;max-width:560px;}
+
+/* SUCCESS CARD */
+.card{
+  background:rgba(255,255,255,.05);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:24px;overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,.5);
+}
+
+/* TOP GREEN BAND */
+.top-band{
+  background:linear-gradient(135deg,#00a651,#00c853);
+  padding:36px 32px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.top-band::before{content:'';position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.08);}
+.check-ring{
+  width:72px;height:72px;border-radius:50%;
+  background:rgba(255,255,255,.2);
+  border:3px solid rgba(255,255,255,.4);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;
+  animation:ringPop .6s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes ringPop{from{transform:scale(0);opacity:0;}to{transform:scale(1);opacity:1;}}
+.check-ring svg{width:34px;height:34px;color:#fff;}
+.conf-title{font-family:var(--fd);font-size:1.4rem;font-weight:900;color:#fff;letter-spacing:-.3px;margin-bottom:5px;}
+.conf-sub{font-size:.82rem;color:rgba(255,255,255,.75);}
+
+/* BODY */
+.card-body{padding:28px 32px;}
+
+/* REF CHIP */
+.ref-chip{
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(0,166,81,.1);border:1px solid rgba(0,166,81,.25);
+  border-radius:12px;padding:14px 18px;margin-bottom:22px;
+}
+.ref-lbl{font-size:.65rem;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;}
+.ref-val{font-family:var(--fd);font-size:1rem;font-weight:900;color:var(--green);letter-spacing:1px;}
+.ref-copy{
+  display:flex;align-items:center;gap:5px;
+  padding:6px 12px;border:1px solid rgba(0,166,81,.3);border-radius:8px;
+  font-family:var(--fd);font-size:.65rem;font-weight:700;color:var(--green);
+  cursor:pointer;background:transparent;transition:all .15s;
+}
+.ref-copy:hover{background:rgba(0,166,81,.1);}
+.ref-copy svg{width:12px;height:12px;}
+
+/* DETAILS GRID */
+.details{display:flex;flex-direction:column;gap:1px;margin-bottom:22px;}
+.detail-row{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);
+}
+.detail-row:last-child{border-bottom:none;}
+.detail-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;}
+.detail-key{font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px;}
+.detail-val{font-size:.85rem;font-weight:600;color:#fff;}
+.detail-val.green{color:var(--green);}
+.detail-val.big{font-family:var(--fd);font-size:1.05rem;font-weight:900;}
+
+/* TIMELINE */
+.timeline{margin-bottom:22px;}
+.tl-title{font-size:.65rem;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.tl{display:flex;align-items:center;gap:0;}
+.tl-step{display:flex;flex-direction:column;align-items:center;flex:1;}
+.tl-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .3s;border:2px solid;}
+.tl-dot.done{background:var(--green);border-color:var(--green);box-shadow:0 0 12px rgba(0,166,81,.4);}
+.tl-dot.now{background:var(--blue);border-color:var(--blue);box-shadow:0 0 12px rgba(26,86,219,.4);animation:glow 1.5s infinite;}
+@keyframes glow{0%,100%{box-shadow:0 0 12px rgba(26,86,219,.4);}50%{box-shadow:0 0 20px rgba(26,86,219,.7);}}
+.tl-dot.soon{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);}
+.tl-lbl{font-size:.58rem;color:rgba(255,255,255,.4);margin-top:5px;text-align:center;font-weight:600;letter-spacing:.3px;}
+.tl-dot.done .tl-lbl{color:var(--green);}
+.tl-dot.now .tl-lbl{color:var(--blue);}
+.tl-line{flex:1;height:2px;background:rgba(255,255,255,.08);margin-top:-14px;}
+.tl-line.done{background:var(--green);}
+
+/* EMAIL NOTE */
+.email-note{
+  background:rgba(26,86,219,.08);border:1px solid rgba(26,86,219,.2);
+  border-radius:10px;padding:12px 16px;
+  display:flex;align-items:center;gap:10px;
+  font-size:.76rem;color:rgba(255,255,255,.55);
+  margin-bottom:22px;line-height:1.5;
+}
+.email-note svg{width:16px;height:16px;color:#4dabf7;flex-shrink:0;}
+
+/* ACTIONS */
+.actions{display:flex;gap:10px;}
+.act-btn{
+  flex:1;padding:13px;border-radius:12px;
+  font-family:var(--fd);font-size:.78rem;font-weight:700;letter-spacing:.3px;
+  cursor:pointer;transition:all .2s;text-decoration:none;
+  display:flex;align-items:center;justify-content:center;gap:7px;border:none;
+}
+.act-btn svg{width:14px;height:14px;}
+.act-primary{background:var(--green);color:#fff;box-shadow:0 4px 18px rgba(0,166,81,.35);}
+.act-primary:hover{background:#008a43;transform:translateY(-1px);}
+.act-secondary{background:rgba(255,255,255,.07);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.act-secondary:hover{background:rgba(255,255,255,.12);color:#fff;}
+.act-track{background:rgba(26,86,219,.15);color:#4dabf7;border:1px solid rgba(26,86,219,.25);}
+.act-track:hover{background:rgba(26,86,219,.25);}
+</style>
+</head>
+<body>
+
+<!-- CONFETTI -->
+<div class="confetti-wrap" id="confettiWrap"></div>
+
+<div class="wrap">
+  <div class="card">
+
+    <!-- GREEN TOP -->
+    <div class="top-band">
+      <div class="check-ring">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="conf-title">Booking Confirmed! 🎉</div>
+      <div class="conf-sub">Your service is scheduled. We'll take it from here.</div>
+    </div>
+
+    <div class="card-body">
+
+      <!-- REFERENCE -->
+      <div class="ref-chip">
+        <div><div class="ref-lbl">Booking Reference</div><div class="ref-val" id="refVal">{{ booking.reference }}</div></div>
+        <button class="ref-copy" onclick="copyRef()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</button>
+      </div>
+
+      <!-- DETAILS -->
+      <div class="details">
+        <div class="detail-row">
+          <div class="detail-ico" style="background:rgba(232,25,44,.1);">🔧</div>
+          <div><div class="detail-key">Service</div><div class="detail-val">{{ booking.service.name|default:"Car Service" }} — {{ booking.get_package_display }}</div></div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-ico" style="background:rgba(26,86,219,.1);">📅</div>
+          <div><div class="detail-key">Date & Time</div><div class="detail-val">{{ booking.scheduled_date|date:"l, d F Y" }} at {{ booking.scheduled_slot|time:"h:i A" }}</div></div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-ico" style="background:rgba(0,166,81,.1);">🏢</div>
+          <div><div class="detail-key">Garage</div><div class="detail-val">{{ booking.garage.name|default:"eGarage" }}{% if booking.garage.city %}, {{ booking.garage.city }}{% endif %}</div></div>
+        </div>
+        {% if booking.pickup_required %}
+        <div class="detail-row">
+          <div class="detail-ico" style="background:rgba(245,158,11,.1);">🚗</div>
+          <div><div class="detail-key">Pickup</div><div class="detail-val green">Free pickup arranged ✓</div></div>
+        </div>
+        {% endif %}
+        <div class="detail-row">
+          <div class="detail-ico" style="background:rgba(124,58,237,.1);">💳</div>
+          <div><div class="detail-key">Advance Paid</div><div class="detail-val big" style="color:#30d158;">₹{{ booking.advance_amount|floatformat:0 }} <span style="font-size:.65rem;font-weight:600;color:#30d158;">✓ Confirmed</span></div></div>
+          {% if booking.payment_method == 'cash' %}
+          <div><div class="detail-key">Payment</div><div class="detail-val" style="color:#f59e0b;">💵 Cash at Garage</div></div>
+          <div><div class="detail-key">Amount Due</div><div class="detail-val">₹{{ booking.base_price|floatformat:0 }} <span style="font-size:.65rem;font-weight:400;color:rgba(255,255,255,.4);">payable at service</span></div></div>
+          {% elif booking.final_paid %}
+          <div><div class="detail-key">Payment</div><div class="detail-val" style="color:#30d158;">✅ Fully Paid</div></div>
+          {% else %}
+          <div><div class="detail-key">Balance at Garage</div><div class="detail-val">₹{{ booking.balance_due|floatformat:0 }} <span style="font-size:.65rem;font-weight:400;color:rgba(255,255,255,.4);">after service</span></div></div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- TIMELINE -->
+      <div class="timeline">
+        <div class="tl-title">What happens next</div>
+        <div class="tl">
+          <div class="tl-step">
+            <div class="tl-dot done">✓</div>
+          </div>
+          <div class="tl-line done"></div>
+          <div class="tl-step">
+            <div class="tl-dot now">📞</div>
+          </div>
+          <div class="tl-line"></div>
+          <div class="tl-step">
+            <div class="tl-dot soon">🚗</div>
+          </div>
+          <div class="tl-line"></div>
+          <div class="tl-step">
+            <div class="tl-dot soon">🔧</div>
+          </div>
+          <div class="tl-line"></div>
+          <div class="tl-step">
+            <div class="tl-dot soon">🎉</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;">
+          <span style="font-size:.56rem;color:var(--green);font-weight:700;">CONFIRMED</span>
+          <span style="font-size:.56rem;color:rgba(26,86,219,.9);font-weight:700;">CALL</span>
+          <span style="font-size:.56rem;color:rgba(255,255,255,.3);font-weight:700;">PICKUP</span>
+          <span style="font-size:.56rem;color:rgba(255,255,255,.3);font-weight:700;">SERVICE</span>
+          <span style="font-size:.56rem;color:rgba(255,255,255,.3);font-weight:700;">DONE</span>
+        </div>
+      </div>
+
+      <!-- EMAIL NOTE -->
+      <div class="email-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Confirmation email sent to <strong style="color:#fff;">{{ booking.customer_email }}</strong>. Check your inbox.
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="actions">
+        {% if booking.vehicle %}
+        <a href="{% url 'vehicle_condition' booking.vehicle.pk %}" class="act-btn" style="background:rgba(0,166,81,.15);color:#4ade80;border:1px solid rgba(0,166,81,.25);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Vehicle Condition
+        </a>
+        {% endif %}
+        <a href="{% url 'track' %}?ref={{ booking.reference }}" class="act-btn act-track">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Track
+        </a>
+        <a href="{% url 'download_invoice' booking.reference %}" class="act-btn act-secondary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Invoice
+        </a>
+        <a href="{% url 'bookings' %}" class="act-btn act-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          My Bookings
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* CONFETTI */
+(function(){
+  var colors=['#00a651','#e8192c','#1a56db','#f59e0b','#7c3aed','#fff','#00c853'];
+  var wrap=document.getElementById('confettiWrap');
+  for(var i=0;i<80;i++){
+    var el=document.createElement('div');
+    el.className='cf';
+    var w=6+Math.random()*8, h=10+Math.random()*14;
+    el.style.cssText=
+      'left:'+Math.random()*100+'%;'
+      +'width:'+w+'px;height:'+h+'px;'
+      +'background:'+colors[Math.floor(Math.random()*colors.length)]+';'
+      +'--d:'+(2+Math.random()*4)+'s;'
+      +'--delay:-'+(Math.random()*4)+'s;'
+      +'transform:rotate('+Math.random()*360+'deg);';
+    wrap.appendChild(el);
+  }
+  /* stop after 6s */
+  setTimeout(function(){ wrap.style.display='none'; }, 6000);
+})();
+
+function copyRef(){
+  var ref=document.getElementById('refVal').textContent;
+  navigator.clipboard.writeText(ref).then(function(){
+    var btn=document.querySelector('.ref-copy');
+    btn.textContent='✓ Copied!';
+    btn.style.color='var(--green)';
+    setTimeout(function(){btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy';btn.style.color='';},2000);
+  });
+}
+</script>
+</body>
+</html>

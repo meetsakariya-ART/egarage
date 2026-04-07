@@ -1,0 +1,227 @@
+{% extends 'core/base.html' %}
+{% block title %}Pay Balance — {{ booking.reference }} — eGarage{% endblock %}
+{% block extra_head %}
+<style>
+html,body { background:var(--bg); color:var(--text); font-family:var(--fb); min-height:100vh; }
+
+.page { max-width:480px; margin:0 auto; padding:20px 16px 40px; }
+
+/* ── BILL CARD ── */
+.bill-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); overflow:hidden; margin-bottom:16px;
+  box-shadow:var(--card-shadow);
+}
+.bill-head { background:linear-gradient(135deg,var(--bg2),var(--surface2)); padding:20px 22px; border-bottom:1px solid var(--border); }
+.bill-ref { font-family:var(--fd); font-size:.72rem; font-weight:800; color:var(--muted); letter-spacing:.8px; text-transform:uppercase; margin-bottom:6px; }
+.bill-svc { font-family:var(--fd); font-size:1.1rem; font-weight:900; color:var(--text); margin-bottom:3px; }
+.bill-garage { font-size:.72rem; color:var(--muted); }
+.bill-row { display:flex; justify-content:space-between; align-items:center; padding:13px 22px; border-bottom:1px solid var(--border); }
+.bill-row:last-child { border-bottom:none; }
+.bill-k { font-size:.74rem; color:var(--muted); }
+.bill-v { font-family:var(--fd); font-size:.82rem; font-weight:800; color:var(--text); }
+.bill-v.green { color:var(--green); }
+.bill-v.red   { color:var(--red); }
+.bill-total {
+  background:var(--surface2); padding:16px 22px;
+  display:flex; justify-content:space-between; align-items:center;
+  border-top:2px solid var(--border2);
+}
+.bt-label { font-size:.72rem; color:var(--muted); }
+.bt-amount { font-family:var(--fd); font-size:1.4rem; font-weight:900; color:var(--green); }
+
+/* ── PAYMENT METHODS ── */
+.methods-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); overflow:hidden; margin-bottom:16px;
+  box-shadow:var(--card-shadow);
+}
+.methods-head { padding:14px 18px; border-bottom:1px solid var(--border); background:var(--surface2); }
+.methods-head h3 { font-family:var(--fd); font-size:.86rem; font-weight:800; color:var(--text); }
+.methods-head p { font-size:.66rem; color:var(--muted); margin-top:2px; }
+.method-list { padding:12px 16px; display:flex; flex-direction:column; gap:8px; }
+.method-opt {
+  display:flex; align-items:center; gap:12px; padding:13px 16px;
+  border:1.5px solid var(--border); border-radius:11px; cursor:pointer; transition:all .15s;
+  background:var(--surface2);
+}
+.method-opt:hover { border-color:var(--green); background:rgba(0,166,81,.04); }
+.method-opt.on   { border-color:var(--green); background:rgba(0,166,81,.06); }
+.method-ico { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+.method-lbl { font-family:var(--fd); font-size:.82rem; font-weight:800; color:var(--text); }
+.method-sub { font-size:.63rem; color:var(--muted); margin-top:2px; }
+.method-radio {
+  margin-left:auto; width:18px; height:18px; border-radius:50%;
+  border:2px solid var(--border2); flex-shrink:0; transition:all .15s;
+  display:flex; align-items:center; justify-content:center;
+}
+.method-opt.on .method-radio { border-color:var(--green); background:var(--green); }
+.method-opt.on .method-radio::after { content:''; width:6px; height:6px; border-radius:50%; background:#fff; }
+
+/* ── PAY BUTTON ── */
+.pay-btn {
+  width:100%; padding:16px; background:var(--green); color:#fff; border:none;
+  border-radius:14px; font-family:var(--fd); font-size:.9rem; font-weight:900;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+  transition:all .15s; box-shadow:0 4px 16px rgba(0,166,81,.25);
+}
+.pay-btn:hover { background:var(--green2); transform:translateY(-1px); }
+.pay-btn svg { width:18px; height:18px; }
+.pay-note { font-size:.66rem; color:var(--muted); text-align:center; margin-top:10px; }
+
+/* ── PROCESSING OVERLAY ── */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:500; display:none; align-items:center; justify-content:center; }
+.overlay.on { display:flex; }
+.proc-box { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:32px 28px; text-align:center; width:300px; }
+.proc-spinner { width:56px; height:56px; border:4px solid var(--border2); border-top-color:var(--green); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 18px; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.proc-title { font-family:var(--fd); font-size:1rem; font-weight:900; color:var(--text); margin-bottom:6px; }
+.proc-sub { font-size:.74rem; color:var(--muted); }
+
+/* ═══════════════════════════════
+   PAY BALANCE — DARK MODE (Navy/Slate)
+═══════════════════════════════ */
+[data-theme="dark"] body { background: #0f172a !important; color: #f1f5f9 !important; }
+[data-theme="dark"] nav {
+  background: rgba(15,23,42,.92) !important;
+  border-color: rgba(148,163,184,.12) !important;
+}
+[data-theme="dark"] .back-btn { color: #94a3b8 !important; }
+[data-theme="dark"] .nav-title { color: #f1f5f9 !important; }
+[data-theme="dark"] .bill-card {
+  background: #1e293b !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,.3) !important;
+}
+[data-theme="dark"] .bill-body { background: #1e293b !important; }
+[data-theme="dark"] .bill-row {
+  border-color: rgba(148,163,184,.1) !important;
+}
+[data-theme="dark"] .bill-k { color: #64748b !important; }
+[data-theme="dark"] .bill-v { color: #f1f5f9 !important; }
+[data-theme="dark"] .bill-total {
+  background: rgba(148,163,184,.06) !important;
+  border-color: rgba(148,163,184,.15) !important;
+}
+[data-theme="dark"] .bt-label { color: #64748b !important; }
+[data-theme="dark"] .methods-card {
+  background: #1e293b !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,.3) !important;
+}
+[data-theme="dark"] .methods-head { border-color: rgba(148,163,184,.1) !important; }
+[data-theme="dark"] .methods-head h3 { color: #f1f5f9 !important; }
+[data-theme="dark"] .methods-head p { color: #64748b !important; }
+[data-theme="dark"] .method-opt {
+  border-color: rgba(148,163,184,.15) !important;
+  background: transparent !important;
+}
+[data-theme="dark"] .method-opt:hover { border-color: var(--green) !important; }
+[data-theme="dark"] .method-opt.on { background: rgba(0,166,81,.06) !important; }
+[data-theme="dark"] .method-lbl { color: #f1f5f9 !important; }
+[data-theme="dark"] .method-sub { color: #64748b !important; }
+[data-theme="dark"] .pay-note { color: #475569 !important; }
+[data-theme="dark"] .proc-box { background: #1e293b !important; }
+[data-theme="dark"] .proc-title { color: #f1f5f9 !important; }
+[data-theme="dark"] .proc-sub { color: #64748b !important; }
+[data-theme="dark"] .proc-spinner { border-color: rgba(148,163,184,.15) !important; border-top-color: var(--green) !important; }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <!-- BILL SUMMARY -->
+  <div class="bill-card">
+    <div class="bill-head">
+      <div class="bill-ref">{{ booking.reference }}</div>
+      <div class="bill-svc">{{ booking.service.name|default:"Car Service" }}</div>
+      <div class="bill-garage">📍 {{ booking.garage.name|default:"Garage" }}</div>
+    </div>
+    <div>
+      <div class="bill-row"><span class="bill-k">Base Service Charge</span><span class="bill-v">₹{{ booking.base_price|floatformat:0 }}</span></div>
+      {% if booking.parts_total and booking.parts_total > 0 %}
+      <div class="bill-row"><span class="bill-k">Parts &amp; Materials</span><span class="bill-v">₹{{ booking.parts_total|floatformat:0 }}</span></div>
+      {% endif %}
+      {% if booking.labour_charge and booking.labour_charge > 0 %}
+      <div class="bill-row"><span class="bill-k">Labour Charges</span><span class="bill-v">₹{{ booking.labour_charge|floatformat:0 }}</span></div>
+      {% endif %}
+      {% if booking.discount_amount and booking.discount_amount > 0 %}
+      <div class="bill-row"><span class="bill-k">Discount</span><span class="bill-v green">−₹{{ booking.discount_amount|floatformat:0 }}</span></div>
+      {% endif %}
+      <div class="bill-row"><span class="bill-k">✅ Advance Already Paid</span><span class="bill-v green">−₹{{ booking.advance_amount|floatformat:0 }}</span></div>
+    </div>
+    <div class="bill-total">
+      <div><div class="bt-label">Balance Due Now</div><div style="font-size:.62rem;color:var(--muted);margin-top:2px;">Total ₹{{ booking.final_bill|floatformat:0 }} − Advance ₹{{ booking.advance_amount|floatformat:0 }}</div></div>
+      <div class="bt-amount">₹{{ booking.balance_due|floatformat:0 }}</div>
+    </div>
+  </div>
+
+  {% if booking.job.parts.exists %}
+  <div class="bill-card" style="margin-bottom:16px;">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2);">
+      <div style="font-family:var(--fd);font-size:.82rem;font-weight:800;color:var(--text);">Parts &amp; Work Done</div>
+      <div style="font-size:.64rem;color:var(--muted);margin-top:2px;">Added by mechanic during service</div>
+    </div>
+    {% for part in booking.job.parts.all %}
+    <div class="bill-row"><span class="bill-k">{{ part.name }} × {{ part.quantity }}</span><span class="bill-v">₹{{ part.cost|floatformat:0 }}</span></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- PAYMENT METHOD -->
+  <div class="methods-card">
+    <div class="methods-head"><h3>Select Payment Method</h3><p>Pay at the garage counter or scan QR</p></div>
+    <div class="method-list">
+      <div class="method-opt on" id="m-cash" onclick="selectMethod('cash')">
+        <div class="method-ico" style="background:rgba(0,166,81,.12);">💵</div>
+        <div><div class="method-lbl">Cash at Garage</div><div class="method-sub">Hand over cash at the service desk</div></div>
+        <div class="method-radio"></div>
+      </div>
+      <div class="method-opt" id="m-upi" onclick="selectMethod('upi')">
+        <div class="method-ico" style="background:rgba(59,130,246,.12);">📱</div>
+        <div><div class="method-lbl">UPI / QR Scan</div><div class="method-sub">PhonePe · GPay · Paytm · Any UPI</div></div>
+        <div class="method-radio"></div>
+      </div>
+      <div class="method-opt" id="m-card" onclick="selectMethod('card')">
+        <div class="method-ico" style="background:rgba(124,58,237,.12);">💳</div>
+        <div><div class="method-lbl">Card</div><div class="method-sub">Debit or Credit card at POS machine</div></div>
+        <div class="method-radio"></div>
+      </div>
+    </div>
+  </div>
+
+  <form method="POST" action="{% url 'balance_payment_done' booking.reference %}" id="payForm">
+    {% csrf_token %}
+    <input type="hidden" name="method" id="methodInput" value="cash">
+    <button type="button" class="pay-btn" onclick="confirmPay()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      Confirm Payment — ₹{{ booking.balance_due|floatformat:0 }}
+    </button>
+  </form>
+  <div class="pay-note">This confirms you have paid the balance at the garage. Your service will be marked as complete.</div>
+</div>
+
+<div class="overlay" id="procOverlay">
+  <div class="proc-box">
+    <div class="proc-spinner"></div>
+    <div class="proc-title">Processing Payment…</div>
+    <div class="proc-sub" id="procSub">Please wait a moment</div>
+  </div>
+</div>
+
+<script>
+var currentMethod='cash';
+function selectMethod(m){
+  currentMethod=m;
+  document.getElementById('methodInput').value=m;
+  ['cash','upi','card'].forEach(function(id){document.getElementById('m-'+id).classList.toggle('on',id===m);});
+}
+function confirmPay(){
+  var labels={cash:'Cash at garage',upi:'UPI payment',card:'Card payment'};
+  if(!confirm('Confirm payment of ₹{{ booking.balance_due|floatformat:0 }} via '+labels[currentMethod]+'?'))return;
+  document.getElementById('procOverlay').classList.add('on');
+  var msgs=['Verifying payment…','Updating records…','Releasing to garage wallet…','Almost done…'];
+  var i=0,iv=setInterval(function(){if(i<msgs.length)document.getElementById('procSub').textContent=msgs[i++];},700);
+  setTimeout(function(){clearInterval(iv);document.getElementById('payForm').submit();},3000);
+}
+</script>
+{% endblock %}

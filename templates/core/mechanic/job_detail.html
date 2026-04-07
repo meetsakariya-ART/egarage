@@ -1,0 +1,1050 @@
+{% extends 'core/base.html' %}
+{% block title %}Job — {{ booking.reference }} — eGarage{% endblock %}
+{% block extra_head %}
+<style>
+html,body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;}
+.page-wrap{max-width:1200px;margin:0 auto;padding:24px 24px 80px;}
+
+/* ── NAV BREADCRUMB ── */
+.jd-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.bc-row{display:flex;align-items:center;gap:6px;font-size:.74rem;color:var(--muted);}
+.bc-row a{color:var(--muted);text-decoration:none;}
+.bc-row a:hover{color:var(--red);}
+.bc-arrow{width:14px;height:14px;color:var(--muted2);}
+.ref-tag{font-family:var(--fd);font-size:.72rem;font-weight:900;letter-spacing:1.5px;color:var(--red);padding:6px 14px;border-radius:9px;background:rgba(232,25,44,.08);border:1px solid rgba(232,25,44,.2);}
+.jd-nav-actions{display:flex;gap:8px;}
+.jdna{padding:8px 16px;border-radius:9px;font-family:var(--fd);font-size:.72rem;font-weight:700;cursor:pointer;border:none;text-decoration:none;transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
+.jdna.ghost{background:var(--surface2);border:1px solid var(--border);color:var(--muted);}
+.jdna.ghost:hover{border-color:var(--red);color:var(--red);}
+.jdna.green{background:var(--green);color:#fff;box-shadow:0 3px 12px rgba(0,166,81,.25);}
+.jdna.green:hover{background:var(--green2);}
+.jdna svg{width:13px;height:13px;}
+
+/* ── STATUS BANNER ── */
+.job-banner{
+  border-radius:16px;padding:22px 24px;margin-bottom:16px;
+  position:relative;overflow:hidden;
+  border:1px solid var(--border);
+}
+.jb-in_progress,.jb-arrived,.jb-on_hold{background:linear-gradient(135deg,rgba(245,158,11,.08) 0%,var(--surface) 60%);}
+.jb-accepted,.jb-on_way{background:linear-gradient(135deg,rgba(124,77,255,.08) 0%,var(--surface) 60%);}
+.jb-assigned{background:linear-gradient(135deg,rgba(232,25,44,.08) 0%,var(--surface) 60%);}
+.jb-completed,.jb-verified,.jb-quality_check{background:linear-gradient(135deg,rgba(0,166,81,.08) 0%,var(--surface) 60%);}
+.job-banner::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.02);}
+.jb-inner{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;position:relative;}
+.jb-left{flex:1;min-width:200px;}
+.jb-ref{font-size:.68rem;color:var(--muted);margin-bottom:4px;}
+.jb-title{font-family:var(--fd);font-size:1.45rem;font-weight:900;color:var(--text);line-height:1.1;margin-bottom:8px;}
+.jb-vehicle{display:flex;align-items:center;gap:6px;font-size:.76rem;color:var(--muted);flex-wrap:wrap;}
+.jb-vehicle svg{width:13px;height:13px;flex-shrink:0;}
+.jb-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;flex-shrink:0;}
+.jba{padding:10px 18px;border-radius:10px;font-family:var(--fd);font-size:.74rem;font-weight:800;cursor:pointer;border:none;display:flex;align-items:center;gap:6px;transition:all .15s;}
+.jba svg{width:14px;height:14px;}
+.jba:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.jba:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.jba.continue{background:var(--yellow);color:#000;}
+.jba.hold    {background:var(--surface3);color:var(--muted);border:1px solid var(--border);}
+.jba.complete{background:var(--green);color:#fff;box-shadow:0 4px 14px rgba(0,166,81,.3);}
+.jba.issue   {background:rgba(232,25,44,.12);color:var(--red);border:1px solid rgba(232,25,44,.2);}
+
+/* STATUS PILL */
+.spill{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-family:var(--fd);font-size:.66rem;font-weight:800;margin-bottom:8px;}
+.spill .dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:blink 1.4s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.sp-assigned  {background:rgba(232,25,44,.1);color:var(--red);border:1px solid rgba(232,25,44,.2);}
+.sp-accepted,.sp-on_way{background:rgba(124,77,255,.1);color:var(--purple);border:1px solid rgba(124,77,255,.2);}
+.sp-arrived,.sp-in_progress,.sp-on_hold{background:rgba(245,158,11,.1);color:var(--yellow);border:1px solid rgba(245,158,11,.2);}
+.sp-quality_check{background:rgba(8,145,178,.1);color:var(--teal);border:1px solid rgba(8,145,178,.2);}
+.sp-completed,.sp-verified{background:rgba(0,166,81,.1);color:var(--green);border:1px solid rgba(0,166,81,.2);}
+.sp-completed .dot,.sp-verified .dot{animation:none;}
+
+/* ── STEPPER ── */
+.stepper-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 24px;margin-bottom:16px;overflow-x:auto;box-shadow:var(--card-shadow);}
+.stepper{display:flex;align-items:center;min-width:420px;}
+.st{display:flex;align-items:center;flex:1;}
+.st:last-child{flex:0;}
+.st-node{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.st-circle{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.66rem;font-weight:900;border:2px solid transparent;transition:all .3s;}
+.st-circle.done{background:var(--green);color:#fff;border-color:var(--green);}
+.st-circle.act {background:var(--yellow);color:#000;border-color:var(--yellow);box-shadow:0 0 0 5px rgba(245,158,11,.15);animation:stepGlow 2s infinite;}
+@keyframes stepGlow{0%,100%{box-shadow:0 0 0 5px rgba(245,158,11,.15)}50%{box-shadow:0 0 0 8px rgba(245,158,11,.05)}}
+.st-circle.todo{background:var(--surface3);color:var(--muted2);border-color:var(--border2);}
+.st-lbl{font-size:.57rem;font-weight:700;color:var(--muted2);white-space:nowrap;}
+.st-lbl.done{color:var(--green);}
+.st-lbl.act {color:var(--yellow);font-weight:800;}
+.st-line{flex:1;height:2.5px;border-radius:2px;margin:0 5px 12px;}
+.st-line.done{background:var(--green);}
+.st-line.todo{background:var(--border);}
+
+/* ── LAYOUT ── */
+.jd-grid{display:grid;grid-template-columns:1fr 330px;gap:18px;align-items:start;}
+
+/* ── CARD ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:16px;overflow:hidden;box-shadow:var(--card-shadow);}
+.cardh{padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:space-between;}
+.cardh-l{display:flex;align-items:center;gap:9px;}
+.cardh-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cardh-ico svg{width:14px;height:14px;}
+.cardh h3{font-family:var(--fd);font-size:.84rem;font-weight:900;color:var(--text);}
+.cardh p{font-size:.63rem;color:var(--muted);margin-top:1px;}
+.cardb{padding:18px 20px;}
+.ch-btn{padding:6px 13px;border:1px solid var(--border);border-radius:8px;font-family:var(--fd);font-size:.67rem;font-weight:700;cursor:pointer;background:transparent;color:var(--muted);transition:all .15s;display:flex;align-items:center;gap:5px;}
+.ch-btn svg{width:11px;height:11px;}
+.ch-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+/* ── CHECKLIST ── */
+.chk-progress{height:5px;background:var(--surface3);border-radius:3px;overflow:hidden;margin-bottom:16px;}
+.chk-progress-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--teal));border-radius:3px;transition:width .5s ease;}
+.chk-item{display:flex;align-items:flex-start;gap:11px;padding:11px 13px;border-radius:10px;border:1.5px solid transparent;transition:all .18s;cursor:pointer;margin-bottom:6px;}
+.chk-item:hover{background:var(--surface2);}
+.chk-item.chk-done{border-color:rgba(0,166,81,.15);background:rgba(0,166,81,.04);}
+.chk-item.chk-active{border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.05);}
+.chk-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .18s;}
+.chk-box svg{width:11px;height:11px;color:#fff;display:none;}
+.chk-item.chk-done  .chk-box{background:var(--green);border-color:var(--green);}
+.chk-item.chk-done  .chk-box svg{display:block;}
+.chk-item.chk-active .chk-box{background:var(--yellow);border-color:var(--yellow);}
+.chk-item.chk-active .chk-box svg{display:block;}
+.chk-lbl{font-size:.8rem;font-weight:700;color:var(--text);}
+.chk-item.chk-done .chk-lbl{color:var(--green);}
+.chk-sub{font-size:.65rem;color:var(--muted);margin-top:2px;}
+.chk-time{font-size:.6rem;color:var(--muted2);margin-top:3px;}
+.chk-item.chk-done .chk-time{color:rgba(0,166,81,.7);}
+.chk-pct{font-family:var(--fd);font-size:.76rem;font-weight:800;color:var(--muted);}
+.chk-add{display:flex;align-items:center;gap:8px;padding:10px 13px;border:1.5px dashed var(--border);border-radius:10px;cursor:pointer;color:var(--muted2);font-size:.74rem;margin-top:8px;transition:all .15s;}
+.chk-add:hover{border-color:var(--blue);color:var(--blue);}
+.chk-add svg{width:14px;height:14px;}
+.chk-empty{text-align:center;padding:28px;color:var(--muted2);font-size:.76rem;}
+
+/* ── PHOTOS ── */
+.photo-cats{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.pcat{padding:5px 12px;border:1px solid var(--border);border-radius:20px;font-size:.64rem;font-weight:700;cursor:pointer;transition:all .15s;background:transparent;color:var(--muted);font-family:var(--fd);}
+.pcat:hover{border-color:var(--blue);color:var(--blue);}
+.pcat.on{background:var(--blue);color:#fff;border-color:var(--blue);}
+.psec-title{font-size:.6rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2);margin:14px 0 10px;display:flex;align-items:center;gap:8px;}
+.psec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+.photo-slot{aspect-ratio:1;border-radius:10px;overflow:hidden;position:relative;cursor:pointer;}
+.photo-slot.empty{border:1.5px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:var(--surface2);transition:all .18s;}
+.photo-slot.empty:hover{border-color:var(--blue);background:var(--surface3);}
+.photo-slot.empty svg{width:22px;height:22px;color:var(--muted2);}
+.photo-slot.empty span{font-size:.63rem;font-weight:700;color:var(--muted2);font-family:var(--fd);}
+.photo-slot.filled img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s;}
+.photo-slot.filled:hover img{transform:scale(1.05);}
+.photo-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);display:none;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
+.photo-slot.filled:hover .photo-overlay{display:flex;}
+.photo-overlay span{font-size:.6rem;font-weight:700;color:#fff;font-family:var(--fd);}
+.dropzone{border:1.5px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;margin-top:14px;background:var(--surface2);}
+.dropzone:hover,.dropzone.dragover{border-color:var(--blue);background:var(--surface3);}
+.dropzone svg{width:32px;height:32px;color:var(--muted2);margin-bottom:8px;}
+.dropzone p{font-size:.74rem;color:var(--muted);line-height:1.6;}
+.dropzone strong{color:var(--text2);}
+#photoInput{display:none;}
+
+/* ── PARTS ── */
+.pt-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+.pt-table th{text-align:left;padding:8px 0;font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted2);border-bottom:1px solid var(--border);}
+.pt-table td{padding:10px 0;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle;}
+.pt-table tr:last-child td{border-bottom:none;}
+.pt-name{font-weight:700;color:var(--text);}
+.pt-detail{font-size:.62rem;color:var(--muted);margin-top:1px;}
+.pt-qty{text-align:center;font-weight:700;}
+.pt-cost{text-align:right;font-family:var(--fd);font-weight:800;color:var(--text);}
+.pt-del button{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.pt-del button:hover{border-color:var(--red);background:rgba(232,25,44,.07);}
+.pt-del button svg{width:11px;height:11px;color:var(--red);}
+.pt-total{display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:6px;border-top:2px solid var(--border);}
+.pt-total-lbl{font-family:var(--fd);font-size:.82rem;font-weight:800;color:var(--text);}
+.pt-total-amt{font-family:var(--fd);font-size:.9rem;font-weight:900;color:var(--green);}
+.pt-add-row{display:grid;grid-template-columns:1fr 70px 90px auto;gap:8px;margin-top:14px;align-items:end;}
+.pt-inp{padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:.78rem;color:var(--input-text);background:var(--input-bg);outline:none;width:100%;}
+.pt-inp:focus{border-color:var(--blue);}
+.pt-add-btn{padding:9px 14px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-family:var(--fd);font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.pt-add-btn:hover{background:var(--blue2);}
+.pt-empty{text-align:center;padding:20px;color:var(--muted2);font-size:.74rem;}
+
+/* ── NOTES ── */
+.notes-area{width:100%;padding:12px 13px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--input-text);font-family:var(--fb);font-size:.8rem;resize:vertical;min-height:110px;outline:none;line-height:1.6;}
+.notes-area:focus{border-color:var(--blue);}
+.notes-saved-msg{font-size:.64rem;color:var(--green);margin-top:6px;display:none;}
+.tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.ntag{padding:4px 10px;border:1px solid var(--border);border-radius:20px;font-size:.62rem;font-weight:700;cursor:pointer;transition:all .15s;background:transparent;color:var(--muted);}
+.ntag:hover{border-color:var(--blue);color:var(--blue);}
+.ntag.on{background:var(--blue);color:#fff;border-color:var(--blue);}
+
+/* ── SIDEBAR ── */
+.sidebar{display:flex;flex-direction:column;gap:14px;}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--card-shadow);}
+.sc-h{padding:13px 16px;border-bottom:1px solid var(--border);background:var(--surface2);}
+.sc-h h3{font-family:var(--fd);font-size:.82rem;font-weight:900;color:var(--text);}
+.sc-h p{font-size:.63rem;color:var(--muted);margin-top:2px;}
+.sc-b{padding:14px 16px;}
+.ir{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border);}
+.ir:last-child{border-bottom:none;}
+.ir-k{font-size:.68rem;color:var(--muted);}
+.ir-v{font-size:.72rem;font-weight:700;color:var(--text);text-align:right;max-width:160px;}
+.ir-v.green{color:var(--green);}
+.ir-v.red  {color:var(--red);}
+.ir-v.blue {color:var(--blue);}
+.ir-v.yellow{color:var(--yellow);}
+
+/* TIMER */
+.timer-card{background:linear-gradient(135deg,var(--bg2),var(--surface2));border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center;box-shadow:var(--card-shadow);}
+.timer-lbl{font-size:.6rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;}
+.timer-display{font-family:var(--fd);font-size:2.2rem;font-weight:900;color:var(--text);letter-spacing:2px;margin:6px 0;}
+.timer-since{font-size:.62rem;color:var(--muted2);margin-bottom:10px;}
+.timer-btns{display:flex;gap:8px;justify-content:center;}
+.tbtn{padding:8px 16px;border-radius:9px;font-family:var(--fd);font-size:.68rem;font-weight:700;cursor:pointer;border:none;transition:all .15s;}
+.tbtn.pause{background:rgba(245,158,11,.12);color:var(--yellow);border:1px solid rgba(245,158,11,.22);}
+.tbtn.reset{background:var(--surface3);color:var(--muted);border:1px solid var(--border);}
+.tbtn:hover{filter:brightness(1.2);}
+
+/* CUSTOMER MINI */
+.cust-mini{display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--surface3);border-radius:10px;}
+.cm-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.82rem;font-weight:900;color:#fff;flex-shrink:0;}
+.cm-name{font-size:.8rem;font-weight:700;color:var(--text);}
+.cm-sub{font-size:.64rem;color:var(--muted);margin-top:1px;}
+.cm-call{margin-left:auto;width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;text-decoration:none;transition:all .15s;}
+.cm-call:hover{border-color:var(--green);background:rgba(0,166,81,.07);}
+.cm-call svg{width:13px;height:13px;color:var(--muted);}
+
+/* QUICK STATUS BUTTONS */
+.qst{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.qst-btn{padding:10px;border-radius:9px;font-family:var(--fd);font-size:.67rem;font-weight:800;cursor:pointer;transition:all .18s;background:var(--surface3);color:var(--muted);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;gap:5px;}
+.qst-btn svg{width:13px;height:13px;}
+.qst-btn:hover{transform:translateY(-1px);box-shadow:var(--card-shadow);}
+.qst-btn.s-yellow{border-color:rgba(245,158,11,.3);color:var(--yellow);}
+.qst-btn.s-yellow:hover{background:rgba(245,158,11,.1);}
+.qst-btn.s-green {border-color:rgba(0,166,81,.3);color:var(--green);}
+.qst-btn.s-green:hover{background:rgba(0,166,81,.08);}
+.qst-btn.s-orange{border-color:rgba(234,88,12,.3);color:var(--orange);}
+.qst-btn.s-orange:hover{background:rgba(234,88,12,.07);}
+.qst-btn.s-red   {border-color:rgba(232,25,44,.3);color:var(--red);}
+.qst-btn.s-red:hover{background:rgba(232,25,44,.07);}
+
+/* ── MODALS ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;}
+.overlay.on{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:440px;overflow:hidden;animation:mup .22s cubic-bezier(.34,1.56,.64,1);box-shadow:0 20px 60px rgba(0,0,0,.4);}
+.modal::before{content:'';display:block;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);}
+.mhdr{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:space-between;}
+.mhdr h3{font-family:var(--fd);font-size:.88rem;font-weight:900;color:var(--text);}
+.mclose{width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);}
+.mclose:hover{border-color:var(--red);color:var(--red);}
+.mclose svg{width:12px;height:12px;}
+.mbody{padding:20px;max-height:70vh;overflow-y:auto;}
+.mfoot{padding:12px 20px;border-top:1px solid var(--border);background:var(--surface2);display:flex;gap:8px;justify-content:flex-end;}
+.mbtn{padding:9px 20px;border-radius:9px;font-family:var(--fd);font-size:.74rem;font-weight:700;cursor:pointer;border:none;transition:all .15s;}
+.mbtn.cancel{background:var(--surface3);border:1px solid var(--border);color:var(--muted);}
+.mbtn.green{background:var(--green);color:#fff;}
+.mbtn.red  {background:var(--red);color:#fff;}
+.mbtn.blue {background:var(--blue);color:#fff;}
+.mff{margin-bottom:12px;}
+.mff:last-child{margin-bottom:0;}
+.mff label{font-size:.6rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2);display:block;margin-bottom:5px;}
+.mff input,.mff select,.mff textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:9px;font-family:var(--fb);font-size:.8rem;color:var(--input-text);background:var(--input-bg);outline:none;resize:none;}
+.mff input:focus,.mff select:focus,.mff textarea:focus{border-color:var(--blue);}
+.mff select option{background:var(--bg2);color:var(--text);}
+.star-row{display:flex;gap:8px;}
+.star{font-size:1.4rem;cursor:pointer;transition:transform .15s;}
+.star:hover{transform:scale(1.2);}
+
+/* ── LIGHTBOX ── */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:2000;display:none;align-items:center;justify-content:center;}
+.lightbox.on{display:flex;}
+.lb-img{max-width:90vw;max-height:85vh;border-radius:10px;object-fit:contain;}
+.lb-close{position:absolute;top:20px;right:20px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.12);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.lb-close svg{width:16px;height:16px;color:#fff;}
+.lb-caption{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.65);color:#fff;padding:8px 16px;border-radius:8px;font-size:.72rem;text-align:center;}
+@keyframes mup{from{opacity:0;transform:scale(.93) translateY(16px)}to{opacity:1;transform:none}}
+@media(max-width:900px){.jd-grid{grid-template-columns:1fr;}.pt-add-row{grid-template-columns:1fr 1fr;}.pt-add-btn{grid-column:span 2;}.photo-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+
+  <!-- TOP BAR -->
+  <div class="jd-topbar">
+    <div class="bc-row">
+      <a href="{% url 'mechanic_jobs' %}">My Jobs</a>
+      <svg class="bc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      <span style="color:var(--text);font-weight:700;">{{ booking.reference }}</span>
+    </div>
+    <div class="jd-nav-actions">
+      <a href="{% url 'mechanic_jobs' %}" class="jdna ghost">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back
+      </a>
+      {% if job.status not in 'completed,verified' %}
+      <button class="jdna green" onclick="openCompleteModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Mark Complete
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- STATUS BANNER -->
+  <div class="job-banner jb-{{ job.status }}">
+    <div class="jb-inner">
+      <div class="jb-left">
+        <div class="spill sp-{{ job.status }}">
+          <div class="dot"></div>
+          {% if job.status == 'assigned' %}⏳ Awaiting Acceptance
+          {% elif job.status == 'accepted' %}✓ Accepted — Head to Garage
+          {% elif job.status == 'on_way' %}🚗 On The Way
+          {% elif job.status == 'arrived' %}📍 Arrived at Location
+          {% elif job.status == 'in_progress' %}🔧 Service In Progress
+          {% elif job.status == 'quality_check' %}🔍 Quality Check
+          {% elif job.status == 'on_hold' %}⏸ On Hold
+          {% elif job.status == 'completed' %}✓ Completed
+          {% elif job.status == 'verified' %}✓ Verified by Manager
+          {% else %}{{ job.get_status_display }}{% endif %}
+        </div>
+        <div class="jb-ref">{{ booking.reference }} · Assigned to {{ request.user.name }}</div>
+        <div class="jb-title">{{ booking.service.name|default:"Car Service" }}</div>
+        <div class="jb-vehicle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+          {% if booking.vehicle %}
+            {{ booking.vehicle.brand }} {{ booking.vehicle.model_name }}
+            {% if booking.vehicle.registration_number %}<span style="opacity:.45;">·</span>{{ booking.vehicle.registration_number }}{% endif %}
+            {% if booking.vehicle.get_fuel_type_display %}<span style="opacity:.45;">·</span>{{ booking.vehicle.get_fuel_type_display }}{% endif %}
+            {% if booking.vehicle.year %}<span style="opacity:.45;">·</span>{{ booking.vehicle.year }}{% endif %}
+            {% if booking.vehicle.mileage %}<span style="opacity:.45;">·</span>{{ booking.vehicle.mileage|floatformat:0 }} km{% endif %}
+          {% else %}<span style="color:var(--muted2);">No vehicle info</span>{% endif %}
+        </div>
+      </div>
+      <div class="jb-actions">
+        {% if job.status == 'assigned' %}
+          <button class="jba complete" onclick="doStatus('accepted')">✓ Accept Job</button>
+          <button class="jba issue"   onclick="openIssueModal()">✕ Decline</button>
+        {% elif job.status == 'accepted' %}
+          <button class="jba continue" onclick="doStatus('on_way')">🚗 On My Way</button>
+        {% elif job.status == 'on_way' %}
+          <button class="jba continue" onclick="doStatus('arrived')">📍 Mark Arrived</button>
+        {% elif job.status == 'arrived' %}
+          <button class="jba continue" onclick="doStatus('in_progress')">▶ Start Service</button>
+        {% elif job.status == 'in_progress' %}
+          <button class="jba continue" onclick="doStatus('quality_check')">🔍 Quality Check</button>
+          <button class="jba hold"     onclick="doStatus('on_hold')">⏸ On Hold</button>
+          <button class="jba complete" onclick="openCompleteModal()">✓ Mark Complete</button>
+          <button class="jba issue"    onclick="openIssueModal()">⚠ Issue</button>
+        {% elif job.status == 'quality_check' %}
+          <button class="jba complete" onclick="openCompleteModal()">✓ Mark Complete</button>
+          <button class="jba issue"    onclick="openIssueModal()">⚠ Issue</button>
+        {% elif job.status == 'on_hold' %}
+          <button class="jba continue" onclick="doStatus('in_progress')">▶ Resume</button>
+          <button class="jba issue"    onclick="openIssueModal()">⚠ Issue</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- STEPPER -->
+  <div class="stepper-card">
+    <div class="stepper">
+      <div class="st"><div class="st-node"><div class="st-circle {% if job.status == 'accepted' %}act{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'accepted' == 'accepted' %}done{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'accepted' == 'on_way' %}done{% elif job.status in 'completed,verified,quality_check' and 'accepted' == 'in_progress' %}done{% elif job.status in 'completed,verified' and 'accepted' == 'quality_check' %}done{% elif job.status == 'verified' and 'accepted' == 'completed' %}done{% else %}todo{% endif %}">{% if job.status == 'accepted' %}●{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'accepted' == 'accepted' %}✓{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'accepted' == 'on_way' %}✓{% elif job.status in 'completed,verified,quality_check' and 'accepted' == 'in_progress' %}✓{% elif job.status in 'completed,verified' and 'accepted' == 'quality_check' %}✓{% elif job.status == 'verified' and 'accepted' == 'completed' %}✓{% else %}○{% endif %}</div><div class="st-lbl {% if job.status == 'accepted' %}act{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'accepted' == 'accepted' %}done{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'accepted' == 'on_way' %}done{% elif job.status in 'completed,verified,quality_check' and 'accepted' == 'in_progress' %}done{% elif job.status in 'completed,verified' and 'accepted' == 'quality_check' %}done{% elif job.status == 'verified' and 'accepted' == 'completed' %}done{% endif %}">Accepted</div></div></div>
+      <div class="st-line {% if job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'accepted' == 'accepted' %}done{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'accepted' == 'on_way' %}done{% elif job.status in 'completed,verified,quality_check' and 'accepted' == 'in_progress' %}done{% elif job.status in 'completed,verified' and 'accepted' == 'quality_check' %}done{% else %}todo{% endif %}"></div>
+      <div class="st"><div class="st-node"><div class="st-circle {% if job.status == 'on_way' %}act{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'on_way' == 'accepted' %}done{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'on_way' == 'on_way' %}done{% elif job.status in 'completed,verified,quality_check' and 'on_way' == 'in_progress' %}done{% elif job.status in 'completed,verified' and 'on_way' == 'quality_check' %}done{% elif job.status == 'verified' and 'on_way' == 'completed' %}done{% else %}todo{% endif %}">{% if job.status == 'on_way' %}●{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'on_way' == 'accepted' %}✓{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'on_way' == 'on_way' %}✓{% elif job.status in 'completed,verified,quality_check' and 'on_way' == 'in_progress' %}✓{% elif job.status in 'completed,verified' and 'on_way' == 'quality_check' %}✓{% elif job.status == 'verified' and 'on_way' == 'completed' %}✓{% else %}○{% endif %}</div><div class="st-lbl {% if job.status == 'on_way' %}act{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'on_way' == 'accepted' %}done{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'on_way' == 'on_way' %}done{% elif job.status in 'completed,verified,quality_check' and 'on_way' == 'in_progress' %}done{% elif job.status in 'completed,verified' and 'on_way' == 'quality_check' %}done{% elif job.status == 'verified' and 'on_way' == 'completed' %}done{% endif %}">On Way</div></div></div>
+      <div class="st-line {% if job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'on_way' == 'accepted' %}done{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'on_way' == 'on_way' %}done{% elif job.status in 'completed,verified,quality_check' and 'on_way' == 'in_progress' %}done{% elif job.status in 'completed,verified' and 'on_way' == 'quality_check' %}done{% else %}todo{% endif %}"></div>
+      <div class="st"><div class="st-node"><div class="st-circle {% if job.status == 'in_progress' %}act{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'in_progress' == 'accepted' %}done{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'in_progress' == 'on_way' %}done{% elif job.status in 'completed,verified,quality_check' and 'in_progress' == 'in_progress' %}done{% elif job.status in 'completed,verified' and 'in_progress' == 'quality_check' %}done{% elif job.status == 'verified' and 'in_progress' == 'completed' %}done{% else %}todo{% endif %}">{% if job.status == 'in_progress' %}●{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'in_progress' == 'accepted' %}✓{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'in_progress' == 'on_way' %}✓{% elif job.status in 'completed,verified,quality_check' and 'in_progress' == 'in_progress' %}✓{% elif job.status in 'completed,verified' and 'in_progress' == 'quality_check' %}✓{% elif job.status == 'verified' and 'in_progress' == 'completed' %}✓{% else %}○{% endif %}</div><div class="st-lbl {% if job.status == 'in_progress' %}act{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'in_progress' == 'accepted' %}done{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'in_progress' == 'on_way' %}done{% elif job.status in 'completed,verified,quality_check' and 'in_progress' == 'in_progress' %}done{% elif job.status in 'completed,verified' and 'in_progress' == 'quality_check' %}done{% elif job.status == 'verified' and 'in_progress' == 'completed' %}done{% endif %}">Servicing</div></div></div>
+      <div class="st-line {% if job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'in_progress' == 'accepted' %}done{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'in_progress' == 'on_way' %}done{% elif job.status in 'completed,verified,quality_check' and 'in_progress' == 'in_progress' %}done{% elif job.status in 'completed,verified' and 'in_progress' == 'quality_check' %}done{% else %}todo{% endif %}"></div>
+      <div class="st"><div class="st-node"><div class="st-circle {% if job.status == 'quality_check' %}act{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'quality_check' == 'accepted' %}done{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'quality_check' == 'on_way' %}done{% elif job.status in 'completed,verified,quality_check' and 'quality_check' == 'in_progress' %}done{% elif job.status in 'completed,verified' and 'quality_check' == 'quality_check' %}done{% elif job.status == 'verified' and 'quality_check' == 'completed' %}done{% else %}todo{% endif %}">{% if job.status == 'quality_check' %}●{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'quality_check' == 'accepted' %}✓{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'quality_check' == 'on_way' %}✓{% elif job.status in 'completed,verified,quality_check' and 'quality_check' == 'in_progress' %}✓{% elif job.status in 'completed,verified' and 'quality_check' == 'quality_check' %}✓{% elif job.status == 'verified' and 'quality_check' == 'completed' %}✓{% else %}○{% endif %}</div><div class="st-lbl {% if job.status == 'quality_check' %}act{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'quality_check' == 'accepted' %}done{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'quality_check' == 'on_way' %}done{% elif job.status in 'completed,verified,quality_check' and 'quality_check' == 'in_progress' %}done{% elif job.status in 'completed,verified' and 'quality_check' == 'quality_check' %}done{% elif job.status == 'verified' and 'quality_check' == 'completed' %}done{% endif %}">QC Check</div></div></div>
+      <div class="st-line {% if job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'quality_check' == 'accepted' %}done{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'quality_check' == 'on_way' %}done{% elif job.status in 'completed,verified,quality_check' and 'quality_check' == 'in_progress' %}done{% elif job.status in 'completed,verified' and 'quality_check' == 'quality_check' %}done{% else %}todo{% endif %}"></div>
+      <div class="st"><div class="st-node"><div class="st-circle {% if job.status == 'completed' %}act{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'completed' == 'accepted' %}done{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'completed' == 'on_way' %}done{% elif job.status in 'completed,verified,quality_check' and 'completed' == 'in_progress' %}done{% elif job.status in 'completed,verified' and 'completed' == 'quality_check' %}done{% elif job.status == 'verified' and 'completed' == 'completed' %}done{% else %}todo{% endif %}">{% if job.status == 'completed' %}●{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'completed' == 'accepted' %}✓{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'completed' == 'on_way' %}✓{% elif job.status in 'completed,verified,quality_check' and 'completed' == 'in_progress' %}✓{% elif job.status in 'completed,verified' and 'completed' == 'quality_check' %}✓{% elif job.status == 'verified' and 'completed' == 'completed' %}✓{% else %}○{% endif %}</div><div class="st-lbl {% if job.status == 'completed' %}act{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived,on_way' and 'completed' == 'accepted' %}done{% elif job.status in 'completed,verified,quality_check,in_progress,on_hold,arrived' and 'completed' == 'on_way' %}done{% elif job.status in 'completed,verified,quality_check' and 'completed' == 'in_progress' %}done{% elif job.status in 'completed,verified' and 'completed' == 'quality_check' %}done{% elif job.status == 'verified' and 'completed' == 'completed' %}done{% endif %}">Done</div></div></div>
+    </div>
+  </div>
+
+  <div class="jd-grid">
+  <div>
+
+    <!-- CHECKLIST -->
+    <div class="card">
+      <div class="cardh">
+        <div class="cardh-l">
+          <div class="cardh-ico" style="background:rgba(59,130,246,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+          <div><h3>Service Checklist</h3><p id="chkSub">Loading…</p></div>
+        </div>
+        <span class="chk-pct" id="chkPct"></span>
+      </div>
+      <div class="cardb">
+        <div class="chk-progress"><div class="chk-progress-fill" id="chkBar" style="width:0%"></div></div>
+        <div id="chkList">
+          {% if checklist %}
+            {% for item in checklist %}
+            <div class="chk-item {% if item.is_done %}chk-done{% endif %}" id="chkI{{ item.pk }}" onclick="toggleChk({{ item.pk }},this)">
+              <div class="chk-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div style="flex:1;">
+                <div class="chk-lbl">{{ item.label }}</div>
+                {% if item.notes %}<div class="chk-sub">{{ item.notes }}</div>{% endif %}
+                {% if item.completed_at %}<div class="chk-time">✓ {{ item.completed_at|time:"h:i A" }}</div>{% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="chk-empty">No checklist items for this service.<br><span style="font-size:.66rem;">Manager may add tasks — check back soon.</span></div>
+          {% endif %}
+        </div>
+        <div class="chk-add" onclick="openModal('addTaskModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add custom task
+        </div>
+      </div>
+    </div>
+
+    <!-- PHOTOS -->
+    <div class="card">
+      <div class="cardh">
+        <div class="cardh-l">
+          <div class="cardh-ico" style="background:rgba(124,77,255,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+          <div><h3>Job Photos</h3><p id="photoCountLbl">{% if photos %}{{ photos|length }} photo{{ photos|length|pluralize }} uploaded{% else %}No photos yet{% endif %}</p></div>
+        </div>
+        <div class="ch-btn" onclick="document.getElementById('photoInput').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Photos
+        </div>
+      </div>
+      <div class="cardb">
+        <div class="photo-cats">
+          <div class="pcat on" onclick="setPhotoCat(this,'all')">All</div>
+          <div class="pcat" onclick="setPhotoCat(this,'before')">Before</div>
+          <div class="pcat" onclick="setPhotoCat(this,'during')">During</div>
+          <div class="pcat" onclick="setPhotoCat(this,'after')">After</div>
+        </div>
+
+        {% if photos %}
+          {% regroup photos by category as photo_groups %}
+          {% for group in photo_groups %}
+          <div class="psec-title" id="psec-{{ group.grouper }}">{{ group.grouper|capfirst }}</div>
+          <div class="photo-grid" id="pgrid-{{ group.grouper }}">
+            {% for photo in group.list %}
+            <div class="photo-slot filled" data-cat="{{ photo.category }}" onclick="openLightbox('{{ photo.image.url }}','{{ photo.caption|escapejs }}','{{ photo.category }}')">
+              <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:group.grouper }}">
+              <div class="photo-overlay">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span>View</span>
+              </div>
+            </div>
+            {% endfor %}
+            <div class="photo-slot empty" data-cat="{{ group.grouper }}" onclick="setUploadCat('{{ group.grouper }}');document.getElementById('photoInput').click()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Add {{ group.grouper|capfirst }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <!-- No photos yet — show empty grids for each category -->
+          {% for cat_pair in photo_categories %}
+          <div class="psec-title" id="psec-{{ cat_pair.0 }}">{{ cat_pair.1 }}</div>
+          <div class="photo-grid" id="pgrid-{{ cat_pair.0 }}">
+            <div class="photo-slot empty" onclick="setUploadCat('{{ cat_pair.0 }}');document.getElementById('photoInput').click()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Add {{ cat_pair.1 }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        {% endif %}
+
+        <div class="dropzone" id="dropzone"
+          ondragover="dragOver(event)" ondragleave="dragLeave()" ondrop="dropFiles(event)"
+          onclick="document.getElementById('photoInput').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <p><strong>Drag & drop photos here</strong><br>or click to browse · JPG, PNG up to 10MB</p>
+        </div>
+        <input type="file" id="photoInput" multiple accept="image/*" onchange="handlePhotoUpload(this.files)">
+      </div>
+    </div>
+
+    <!-- PARTS -->
+    <div class="card">
+      <div class="cardh">
+        <div class="cardh-l">
+          <div class="cardh-ico" style="background:rgba(234,88,12,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+          <div><h3>Parts Used</h3><p id="partsSub">{% if parts %}{{ parts|length }} part{{ parts|length|pluralize }}{% else %}No parts added yet{% endif %}</p></div>
+        </div>
+      </div>
+      <div class="cardb">
+        <div id="partsWrap">
+        {% if parts %}
+        <table class="pt-table">
+          <thead><tr><th>Part Name</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Cost</th><th></th></tr></thead>
+          <tbody id="partsBody">
+            {% for p in parts %}
+            <tr data-pk="{{ p.pk }}">
+              <td>
+                <div class="pt-name">{{ p.name }}</div>
+                {% if p.detail %}<div class="pt-detail">{{ p.detail }}</div>{% endif %}
+              </td>
+              <td class="pt-qty">{{ p.quantity }}</td>
+              <td class="pt-cost">₹{{ p.unit_cost|floatformat:0 }}</td>
+              <td class="pt-del">
+                <button onclick="removePart({{ p.pk }},this)" title="Remove">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="pt-total"><span class="pt-total-lbl">Parts Total</span><span class="pt-total-amt" id="partsTotal">₹{{ parts_total|floatformat:0 }}</span></div>
+        {% else %}
+        <div class="pt-empty" id="partsEmpty">No parts added yet.</div>
+        {% endif %}
+        </div>
+        <div class="pt-add-row">
+          <input type="text"   class="pt-inp" id="newPart"  placeholder="Part name e.g. Oil filter">
+          <input type="number" class="pt-inp" id="newQty"   placeholder="Qty"  min="1" value="1">
+          <input type="number" class="pt-inp" id="newCost"  placeholder="₹ Cost" min="0">
+          <button class="pt-add-btn" onclick="addPart()">+ Add Part</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="card">
+      <div class="cardh">
+        <div class="cardh-l">
+          <div class="cardh-ico" style="background:rgba(0,166,81,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+          <div><h3>Mechanic Notes</h3><p>Internal — visible to manager only</p></div>
+        </div>
+      </div>
+      <div class="cardb">
+        <div class="tag-row">
+          <div class="ntag" onclick="insertTag(this,'#observation')">#observation</div>
+          <div class="ntag" onclick="insertTag(this,'#customer-request')">#customer-request</div>
+          <div class="ntag" onclick="insertTag(this,'#parts-needed')">#parts-needed</div>
+          <div class="ntag" onclick="insertTag(this,'#follow-up')">#follow-up</div>
+          <div class="ntag" onclick="insertTag(this,'#recommend-service')">#recommend-service</div>
+        </div>
+        <textarea class="notes-area" id="notesArea" placeholder="Add observations, issues, customer requests…">{{ job.mechanic_notes|default:'' }}</textarea>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+          <span class="notes-saved-msg" id="notesSavedMsg">✓ Saved</span>
+          <button class="mbtn blue" style="padding:8px 18px;" onclick="saveNotes()">Save Notes</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main col -->
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- TIMER -->
+    <div class="timer-card">
+      <div class="timer-lbl">Job Timer</div>
+      <div class="timer-display" id="timerDisp">00:00:00</div>
+      <div class="timer-since" id="timerSince">
+        {% if job.started_at %}Started {{ job.started_at|time:"h:i A" }}{% else %}Not yet started{% endif %}
+      </div>
+      <div class="timer-btns">
+        <button class="tbtn pause" id="timerToggleBtn" onclick="toggleTimer()">⏸ Pause</button>
+        <button class="tbtn reset" onclick="resetTimer()">↺ Reset</button>
+      </div>
+    </div>
+
+    <!-- QUICK STATUS -->
+    <div class="sc">
+      <div class="sc-h"><h3>Quick Update</h3><p>Change job status</p></div>
+      <div class="sc-b">
+        <div class="qst">
+          {% if job.status == 'in_progress' %}
+            <div class="qst-btn s-yellow" onclick="doStatus('quality_check')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>QC Check</div>
+            <div class="qst-btn s-orange" onclick="doStatus('on_hold')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>Hold</div>
+            <div class="qst-btn s-green" onclick="openCompleteModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Complete</div>
+            <div class="qst-btn s-red" onclick="openIssueModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Issue</div>
+          {% elif job.status == 'on_hold' %}
+            <div class="qst-btn s-yellow" onclick="doStatus('in_progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Resume</div>
+            <div class="qst-btn s-red" onclick="openIssueModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Issue</div>
+          {% elif job.status == 'quality_check' %}
+            <div class="qst-btn s-green" style="grid-column:span 2;" onclick="openCompleteModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Mark Complete</div>
+            <div class="qst-btn s-red"   style="grid-column:span 2;" onclick="openIssueModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Report Issue</div>
+          {% elif job.status in 'completed,verified' %}
+            <div style="grid-column:span 2;text-align:center;padding:12px;font-size:.76rem;color:var(--green);font-weight:700;">✓ Job is complete</div>
+          {% else %}
+            <div class="qst-btn s-green" style="grid-column:span 2;" onclick="doStatus('in_progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Start Service</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- JOB INFO -->
+    <div class="sc">
+      <div class="sc-h"><h3>Job Info</h3></div>
+      <div class="sc-b">
+        <div class="ir"><span class="ir-k">Reference</span><span class="ir-v blue">{{ booking.reference }}</span></div>
+        <div class="ir"><span class="ir-k">Scheduled</span><span class="ir-v">{{ booking.scheduled_date|date:"d M Y" }}</span></div>
+        <div class="ir"><span class="ir-k">Time</span><span class="ir-v">{{ booking.scheduled_slot|time:"h:i A"|default:"—" }}</span></div>
+        <div class="ir"><span class="ir-k">Service</span><span class="ir-v">{{ booking.service.name|default:"—" }}</span></div>
+        <div class="ir"><span class="ir-k">Payment</span>
+          <span class="ir-v {% if booking.final_paid %}green{% elif booking.advance_paid %}blue{% else %}yellow{% endif %}">
+            {% if booking.final_paid %}Fully Paid{% elif booking.advance_paid %}Advance Paid{% else %}Pending{% endif %}
+          </span>
+        </div>
+        {% if booking.final_price %}
+        <div class="ir"><span class="ir-k">Job Value</span><span class="ir-v green">₹{{ booking.final_price|floatformat:0 }}</span></div>
+        {% endif %}
+        {% if booking.advance_amount %}
+        <div class="ir"><span class="ir-k">Advance</span><span class="ir-v">₹{{ booking.advance_amount|floatformat:0 }}</span></div>
+        {% endif %}
+        {% if booking.balance_due %}
+        <div class="ir"><span class="ir-k">Balance Due</span><span class="ir-v yellow">₹{{ booking.balance_due|floatformat:0 }}</span></div>
+        {% endif %}
+        {% if booking.pickup_required %}
+        <div class="ir"><span class="ir-k">Pickup</span><span class="ir-v" style="color:var(--purple);">Required</span></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- CUSTOMER -->
+    <div class="sc">
+      <div class="sc-h"><h3>Customer</h3></div>
+      <div class="sc-b">
+        <div class="cust-mini">
+          <div class="cm-av">{{ booking.customer.name|first|upper }}</div>
+          <div>
+            <div class="cm-name">{{ booking.customer.name }}</div>
+            <div class="cm-sub">{{ booking.customer.phone|default:booking.customer.email }}</div>
+          </div>
+          {% if booking.customer.phone %}
+          <a href="tel:{{ booking.customer.phone }}" class="cm-call" title="Call customer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.15 10.6a2 2 0 012-2.18H8a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 15.91a16 16 0 006 6z"/></svg>
+          </a>
+          {% endif %}
+        </div>
+        {% if booking.notes %}
+        <div style="margin-top:10px;padding:9px 12px;background:var(--surface3);border-radius:8px;font-size:.72rem;color:var(--text2);line-height:1.5;">
+          <span style="font-size:.6rem;color:var(--muted2);display:block;margin-bottom:3px;">CUSTOMER NOTE</span>
+          {{ booking.notes }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- VEHICLE -->
+    {% if booking.vehicle %}
+    <div class="sc">
+      <div class="sc-h"><h3>Vehicle</h3></div>
+      <div class="sc-b">
+        <div class="ir"><span class="ir-k">Make & Model</span><span class="ir-v">{{ booking.vehicle.brand }} {{ booking.vehicle.model_name }}</span></div>
+        {% if booking.vehicle.registration_number %}<div class="ir"><span class="ir-k">Reg No.</span><span class="ir-v">{{ booking.vehicle.registration_number }}</span></div>{% endif %}
+        <div class="ir"><span class="ir-k">Fuel</span><span class="ir-v">{{ booking.vehicle.get_fuel_type_display|default:"—" }}</span></div>
+        {% if booking.vehicle.year %}<div class="ir"><span class="ir-k">Year</span><span class="ir-v">{{ booking.vehicle.year }}</span></div>{% endif %}
+        {% if booking.vehicle.mileage %}<div class="ir"><span class="ir-k">Odometer</span><span class="ir-v">{{ booking.vehicle.mileage|floatformat:0 }} km</span></div>{% endif %}
+        {% if booking.vehicle.color %}<div class="ir"><span class="ir-k">Colour</span><span class="ir-v">{{ booking.vehicle.color }}</span></div>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div><!-- /sidebar -->
+  </div><!-- /grid -->
+</div><!-- /page-wrap -->
+
+<!-- COMPLETE MODAL -->
+<div class="overlay" id="completeModal" onclick="if(event.target===this)closeModal('completeModal')">
+  <div class="modal">
+    <div class="mhdr"><h3>✓ Mark Job Complete</h3><button class="mclose" onclick="closeModal('completeModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="mbody">
+      <div style="background:rgba(0,166,81,.07);border:1px solid rgba(0,166,81,.2);border-radius:10px;padding:12px;margin-bottom:14px;font-size:.74rem;color:var(--text2);line-height:1.6;">
+        Completing this job will notify the customer and schedule a quality check by the manager. Make sure all checklist items and photos are done.
+      </div>
+      <div class="mff"><label>Final notes (optional)</label><textarea id="finalNotes" rows="3" placeholder="Any last observations or recommendations…"></textarea></div>
+      <div class="mff">
+        <label>Self-rating — how did this job go?</label>
+        <div class="star-row" id="starRow">
+          <span class="star" data-v="1" onclick="setStar(1)">⭐</span>
+          <span class="star" data-v="2" onclick="setStar(2)">⭐</span>
+          <span class="star" data-v="3" onclick="setStar(3)">⭐</span>
+          <span class="star" data-v="4" onclick="setStar(4)" style="filter:grayscale(1)">⭐</span>
+          <span class="star" data-v="5" onclick="setStar(5)" style="filter:grayscale(1)">⭐</span>
+        </div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="mbtn cancel" onclick="closeModal('completeModal')">Cancel</button>
+      <button class="mbtn green" onclick="confirmComplete()">✓ Mark Complete &amp; Notify Customer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ISSUE MODAL -->
+<div class="overlay" id="issueModal" onclick="if(event.target===this)closeModal('issueModal')">
+  <div class="modal">
+    <div class="mhdr"><h3>⚠ Report Issue</h3><button class="mclose" onclick="closeModal('issueModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="mbody">
+      <div class="mff">
+        <label>Issue Type *</label>
+        <select id="issueType">
+          <option>Part not available</option>
+          <option>Additional damage found</option>
+          <option>Customer not responding</option>
+          <option>Equipment issue</option>
+          <option>Safety concern</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="mff"><label>Description *</label><textarea id="issueDesc" rows="3" placeholder="Describe the issue clearly…"></textarea></div>
+      <div class="mff">
+        <label>Priority</label>
+        <select id="issuePriority"><option>Normal</option><option>High</option><option>Critical — escalate to manager</option></select>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="mbtn cancel" onclick="closeModal('issueModal')">Cancel</button>
+      <button class="mbtn red" onclick="submitIssue()">Submit Issue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TASK MODAL -->
+<div class="overlay" id="addTaskModal" onclick="if(event.target===this)closeModal('addTaskModal')">
+  <div class="modal">
+    <div class="mhdr"><h3>Add Custom Task</h3><button class="mclose" onclick="closeModal('addTaskModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="mbody">
+      <div class="mff"><label>Task Name *</label><input type="text" id="newTaskName" placeholder="e.g. Replace spark plugs"></div>
+      <div class="mff"><label>Notes (optional)</label><input type="text" id="newTaskNotes" placeholder="e.g. Check torque spec first"></div>
+    </div>
+    <div class="mfoot">
+      <button class="mbtn cancel" onclick="closeModal('addTaskModal')">Cancel</button>
+      <button class="mbtn blue" onclick="addCustomTask()">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lb-close" onclick="closeLightbox()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <img class="lb-img" id="lbImg" src="" alt="">
+  <div class="lb-caption" id="lbCaption"></div>
+</div>
+
+<script>
+var CSRF      = '{{ csrf_token }}';
+var JOB_PK    = {{ job.pk }};
+var BOOK_REF  = '{{ booking.reference }}';
+var _starVal  = 3;
+var _timerSec = {% if job.started_at %}Math.round((Date.now() - new Date('{{ job.started_at|date:"c" }}').getTime()) / 1000){% else %}0{% endif %};
+var _timerOn  = {% if job.status == 'in_progress' %}true{% else %}false{% endif %};
+var _timerIv  = null;
+var _photoCat = 'after';
+var _photoCount = {{ photos|length|default:0 }};
+
+/* ── CHECKLIST INIT ── */
+function updateChkBar(){
+  var doneN  = document.querySelectorAll('.chk-item.chk-done').length;
+  var totalN = document.querySelectorAll('.chk-item').length;
+  var pct    = totalN > 0 ? Math.round(doneN/totalN*100) : 0;
+  var bar = document.getElementById('chkBar');
+  var sub = document.getElementById('chkSub');
+  var pctEl = document.getElementById('chkPct');
+  if(bar)   bar.style.width = pct+'%';
+  if(sub)   sub.textContent = doneN+' of '+totalN+' tasks completed';
+  if(pctEl) pctEl.textContent = pct+'%';
+}
+updateChkBar();
+
+/* ── TOGGLE CHECKLIST ITEM ── */
+function toggleChk(pk, el){
+  var isDone = !el.classList.contains('chk-done');
+  // Optimistic UI update first
+  el.classList.toggle('chk-done');
+  var lbl  = el.querySelector('.chk-lbl');
+  var tbox = el.querySelector('.chk-time');
+  if(isDone){
+    if(lbl) lbl.style.color = 'var(--green)';
+    if(tbox){ var now=new Date(); tbox.textContent='✓ '+(now.getHours()%12||12)+':'+(now.getMinutes()<10?'0':'')+now.getMinutes()+' '+(now.getHours()>=12?'PM':'AM'); }
+  } else {
+    if(lbl) lbl.style.color = '';
+    if(tbox) tbox.textContent = '';
+  }
+  updateChkBar();
+  // API call — uses the existing /api/job/<pk>/checklist/ endpoint
+  fetch('/api/job/'+JOB_PK+'/checklist/', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body: JSON.stringify({item_id: pk, is_done: isDone})
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(!d.success){
+      // Revert on failure
+      el.classList.toggle('chk-done');
+      updateChkBar();
+      showGlobalToast('❌ '+(d.error||'Could not save'),'error');
+    }
+  })
+  .catch(function(){
+    el.classList.toggle('chk-done');
+    updateChkBar();
+    showGlobalToast('Network error — could not save','error');
+  });
+}
+
+function updateChkBar(){
+  var doneN  = document.querySelectorAll('.chk-item.chk-done').length;
+  var totalN = document.querySelectorAll('.chk-item').length;
+  var pct    = totalN > 0 ? Math.round(doneN/totalN*100) : 0;
+  var bar = document.getElementById('chkBar');
+  var sub = document.getElementById('chkSub');
+  var pctEl = document.getElementById('chkPct');
+  if(bar)   bar.style.width = pct+'%';
+  if(sub)   sub.textContent = doneN+' of '+totalN+' tasks completed';
+  if(pctEl) pctEl.textContent = pct+'%';
+}
+
+/* ── ADD CUSTOM TASK ── */
+function addCustomTask(){
+  var name  = document.getElementById('newTaskName').value.trim();
+  var notes = document.getElementById('newTaskNotes').value.trim();
+  if(!name){ showGlobalToast('Enter a task name','warning'); return; }
+  var btn = document.querySelector('#addTaskModal .mbtn.blue');
+  if(btn){ btn.disabled=true; btn.textContent='Adding…'; }
+  fetch('/api/job/'+JOB_PK+'/checklist/add/', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body: JSON.stringify({label:name, notes:notes})
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(btn){ btn.disabled=false; btn.textContent='Add Task'; }
+    if(d.ok){
+      // Remove empty state message if present
+      var empty = document.querySelector('#chkList .chk-empty');
+      if(empty) empty.remove();
+      // Add the new item to the list
+      var list = document.getElementById('chkList');
+      var div  = document.createElement('div');
+      div.className = 'chk-item';
+      div.id = 'chkI'+d.pk;
+      div.onclick = function(){ toggleChk(d.pk, this); };
+      div.innerHTML =
+        '<div class="chk-box">'
+        +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+        +'</div>'
+        +'<div style="flex:1;">'
+        +'<div class="chk-lbl">'+d.label+'</div>'
+        +(d.notes ? '<div class="chk-sub">'+d.notes+'</div>' : '')
+        +'<div class="chk-time"></div>'
+        +'</div>';
+      list.appendChild(div);
+      // Reset form
+      document.getElementById('newTaskName').value  = '';
+      document.getElementById('newTaskNotes').value = '';
+      closeModal('addTaskModal');
+      updateChkBar();
+      showGlobalToast('✅ Task "'+d.label+'" added','success');
+    } else {
+      showGlobalToast('❌ '+(d.error||'Could not add task'),'error');
+    }
+  })
+  .catch(function(){
+    if(btn){ btn.disabled=false; btn.textContent='Add Task'; }
+    showGlobalToast('Network error','error');
+  });
+}
+
+/* ── STATUS UPDATE ── */
+function doStatus(status){
+  fetch('/api/job/'+JOB_PK+'/status/', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body: JSON.stringify({status:status})
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.success){ showGlobalToast('✅ Status updated','success'); setTimeout(function(){location.reload();},900); }
+    else showGlobalToast('❌ '+(d.error||'Error'),'error');
+  });
+}
+
+/* ── COMPLETE ── */
+function confirmComplete(){
+  var notes = document.getElementById('finalNotes').value.trim();
+  fetch('/api/job/'+JOB_PK+'/status/', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body: JSON.stringify({status:'completed', final_notes:notes, self_rating:_starVal})
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.success){
+      closeModal('completeModal');
+      showGlobalToast('🎉 Job complete! Customer notified.','success');
+      setTimeout(function(){location.reload();},1200);
+    } else showGlobalToast('❌ '+(d.error||'Error'),'error');
+  });
+}
+
+/* ── ISSUE ── */
+function submitIssue(){
+  var desc = document.getElementById('issueDesc').value.trim();
+  if(!desc){ showGlobalToast('Describe the issue first','warning'); return; }
+  fetch('/api/job/'+JOB_PK+'/issue/', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body: JSON.stringify({
+      issue_type: document.getElementById('issueType').value,
+      description: desc,
+      priority: document.getElementById('issuePriority').value
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    closeModal('issueModal');
+    if(d.ok) showGlobalToast('Issue reported. Manager notified.','warning');
+    else showGlobalToast('❌ '+(d.error||'Error'),'error');
+  });
+}
+
+/* ── PARTS ── */
+function addPart(){
+  var name = document.getElementById('newPart').value.trim();
+  var qty  = parseInt(document.getElementById('newQty').value)  || 1;
+  var cost = parseFloat(document.getElementById('newCost').value) || 0;
+  if(!name){ showGlobalToast('Enter part name','warning'); return; }
+  fetch('/api/job/'+JOB_PK+'/parts/add/', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body: JSON.stringify({name:name, quantity:qty, unit_cost:cost})
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok){
+      document.getElementById('newPart').value  = '';
+      document.getElementById('newQty').value   = '1';
+      document.getElementById('newCost').value  = '';
+      showGlobalToast('✅ '+name+' added'+(d.balance_due?' · Balance: ₹'+parseFloat(d.balance_due).toFixed(0):''),'success');
+      setTimeout(function(){location.reload();},800);
+    } else showGlobalToast('❌ '+(d.error||'Error'),'error');
+  });
+}
+
+function removePart(pk, btn){
+  if(!confirm('Remove this part?')) return;
+  btn.disabled = true;
+  fetch('/api/part/'+pk+'/remove/', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body:'{}'
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok){
+      var row = btn.closest('tr');
+      if(row) row.remove();
+      showGlobalToast('Part removed','success');
+    } else showGlobalToast('❌ '+(d.error||'Error'),'error');
+  });
+}
+
+/* ── PHOTOS ── */
+function setUploadCat(cat){ _photoCat = cat; }
+
+function setPhotoCat(el, cat){
+  document.querySelectorAll('.pcat').forEach(function(p){p.classList.remove('on');});
+  el.classList.add('on');
+  var all = (cat === 'all');
+  document.querySelectorAll('[id^="pgrid-"],[id^="psec-"]').forEach(function(e){
+    var c = e.id.replace('pgrid-','').replace('psec-','');
+    e.style.display = (all || c===cat) ? '' : 'none';
+  });
+}
+
+function handlePhotoUpload(files){
+  if(!files||!files.length) return;
+  var form = new FormData();
+  Array.from(files).forEach(function(f){form.append('photo',f);});
+  form.append('category', _photoCat);
+  form.append('job', JOB_PK);
+  fetch('/api/job/'+JOB_PK+'/photos/upload/', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF},
+    body: form
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok){
+      _photoCount++;
+      document.getElementById('photoCountLbl').textContent = _photoCount+' photo'+(_photoCount!==1?'s':'')+' uploaded';
+      // Add new photo to grid
+      var grid = document.getElementById('pgrid-'+_photoCat);
+      if(grid){
+        var slot = document.createElement('div');
+        slot.className = 'photo-slot filled';
+        slot.dataset.cat = _photoCat;
+        var url = d.url || '';
+        slot.innerHTML = '<img src="'+url+'" alt="Photo"><div class="photo-overlay"><span>View</span></div>';
+        slot.onclick = function(){ openLightbox(url,'',_photoCat); };
+        var emptySlot = grid.querySelector('.photo-slot.empty');
+        if(emptySlot) grid.insertBefore(slot,emptySlot); else grid.appendChild(slot);
+      }
+      showGlobalToast('Photo uploaded!','success');
+    } else showGlobalToast('❌ '+(d.error||'Upload failed'),'error');
+  })
+  .catch(function(){ showGlobalToast('Upload error','error'); });
+}
+
+function dragOver(e){ e.preventDefault(); document.getElementById('dropzone').classList.add('dragover'); }
+function dragLeave(){ document.getElementById('dropzone').classList.remove('dragover'); }
+function dropFiles(e){ e.preventDefault(); document.getElementById('dropzone').classList.remove('dragover'); handlePhotoUpload(e.dataTransfer.files); }
+
+function openLightbox(url,caption,cat){
+  document.getElementById('lbImg').src = url;
+  document.getElementById('lbCaption').textContent = (cat?cat+' · ':'')+caption;
+  document.getElementById('lightbox').classList.add('on');
+}
+function closeLightbox(){ document.getElementById('lightbox').classList.remove('on'); }
+
+/* ── NOTES ── */
+var _notesTimer = null;
+document.getElementById('notesArea').addEventListener('input',function(){
+  clearTimeout(_notesTimer);
+  _notesTimer = setTimeout(saveNotes, 3500);
+});
+function saveNotes(){
+  var notes = document.getElementById('notesArea').value;
+  fetch('/api/job/'+JOB_PK+'/notes/', {
+    method:'POST',
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json'},
+    body: JSON.stringify({notes:notes})
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok){
+      var el = document.getElementById('notesSavedMsg');
+      if(el){el.style.display='inline';setTimeout(function(){el.style.display='none';},2500);}
+    }
+  });
+}
+function insertTag(el,tag){
+  el.classList.toggle('on');
+  var area = document.getElementById('notesArea');
+  if(!area.value.includes(tag)) area.value += (area.value?' ':'')+tag;
+  area.focus();
+}
+
+/* ── TIMER ── */
+function renderTimer(){
+  var h=Math.floor(_timerSec/3600), m=Math.floor((_timerSec%3600)/60), s=_timerSec%60;
+  document.getElementById('timerDisp').textContent=(h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+}
+function toggleTimer(){
+  _timerOn = !_timerOn;
+  document.getElementById('timerToggleBtn').textContent = _timerOn ? '⏸ Pause' : '▶ Resume';
+}
+function resetTimer(){ _timerSec=0; renderTimer(); }
+if(_timerOn){ _timerIv = setInterval(function(){if(_timerOn){_timerSec++;renderTimer();}},1000); }
+renderTimer();
+
+/* ── MODALS ── */
+function openModal(id){ document.getElementById(id).classList.add('on'); document.body.style.overflow='hidden'; }
+function closeModal(id){ document.getElementById(id).classList.remove('on'); document.body.style.overflow=''; }
+function openCompleteModal(){ openModal('completeModal'); }
+function openIssueModal(){ openModal('issueModal'); }
+
+function setStar(n){
+  _starVal = n;
+  document.querySelectorAll('#starRow .star').forEach(function(s,i){ s.style.filter = i<n?'':'grayscale(1)'; });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,776 @@
+{% extends 'core/base.html' %}
+{% block title %}Garage Settings — {{ garage.name|default:"New Garage" }} — eGarage{% endblock %}
+
+{% block extra_head %}
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#e8192c;--red2:#c0111f;--green:#00a651;--green2:#008f45;
+  --blue:#1a56db;--blue2:#1448b8;--yellow:#f59e0b;--purple:#7c3aed;
+  --teal:#0891b2;--orange:#ea580c;
+  --fd:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;
+  --border:#e0e0e0;--muted:#777;--bg:#f0f2f5;
+}
+html,body{background:var(--bg);color:#111;font-family:var(--fb);overflow-x:hidden;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.navi{display:flex;align-items:center;padding:0 24px;height:60px;max-width:1400px;margin:0 auto;gap:14px;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-ico{width:32px;height:32px;border-radius:9px;background:var(--red);display:flex;align-items:center;justify-content:center;}
+.logo-ico svg{width:15px;height:15px;}
+.logo-name{font-family:var(--fd);font-size:1.15rem;font-weight:900;color:var(--red);}
+.logo-name span{color:#111;}
+.nav-role{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;background:rgba(124,58,237,.1);font-size:.62rem;font-weight:800;color:var(--purple);font-family:var(--fd);}
+.bc{display:flex;align-items:center;gap:5px;font-size:.74rem;color:var(--muted);}
+.bc a{color:var(--muted);text-decoration:none;}
+.bc a:hover{color:var(--purple);}
+.nav-r{margin-left:auto;display:flex;gap:8px;}
+.nb{padding:7px 15px;border-radius:8px;font-family:var(--fd);font-size:.75rem;font-weight:700;text-decoration:none;transition:all .15s;cursor:pointer;border:none;}
+.nb.ghost{border:1.5px solid var(--border);color:#333;background:#fff;}
+.nb.ghost:hover{border-color:var(--purple);color:var(--purple);}
+.nb.green{background:var(--green);color:#fff;}
+.nb.green:hover{background:var(--green2);}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#0f0824,#1a0a3c,#0d1635);padding:26px 24px 22px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-50px;right:-50px;width:240px;height:240px;border-radius:50%;background:rgba(124,58,237,.1);}
+.hero::after{content:'';position:absolute;bottom:-40px;left:5%;width:180px;height:180px;border-radius:50%;background:rgba(26,86,219,.08);}
+.hero-inner{max-width:1400px;margin:0 auto;position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.hero-title{font-family:var(--fd);font-size:1.5rem;font-weight:900;color:#fff;}
+.hero-sub{font-size:.74rem;color:rgba(255,255,255,.4);margin-top:4px;}
+.hero-status{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;}
+.hs-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:20px;font-size:.66rem;font-weight:700;font-family:var(--fd);}
+.hs-approved{background:rgba(0,166,81,.2);border:1px solid rgba(0,166,81,.3);color:#4ade80;}
+.hs-pending {background:rgba(255,159,10,.2);border:1px solid rgba(255,159,10,.3);color:#fbbf24;}
+.hs-rejected{background:rgba(232,25,44,.2);border:1px solid rgba(232,25,44,.3);color:#fca5a5;}
+.hs-new     {background:rgba(26,86,219,.2);border:1px solid rgba(26,86,219,.3);color:#93c5fd;}
+.dot-g{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:dblink 1.4s infinite;}
+.dot-y{width:7px;height:7px;border-radius:50%;background:#fbbf24;}
+@keyframes dblink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.hero-save{padding:11px 22px;background:var(--green);color:#fff;border:none;border-radius:10px;font-family:var(--fd);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:7px;}
+.hero-save svg{width:14px;height:14px;}
+.hero-save:hover{background:var(--green2);}
+
+/* ALERT BOXES */
+.alert-box{max-width:1400px;margin:0 auto 0;padding:12px 24px;}
+.alert-s{background:rgba(0,166,81,.1);border:1px solid rgba(0,166,81,.25);border-radius:10px;padding:12px 16px;color:var(--green);font-size:.8rem;font-weight:600;}
+.alert-e{background:rgba(232,25,44,.08);border:1px solid rgba(232,25,44,.2);border-radius:10px;padding:12px 16px;color:var(--red);font-size:.8rem;font-weight:600;}
+
+/* SETTINGS TABS */
+.stabs{background:#fff;border-bottom:1px solid var(--border);}
+.stabs-inner{max-width:1400px;margin:0 auto;padding:0 24px;display:flex;gap:0;overflow-x:auto;}
+.stab{padding:13px 20px;font-family:var(--fd);font-size:.75rem;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+.stab:hover{color:#333;}
+.stab.on{color:var(--purple);border-bottom-color:var(--purple);}
+.stab svg{width:13px;height:13px;}
+
+/* MAIN LAYOUT */
+.layout{max-width:1400px;margin:24px auto;padding:0 24px;display:grid;grid-template-columns:1fr 300px;gap:22px;align-items:start;}
+
+/* SECTION CARD */
+.sec{background:#fff;border:1.5px solid var(--border);border-radius:14px;margin-bottom:18px;overflow:hidden;}
+.sech{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.sech-l{display:flex;align-items:center;gap:9px;}
+.sech-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sech-ico svg{width:14px;height:14px;}
+.sech h3{font-family:var(--fd);font-size:.88rem;font-weight:800;color:#111;}
+.sech p{font-size:.63rem;color:var(--muted);margin-top:1px;}
+.secb{padding:20px;}
+.sec-panel{display:none;}
+.sec-panel.on{display:block;}
+
+/* FORM */
+.ff{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.ff:last-child{margin-bottom:0;}
+.ff label{font-size:.62rem;font-weight:700;color:#888;display:flex;align-items:center;gap:4px;}
+.ff input,.ff select,.ff textarea{padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:var(--fb);font-size:.82rem;color:#111;outline:none;transition:border-color .15s;background:#f8f8f8;width:100%;resize:none;}
+.ff input:focus,.ff select:focus,.ff textarea:focus{border-color:var(--purple);background:#fff;}
+.fgrid{display:grid;gap:12px;}
+.fgrid.g2{grid-template-columns:1fr 1fr;}
+.fgrid.g3{grid-template-columns:1fr 1fr 1fr;}
+.ff.full{grid-column:1/-1;}
+
+/* MAPS LINK PREVIEW */
+.maps-preview{display:none;margin-top:10px;background:rgba(66,133,244,.08);border:1px solid rgba(66,133,244,.2);border-radius:9px;padding:12px 14px;align-items:center;gap:10px;}
+.maps-preview.show{display:flex;}
+
+/* HOURS TABLE */
+.ht-row{display:grid;grid-template-columns:110px 1fr 1fr 90px 50px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #f8f8f8;}
+.ht-row:last-child{border-bottom:none;}
+.ht-row.header{padding:5px 0 8px;border-bottom:2px solid var(--border);}
+.ht-lbl{font-size:.6rem;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:#aaa;}
+.ht-day{font-size:.8rem;font-weight:700;color:#111;}
+.ht-day.weekend{color:var(--orange);}
+.ht-time{padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--fb);font-size:.78rem;color:#111;outline:none;transition:border-color .15s;background:#f8f8f8;width:100%;}
+.ht-time:focus{border-color:var(--purple);background:#fff;}
+.ht-closed-badge{display:inline-flex;align-items:center;gap:3px;padding:4px 9px;border-radius:20px;background:#f5f5f5;color:#aaa;font-size:.6rem;font-weight:700;}
+.copy-btn{padding:5px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:var(--fd);font-size:.6rem;font-weight:700;cursor:pointer;background:#fff;color:#555;transition:all .15s;white-space:nowrap;}
+.copy-btn:hover{border-color:var(--purple);color:var(--purple);}
+
+/* TOGGLE */
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f8f8f8;}
+.tog-row:last-child{border-bottom:none;}
+.tog-info h5{font-size:.78rem;font-weight:600;color:#111;}
+.tog-info p{font-size:.63rem;color:#aaa;margin-top:2px;}
+.toggle{width:38px;height:21px;background:#e0e0e0;border-radius:11px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';position:absolute;width:15px;height:15px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.toggle.on::after{transform:translateX(17px);}
+
+/* LOGO UPLOAD */
+.logo-upload{border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:#fafafa;}
+.logo-upload:hover{border-color:var(--purple);background:rgba(124,58,237,.03);}
+.lu-preview{width:70px;height:70px;border-radius:12px;object-fit:cover;display:none;margin:0 auto 10px;}
+.lu-preview.show{display:block;}
+.lu-ico{font-size:2rem;margin-bottom:8px;}
+.lu-title{font-family:var(--fd);font-size:.76rem;font-weight:800;color:#555;}
+.lu-sub{font-size:.62rem;color:#aaa;margin-top:2px;}
+
+/* MAP PREVIEW */
+.map-ph{background:linear-gradient(135deg,#e8f4fd,#dbeafe);border-radius:12px;height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;margin-top:12px;position:relative;overflow:hidden;}
+.map-ph::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='none' stroke='%23bfdbfe' stroke-width='.5'/%3E%3C/svg%3E") repeat;}
+.map-pin-icon{font-size:2rem;}
+.map-label{font-size:.72rem;font-weight:700;color:#1a56db;z-index:1;}
+
+/* PRICING TABLE */
+.ptable{width:100%;border-collapse:collapse;font-size:.78rem;}
+.ptable th{text-align:left;padding:8px 0;border-bottom:1px solid var(--border);font-size:.6rem;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:#aaa;}
+.ptable td{padding:9px 0;border-bottom:1px solid #f5f5f5;vertical-align:middle;}
+.ptable tr:last-child td{border-bottom:none;}
+.price-input{width:90px;padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:var(--fb);font-size:.8rem;color:#111;outline:none;background:#f8f8f8;text-align:right;}
+.price-input:focus{border-color:var(--purple);background:#fff;}
+
+/* APPROVAL BANNER */
+.approval-banner{background:rgba(255,159,10,.07);border:1px solid rgba(255,159,10,.2);border-radius:12px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:14px;}
+.ab-ico{font-size:1.6rem;flex-shrink:0;}
+.ab-title{font-family:var(--fd);font-size:.82rem;font-weight:800;color:#111;}
+.ab-sub{font-size:.72rem;color:var(--muted);margin-top:3px;line-height:1.5;}
+
+/* SIDEBAR */
+.sidebar{display:flex;flex-direction:column;gap:14px;}
+.scrd{background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;}
+.scrd-h{padding:13px 16px;border-bottom:1px solid var(--border);}
+.scrd-h h3{font-family:var(--fd);font-size:.84rem;font-weight:800;color:#111;}
+.scrd-h p{font-size:.63rem;color:var(--muted);margin-top:2px;}
+.scrd-b{padding:14px 16px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f8f8f8;font-size:.76rem;}
+.info-row:last-child{border-bottom:none;}
+.ir-k{color:var(--muted);}
+.ir-v{font-weight:600;color:#111;}
+.ir-v.green{color:var(--green);}
+.ir-v.red{color:var(--red);}
+.ir-v.yellow{color:var(--yellow);}
+
+.live-card{background:linear-gradient(135deg,#0f1f12,#0a1a0a);border-radius:13px;padding:16px;margin-bottom:14px;}
+.lc-time{font-family:var(--fd);font-size:1.6rem;font-weight:900;color:#fff;letter-spacing:1px;}
+.lc-date{font-size:.65rem;color:rgba(255,255,255,.4);margin-top:2px;}
+.lc-status{display:flex;align-items:center;gap:7px;margin-top:10px;}
+.lc-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;animation:dblink 1.4s infinite;}
+.lc-text{font-size:.74rem;font-weight:700;color:#4ade80;font-family:var(--fd);}
+.lc-sub{font-size:.62rem;color:rgba(255,255,255,.35);margin-top:3px;}
+.qstat-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.qstat{flex:1;min-width:70px;background:rgba(255,255,255,.07);border-radius:8px;padding:9px;text-align:center;}
+.qstat-n{font-family:var(--fd);font-size:.96rem;font-weight:900;color:#fff;line-height:1;}
+.qstat-l{font-size:.56rem;color:rgba(255,255,255,.35);margin-top:2px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:#111;color:#fff;padding:11px 17px;border-radius:10px;font-size:.76rem;font-weight:600;z-index:3000;display:none;align-items:center;gap:6px;}
+.toast.on{display:flex;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.toast svg{width:13px;height:13px;color:var(--green);}
+.warn{background:rgba(232,25,44,.05);border:1px solid rgba(232,25,44,.18);border-radius:9px;padding:12px 14px;font-size:.74rem;color:#555;line-height:1.6;}
+.warn strong{color:var(--red);}
+
+@media(max-width:960px){.layout{grid-template-columns:1fr;}.ht-row{grid-template-columns:90px 1fr 1fr 80px 40px;}}
+@media(max-width:600px){.ht-row{grid-template-columns:70px 1fr 1fr;}.ht-row .copy-btn,.ht-row .toggle{display:none;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<nav>
+  <div class="navi">
+    <a href="{% url 'home' %}" class="logo">
+      <div class="logo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2v-4a2 2 0 011.44-1.92l2-6A2 2 0 016.36 2H17.64a2 2 0 011.92 1.08l2 6A2 2 0 0123 11v4a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+      <span class="logo-name">e<span>Garage</span></span>
+    </a>
+    <div class="nav-role">🏢 Manager</div>
+    <div class="bc">
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><polyline points="9 18 15 12 9 6"/></svg>
+      <span style="color:#111;font-weight:600;">Garage Settings</span>
+    </div>
+    <div class="nav-r">
+      <a href="{% url 'reports' %}" class="nb ghost">Reports</a>
+      <button class="nb green" onclick="document.getElementById('mainForm').submit();">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="display:inline;vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg>
+        Save Garage
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO — real garage data -->
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-title">
+        {% if garage %}{{ garage.name }}{% else %}Set Up Your Garage{% endif %}
+      </div>
+      <div class="hero-sub">
+        {% if garage %}{{ garage.city }}{% if garage.address %} · {{ garage.address|truncatechars:50 }}{% endif %}
+        {% else %}Fill in your garage details below and submit for admin approval{% endif %}
+      </div>
+      <div class="hero-status">
+        {% if not garage %}
+          <div class="hs-pill hs-new">🆕 New Garage</div>
+        {% elif garage.approval_status == 'approved' %}
+          <div class="hs-pill hs-approved"><div class="dot-g"></div>✓ Live & Approved</div>
+        {% elif garage.approval_status == 'pending' %}
+          <div class="hs-pill hs-pending"><div class="dot-y"></div>⏳ Pending Admin Approval</div>
+        {% elif garage.approval_status == 'rejected' %}
+          <div class="hs-pill hs-rejected">✕ Rejected — Update & Resubmit</div>
+        {% endif %}
+      </div>
+    </div>
+    <button class="hero-save" onclick="document.getElementById('mainForm').submit();">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      {% if garage %}Save Changes{% else %}Submit Garage{% endif %}
+    </button>
+  </div>
+</div>
+
+{% if success or error %}
+<div class="alert-box">
+  {% if success %}<div class="alert-s">{{ success }}</div>{% endif %}
+  {% if error   %}<div class="alert-e">{{ error }}</div>{% endif %}
+</div>
+{% endif %}
+
+<!-- TABS -->
+<div class="stabs">
+  <div class="stabs-inner">
+    <div class="stab on" onclick="switchTab(this,'garage')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+      Garage Info
+    </div>
+    <div class="stab" onclick="switchTab(this,'hours')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Working Hours
+    </div>
+    <div class="stab" onclick="switchTab(this,'services')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+      Services
+    </div>
+    <div class="stab" onclick="switchTab(this,'notifications')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      Notifications
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+<div>
+
+  <!-- ══ MAIN FORM (Garage Info + Hours) ══ -->
+  <form method="POST" enctype="multipart/form-data" id="mainForm">
+    {% csrf_token %}
+
+    <!-- ════ GARAGE INFO TAB ════ -->
+    <div class="sec-panel on" id="panel-garage">
+
+      {% if garage and garage.approval_status == 'pending' %}
+      <div class="approval-banner">
+        <div class="ab-ico">⏳</div>
+        <div>
+          <div class="ab-title">Waiting for admin approval</div>
+          <div class="ab-sub">Your garage has been submitted. Admin will review within 24 hours. You can update details while waiting — changes save but activation requires approval.</div>
+        </div>
+      </div>
+      {% elif garage and garage.approval_status == 'rejected' %}
+      <div class="approval-banner" style="background:rgba(232,25,44,.06);border-color:rgba(232,25,44,.2);">
+        <div class="ab-ico">❌</div>
+        <div>
+          <div class="ab-title" style="color:var(--red);">Garage Rejected</div>
+          <div class="ab-sub">{% if garage.rejection_reason %}Reason: {{ garage.rejection_reason }}{% else %}Please update your garage details and save to resubmit for approval.{% endif %}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="sec">
+        <div class="sech">
+          <div class="sech-l">
+            <div class="sech-ico" style="background:rgba(26,86,219,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div>
+            <div><h3>Garage Profile</h3><p>Basic info shown to customers when booking</p></div>
+          </div>
+        </div>
+        <div class="secb">
+
+          <!-- Logo upload -->
+          <div class="logo-upload" onclick="document.getElementById('logoInput').click()" style="margin-bottom:16px;">
+            {% if garage.logo %}
+              <img id="logoPreview" class="lu-preview show" src="{{ garage.logo.url }}" alt="Logo">
+              <div id="logoPlaceholder" style="display:none;"><div class="lu-ico">🏪</div><div class="lu-title">Change Garage Logo</div><div class="lu-sub">PNG or JPG · 200×200px</div></div>
+            {% else %}
+              <img id="logoPreview" class="lu-preview" src="" alt="logo">
+              <div id="logoPlaceholder"><div class="lu-ico">🏪</div><div class="lu-title">Upload Garage Logo</div><div class="lu-sub">PNG or JPG · 200×200px recommended</div></div>
+            {% endif %}
+          </div>
+          <input type="file" id="logoInput" name="logo" accept="image/*" style="display:none;" onchange="previewLogo(this)">
+
+          <div class="fgrid g2">
+            <div class="ff full">
+              <label>Garage Name *</label>
+              <input type="text" name="name" value="{{ garage.name|default:'' }}" placeholder="e.g. eGarage Rajkot — Kalavad Road" required>
+            </div>
+            <div class="ff">
+              <label>Phone (Primary)</label>
+              <input type="tel" name="phone" value="{{ garage.phone|default:'' }}" placeholder="+91 80000 00000">
+            </div>
+            <div class="ff">
+              <label>WhatsApp / Phone 2</label>
+              <input type="tel" name="whatsapp" value="{{ garage.whatsapp|default:'' }}" placeholder="+91 80000 00001">
+            </div>
+            <div class="ff">
+              <label>Email</label>
+              <input type="email" name="email" value="{{ garage.email|default:'' }}" placeholder="garage@email.com">
+            </div>
+            <div class="ff">
+              <label>GST Number</label>
+              <input type="text" name="gst_number" value="{{ garage.gst_number|default:'' }}" placeholder="24AADCE9999N1Z4">
+            </div>
+            <div class="ff full">
+              <label>Description (shown to customers)</label>
+              <textarea name="description" rows="2" placeholder="Describe your garage — specializations, years of experience, brands…">{{ garage.description|default:'' }}</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADDRESS -->
+      <div class="sec">
+        <div class="sech">
+          <div class="sech-l">
+            <div class="sech-ico" style="background:rgba(232,25,44,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#e8192c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+            <div><h3>Full Address *</h3><p>Customers use this to find your garage</p></div>
+          </div>
+        </div>
+        <div class="secb">
+          <div class="fgrid g2">
+            <div class="ff full">
+              <label>Street Address *</label>
+              <input type="text" name="address" id="addrIn" value="{{ garage.address|default:'' }}" placeholder="e.g. Shop No. 12, Sahjanand Complex, Gondal Road" required>
+            </div>
+            <div class="ff">
+              <label>Area / Colony</label>
+              <input type="text" name="area" value="{{ garage.area|default:'' }}" placeholder="e.g. Gondal Road">
+            </div>
+            <div class="ff">
+              <label>City *</label>
+              <input type="text" name="city" value="{{ garage.city|default:'' }}" placeholder="e.g. Rajkot" required>
+            </div>
+            <div class="ff">
+              <label>State</label>
+              <input type="text" name="state" value="{{ garage.state|default:'Gujarat' }}" placeholder="Gujarat">
+            </div>
+            <div class="ff">
+              <label>Pincode</label>
+              <input type="text" name="pincode" value="{{ garage.pincode|default:'' }}" placeholder="e.g. 360004">
+            </div>
+            <div class="ff">
+              <label>Capacity (cars/day)</label>
+              <input type="number" name="capacity_per_day" value="{{ garage.capacity_per_day|default:20 }}" min="1">
+            </div>
+            <div class="ff">
+              <label>Advance Booking Fee (₹) <span style="font-size:.6rem;font-weight:400;color:var(--muted);">Charged upfront to confirm booking</span></label>
+              <input type="number" name="advance_fee" value="{{ garage.advance_fee|default:600 }}" min="0" max="5000" step="50" placeholder="600">
+              <span style="font-size:.62rem;color:var(--muted);display:block;margin-top:4px;">💡 Set ₹0 for no advance. Recommended: ₹500–₹1000 to prevent fake bookings.</span>
+            </div>
+            <div class="ff full">
+              <label>Landmark <span style="font-size:.6rem;font-weight:400;color:var(--muted);">(shown to customers — makes it easier to find)</span></label>
+              <input type="text" name="landmark" value="{{ garage.landmark|default:'' }}" placeholder="e.g. Opposite Punit Nagar Water Tank">
+            </div>
+
+            <!-- GOOGLE MAPS LINK — improved -->
+            <div class="ff full">
+              <label>Google Maps Link <span style="font-size:.6rem;font-weight:400;color:var(--muted);">(paste your share link — customers tap to open your exact location)</span></label>
+              <input type="url" name="maps_link" id="mapsLinkInput" value="{{ garage.maps_link|default:'' }}" placeholder="https://maps.google.com/?cid=… or https://maps.app.goo.gl/…" oninput="previewMapsLink(this.value)">
+              <div style="margin-top:7px;background:#f8f9fb;border-radius:8px;padding:10px 12px;font-size:.7rem;color:#555;line-height:1.8;border:1px solid var(--border);">
+                <strong>How to get your Google Maps link:</strong><br>
+                1. Open Google Maps on your phone or browser<br>
+                2. Search your garage name → tap your listing<br>
+                3. Tap <strong>Share</strong> → <strong>Copy link</strong> → paste above<br>
+                <span style="color:#888;">Any format works: short link, CID link, place link — all accepted ✓</span>
+              </div>
+              <div class="maps-preview" id="mapsLinkPreview">
+                <span style="font-size:1.2rem;">📍</span>
+                <div>
+                  <div style="font-size:.72rem;font-weight:700;color:var(--blue);">✓ Link looks good! Click to test it:</div>
+                  <a id="mapsLinkHref" href="#" target="_blank" rel="noopener" style="font-size:.65rem;color:var(--muted);word-break:break-all;text-decoration:underline;"></a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hidden lat/lng -->
+            <input type="hidden" name="lat" id="latIn" value="{{ garage.lat|default:'' }}">
+            <input type="hidden" name="lng" id="lngIn" value="{{ garage.lng|default:'' }}">
+          </div>
+
+          <!-- Map preview if lat/lng available -->
+          {% if garage.lat and garage.lng %}
+          <div class="map-ph">
+            <div class="map-pin-icon">📍</div>
+            <div class="map-label">{{ garage.name }}</div>
+            <div style="font-size:.62rem;color:#3b82f6;z-index:1;">{{ garage.lat }}, {{ garage.lng }}</div>
+          </div>
+          {% else %}
+          <div class="map-ph">
+            <div class="map-pin-icon">🗺️</div>
+            <div class="map-label">Location not pinned yet</div>
+            <div style="font-size:.62rem;color:#3b82f6;z-index:1;">Enter address above — coordinates auto-detected on save</div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div><!-- /garage panel -->
+
+    <!-- ════ HOURS TAB ════ -->
+    <div class="sec-panel" id="panel-hours">
+      <div class="sec">
+        <div class="sech">
+          <div class="sech-l">
+            <div class="sech-ico" style="background:rgba(26,86,219,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            <div><h3>Weekly Working Hours</h3><p>Set open & close times per day</p></div>
+          </div>
+          <button type="button" class="copy-btn" onclick="copyMonToAll()">Copy Mon hours to all weekdays</button>
+        </div>
+        <div class="secb">
+          <div class="ht-row header">
+            <div class="ht-lbl">Day</div>
+            <div class="ht-lbl">Opening</div>
+            <div class="ht-lbl">Closing</div>
+            <div class="ht-lbl">Open?</div>
+            <div class="ht-lbl"></div>
+          </div>
+
+          <div id="hoursRows"></div>
+
+          <div style="margin-top:16px;padding:12px 14px;background:#f8f9fb;border-radius:10px;border:1px solid var(--border);font-size:.73rem;color:#555;display:flex;align-items:center;gap:8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Hours are saved with the main form. Toggle days on/off — click Save Garage to apply.
+          </div>
+
+          <!-- Hidden fields for all 7 days (JS fills them) -->
+          {% for day_num, day_name in days %}
+          <input type="hidden" name="open_{{ day_num }}"   id="open-{{ day_num }}"   value="">
+          <input type="hidden" name="close_{{ day_num }}"  id="close-{{ day_num }}"  value="">
+          <input type="hidden" name="closed_{{ day_num }}" id="closed-{{ day_num }}" value="false">
+          {% endfor %}
+
+          <div style="margin-top:16px;padding:12px 14px;background:#f8f9fb;border-radius:10px;border:1px solid var(--border);font-size:.73rem;color:#555;display:flex;align-items:center;gap:8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Hours are saved with the main form. Toggle days on/off — click Save Garage to apply.
+          </div>
+        </div>
+      </div>
+    </div><!-- /hours panel -->
+
+  <!-- ════ SERVICES TAB (inside form is fine - read-only content) ════ -->
+  <div class="sec-panel" id="panel-services">
+    <div class="sec">
+      <div class="sech">
+        <div class="sech-l">
+          <div class="sech-ico" style="background:rgba(124,58,237,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+          <div><h3>Service Menu & Pricing</h3><p>Control which services you offer and set your own prices</p></div>
+        </div>
+        <a href="{% url 'garage_pricing' %}" style="padding:9px 18px;background:var(--red);color:#fff;border-radius:9px;font-family:var(--fd);font-size:.72rem;font-weight:700;text-decoration:none;">⚙️ Open Pricing Manager →</a>
+      </div>
+      <div class="secb">
+        <!-- Advance fee quick-edit -->
+        <div style="background:rgba(124,58,237,.06);border:1.5px solid rgba(124,58,237,.15);border-radius:12px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <div>
+            <div style="font-family:var(--fd);font-size:.82rem;font-weight:800;color:#111;">💳 Advance Booking Fee</div>
+            <div style="font-size:.68rem;color:var(--muted);margin-top:2px;">Charged to customer when booking is confirmed. Current: <strong style="color:var(--purple);">₹{{ garage.advance_fee|default:600|floatformat:0 }}</strong></div>
+          </div>
+          <form method="POST" action="{% url 'garage_pricing' %}" style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_advance">
+            <div style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;">
+              <span style="padding:8px 11px;background:#f8f8f8;font-family:var(--fd);font-size:.82rem;font-weight:800;border-right:1px solid var(--border);">₹</span>
+              <input type="number" name="advance_fee" value="{{ garage.advance_fee|default:600|floatformat:0 }}" min="0" max="5000" step="50"
+                style="padding:8px 11px;border:none;font-family:var(--fd);font-size:.9rem;font-weight:900;color:var(--red);width:90px;outline:none;">
+            </div>
+            <button type="submit" style="padding:8px 16px;background:var(--purple);color:#fff;border:none;border-radius:8px;font-family:var(--fd);font-size:.7rem;font-weight:700;cursor:pointer;">Update</button>
+          </form>
+        </div>
+
+        <!-- Services list with toggle + quick price -->
+        {% if all_services %}
+        <div style="font-family:var(--fd);font-size:.7rem;font-weight:800;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px;">Your Service Menu</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          {% for row in service_rows %}
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border:1.5px solid {% if row.offered %}rgba(0,166,81,.2){% else %}var(--border){% endif %};border-radius:10px;transition:all .15s;{% if not row.offered %}opacity:.55;{% endif %}">
+            <div style="font-size:1.2rem;flex-shrink:0;">{{ row.svc.icon_emoji }}</div>
+            <div style="flex:1;">
+              <div style="font-family:var(--fd);font-size:.8rem;font-weight:800;color:#111;">{{ row.svc.name }}</div>
+              <div style="font-size:.62rem;color:var(--muted);margin-top:1px;">
+                Standard:
+                <strong style="color:{% if row.standard %}var(--red){% else %}#aaa{% endif %};">
+                  ₹{% if row.standard %}{{ row.standard|floatformat:0 }}{% else %}{{ row.svc.price_standard|floatformat:0 }} (global){% endif %}
+                </strong>
+                {% if row.notes %} · <em>{{ row.notes|truncatechars:40 }}</em>{% endif %}
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:.62rem;font-weight:700;color:{% if row.offered %}var(--green){% else %}#aaa{% endif %};">
+                {% if row.offered %}● Available{% else %}○ Hidden{% endif %}
+              </span>
+            </div>
+          </div>
+          {% endfor %}
+
+          {% if custom_services %}
+          <div style="font-family:var(--fd);font-size:.7rem;font-weight:800;color:var(--purple);letter-spacing:.6px;text-transform:uppercase;margin:8px 0 6px;">✨ Your Custom Services</div>
+          {% for cs in custom_services %}
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(124,58,237,.04);border:1.5px solid rgba(124,58,237,.15);border-radius:10px;">
+            <div style="font-size:1.2rem;">{{ cs.icon_emoji }}</div>
+            <div style="flex:1;">
+              <div style="font-family:var(--fd);font-size:.8rem;font-weight:800;color:#111;">{{ cs.name }}</div>
+              <div style="font-size:.62rem;color:var(--muted);">Standard ₹{{ cs.price_standard|floatformat:0 }} · {{ cs.duration_hours }}h</div>
+            </div>
+            <span style="font-size:.6rem;font-weight:700;font-family:var(--fd);padding:3px 8px;background:rgba(124,58,237,.1);color:var(--purple);border-radius:20px;">Custom</span>
+          </div>
+          {% endfor %}
+          {% endif %}
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:32px;color:#aaa;font-size:.76rem;">No services configured yet.</div>
+        {% endif %}
+
+        <div style="margin-top:16px;padding:12px 16px;background:#f8f8f8;border-radius:10px;font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:10px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          To toggle services on/off, set custom prices, or add unique services, use the full
+          <a href="{% url 'garage_pricing' %}" style="color:var(--red);font-weight:700;margin-left:3px;">Pricing Manager →</a>
+        </div>
+      </div>
+    </div>
+  </div><!-- /services panel -->
+
+  <!-- ════ NOTIFICATIONS TAB ════ -->
+  <div class="sec-panel" id="panel-notifications">
+    <div class="sec">
+      <div class="sech"><div class="sech-l"><div class="sech-ico" style="background:rgba(26,86,219,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div><div><h3>Customer Notifications</h3><p>SMS and push alerts sent to customers</p></div></div></div>
+      <div class="secb">
+        <div class="tog-row"><div class="tog-info"><h5>Booking confirmation SMS</h5><p>Sent instantly when booking is placed</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="tog-row"><div class="tog-info"><h5>Pickup reminder (30 min before)</h5><p>Notifies customer when driver is on the way</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="tog-row"><div class="tog-info"><h5>Service progress updates</h5><p>Sent when each checklist stage completes</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="tog-row"><div class="tog-info"><h5>Service completed notification</h5><p>Includes invoice + warranty details</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="tog-row"><div class="tog-info"><h5>Review request (after delivery)</h5><p>Sent 2 hours after job marked delivered</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sech"><div class="sech-l"><div class="sech-ico" style="background:rgba(124,58,237,.08);"><svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div><h3>Mechanic Alerts</h3><p>Push notifications to mechanics</p></div></div></div>
+      <div class="secb">
+        <div class="tog-row"><div class="tog-info"><h5>New job assigned notification</h5><p>Instant push when manager assigns a job</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="tog-row"><div class="tog-info"><h5>Job reschedule alert</h5><p>Notified when customer reschedules</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="tog-row"><div class="tog-info"><h5>Shift reminder (1 hour before)</h5><p>Daily shift start reminder</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+    </div>
+    <div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px 16px;font-size:.74rem;color:#92400e;">
+      ℹ️ Notification preferences are platform-wide. Contact support to customise delivery channels.
+    </div>
+  </div><!-- /notifications panel -->
+
+  </form><!-- /mainForm -->
+
+</div><!-- /main col -->
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+
+  <!-- Live clock -->
+  <div class="live-card">
+    <div class="lc-time" id="liveTime">—</div>
+    <div class="lc-date" id="liveDate">—</div>
+    {% if garage and garage.approval_status == 'approved' %}
+    <div class="lc-status"><div class="lc-dot"></div><div class="lc-text">Garage Active</div></div>
+    <div class="lc-sub">Visible to customers on the map</div>
+    {% elif garage %}
+    <div class="lc-status"><div class="lc-dot" style="background:#fbbf24;animation:none;"></div><div class="lc-text" style="color:#fbbf24;">Awaiting Approval</div></div>
+    <div class="lc-sub">Not visible to customers yet</div>
+    {% else %}
+    <div class="lc-status"><div class="lc-dot" style="background:#60a5fa;animation:none;"></div><div class="lc-text" style="color:#60a5fa;">Fill Details Below</div></div>
+    <div class="lc-sub">Submit to go live after approval</div>
+    {% endif %}
+    {% if today_bookings is not None %}
+    <div class="qstat-row">
+      <div class="qstat"><div class="qstat-n">{{ today_bookings }}</div><div class="qstat-l">Today</div></div>
+      <div class="qstat"><div class="qstat-n">{{ month_bookings }}</div><div class="qstat-l">This month</div></div>
+      <div class="qstat"><div class="qstat-n">{{ team_count }}</div><div class="qstat-l">Team</div></div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Garage summary — real data -->
+  <div class="scrd">
+    <div class="scrd-h"><h3>Current Info</h3><p>What's saved right now</p></div>
+    <div class="scrd-b">
+      <div class="info-row"><span class="ir-k">Status</span><span class="ir-v {% if garage.approval_status == 'approved' %}green{% elif garage.approval_status == 'rejected' %}red{% else %}yellow{% endif %}">{% if garage %}{{ garage.approval_status|capfirst }}{% else %}Not created{% endif %}</span></div>
+      <div class="info-row"><span class="ir-k">City</span><span class="ir-v">{{ garage.city|default:"—" }}</span></div>
+      <div class="info-row"><span class="ir-k">Phone</span><span class="ir-v">{{ garage.phone|default:"—" }}</span></div>
+      <div class="info-row"><span class="ir-k">Capacity</span><span class="ir-v">{{ garage.capacity_per_day|default:"—" }} cars/day</span></div>
+      <div class="info-row"><span class="ir-k">Maps link</span><span class="ir-v {% if garage.maps_link %}green{% else %}red{% endif %}">{% if garage.maps_link %}✓ Set{% else %}Not set{% endif %}</span></div>
+      <div class="info-row"><span class="ir-k">Services</span><span class="ir-v green">{{ all_services|length }} available</span></div>
+    </div>
+  </div>
+
+  <!-- Quick links -->
+  <div class="scrd">
+    <div class="scrd-h"><h3>Quick Links</h3></div>
+    <a href="{% url 'dashboard' %}" style="display:flex;align-items:center;gap:10px;padding:11px 16px;text-decoration:none;color:#111;transition:background .15s;font-size:.76rem;font-weight:600;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background=''">📊 Dashboard</a>
+    <div style="height:1px;background:var(--border);margin:0 16px;"></div>
+    <a href="{% url 'team' %}"    style="display:flex;align-items:center;gap:10px;padding:11px 16px;text-decoration:none;color:#111;transition:background .15s;font-size:.76rem;font-weight:600;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background=''">👥 Team Management</a>
+    <div style="height:1px;background:var(--border);margin:0 16px;"></div>
+    <a href="{% url 'reports' %}" style="display:flex;align-items:center;gap:10px;padding:11px 16px;text-decoration:none;color:#111;transition:background .15s;font-size:.76rem;font-weight:600;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background=''">📈 Reports</a>
+    <div style="height:1px;background:var(--border);margin:0 16px;"></div>
+    <a href="{% url 'garage_finder' %}" style="display:flex;align-items:center;gap:10px;padding:11px 16px;text-decoration:none;color:#111;transition:background .15s;font-size:.76rem;font-weight:600;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background=''">🗺️ View on Map</a>
+  </div>
+
+</div>
+</div><!-- /layout -->
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span id="toastMsg"></span></div>
+
+<script>
+/* TAB SWITCH */
+function switchTab(el, tab) {
+  document.querySelectorAll('.stab').forEach(function(t){ t.classList.remove('on'); });
+  document.querySelectorAll('.sec-panel').forEach(function(p){ p.classList.remove('on'); });
+  el.classList.add('on');
+  document.getElementById('panel-'+tab).classList.add('on');
+}
+
+/* HOURS — loaded from Django DB */
+var DAYS_CFG = [
+  {% for day_num, day_name in days %}
+  {num:{{ day_num }}, name:'{{ day_name }}', weekend:{% if day_num >= 5 %}true{% else %}false{% endif %},
+   open:'{% for h in garage_hours.values %}{% if h.day == day_num %}{{ h.open_time|time:"H:i" }}{% endif %}{% endfor %}' || '09:00',
+   close:'{% for h in garage_hours.values %}{% if h.day == day_num %}{{ h.close_time|time:"H:i" }}{% endif %}{% endfor %}' || '19:00',
+   closed:{% for h in garage_hours.values %}{% if h.day == day_num %}{% if h.is_closed %}true{% else %}false{% endif %}{% endif %}{% endfor %} || {% if day_num == 6 %}true{% else %}false{% endif %}
+  }{% if not forloop.last %},{% endif %}
+  {% endfor %}
+];
+
+function buildHoursUI(){
+  var html = DAYS_CFG.map(function(d){
+    return '<div class="ht-row">'
+      +'<div class="ht-day'+(d.weekend?' weekend':'')+'">'+d.name+'</div>'
+      +'<input type="time" class="ht-time" data-day="'+d.num+'" data-field="open" value="'+d.open+'"'+(d.closed?' disabled style="opacity:.4;"':'')+' onchange="syncHour('+d.num+')">'
+      +'<input type="time" class="ht-time" data-day="'+d.num+'" data-field="close" value="'+d.close+'"'+(d.closed?' disabled style="opacity:.4;"':'')+' onchange="syncHour('+d.num+')">'
+      +'<div class="toggle'+(d.closed?'':' on')+'" id="daytog-'+d.num+'" onclick="toggleDay('+d.num+')"></div>'
+      +'<button type="button" class="copy-btn" onclick="copyRow('+d.num+')">Copy</button>'
+      +'</div>';
+  }).join('');
+  document.getElementById('hoursRows').innerHTML = html;
+  // Sync all to hidden fields
+  DAYS_CFG.forEach(function(d){ syncHour(d.num); });
+}
+
+function syncHour(num){
+  var row = DAYS_CFG[num];
+  var opens  = document.querySelectorAll('[data-day="'+num+'"][data-field="open"]');
+  var closes = document.querySelectorAll('[data-day="'+num+'"][data-field="close"]');
+  if(opens.length)  { row.open  = opens[0].value;  document.getElementById('open-'+num).value  = opens[0].value; }
+  if(closes.length) { row.close = closes[0].value; document.getElementById('close-'+num).value = closes[0].value; }
+  document.getElementById('closed-'+num).value = row.closed ? 'true' : 'false';
+}
+
+/* Override toggleDay to use DAYS_CFG */
+function toggleDay(i){
+  DAYS_CFG[i].closed = !DAYS_CFG[i].closed;
+  buildHoursUI();
+}
+
+function copyRow(i){
+  var d = DAYS_CFG[i];
+  for(var j=0; j<5; j++){
+    if(!DAYS_CFG[j].closed){ DAYS_CFG[j].open = d.open; DAYS_CFG[j].close = d.close; }
+  }
+  buildHoursUI();
+  showToast('Hours copied to all open weekdays!');
+}
+
+function copyMonToAll(){
+  var d = DAYS_CFG[0];
+  for(var j=1; j<5; j++){
+    if(!DAYS_CFG[j].closed){ DAYS_CFG[j].open = d.open; DAYS_CFG[j].close = d.close; }
+  }
+  buildHoursUI();
+  showToast('Monday hours copied to Tue–Fri!');
+}
+
+buildHoursUI();
+
+/* Sync hours to hidden fields ON SUBMIT — guarantees times are never empty */
+document.getElementById('mainForm').addEventListener('submit', function(){
+  DAYS_CFG.forEach(function(d){
+    document.getElementById('open-'+d.num).value   = d.closed ? '09:00' : (d.open  || '09:00');
+    document.getElementById('close-'+d.num).value  = d.closed ? '19:00' : (d.close || '19:00');
+    document.getElementById('closed-'+d.num).value = d.closed ? 'true'  : 'false';
+  });
+});
+
+/* MAPS LINK PREVIEW */
+function previewMapsLink(val){
+  var box  = document.getElementById('mapsLinkPreview');
+  var href = document.getElementById('mapsLinkHref');
+  if(!box||!href) return;
+  val = val.trim();
+  if(val.length > 10 && (val.startsWith('http://')||val.startsWith('https://'))){
+    box.classList.add('show');
+    href.href = val;
+    href.textContent = val.length > 70 ? val.substring(0,70)+'…' : val;
+  } else {
+    box.classList.remove('show');
+  }
+}
+(function(){
+  var inp = document.getElementById('mapsLinkInput');
+  if(inp && inp.value) previewMapsLink(inp.value);
+})();
+
+/* LOGO PREVIEW */
+function previewLogo(inp){
+  var f=inp.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(e){
+    var pr=document.getElementById('logoPreview');
+    pr.src=e.target.result; pr.classList.add('show');
+    document.getElementById('logoPlaceholder').style.display='none';
+    showToast('Logo ready — save to upload');
+  };
+  r.readAsDataURL(f);
+}
+
+/* CLOCK */
+function tick(){
+  var now=new Date();
+  var h=now.getHours()%12||12,m=now.getMinutes(),s=now.getSeconds(),ap=now.getHours()>=12?'PM':'AM';
+  document.getElementById('liveTime').textContent=h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s+' '+ap;
+  document.getElementById('liveDate').textContent=now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+setInterval(tick,1000); tick();
+
+/* TOAST */
+function showToast(msg,err){
+  var t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  t.style.background=err?'#ef4444':'#111';
+  t.classList.add('on');
+  setTimeout(function(){t.classList.remove('on');},3200);
+}
+
+{% if success %}setTimeout(function(){showToast('{{ success|escapejs }}');},400);{% endif %}
+</script>
+{% endblock %}
